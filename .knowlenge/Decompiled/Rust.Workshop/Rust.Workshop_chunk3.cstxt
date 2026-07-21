@@ -2,12 +2,12 @@ using System;
 using System.Collections;
 using System.Collections.Generic;
 using System.Diagnostics;
+using System.IO;
 using System.Text;
 using Facepunch;
 using Rust;
 using Rust.Workshop;
 using UnityEngine;
-using UnityEngine.SceneManagement;
 
 public class WorkshopSkin : MonoBehaviour
 {
@@ -308,29 +308,17 @@ public class WorkshopSkin : MonoBehaviour
 		}
 	}
 
-	private static bool CanUseBundles()
-	{
-		return IsInGame();
-	}
-
-	private static bool IsInGame()
-	{
-		//IL_0005: Unknown result type (might be due to invalid IL or missing references)
-		//IL_000a: Unknown result type (might be due to invalid IL or missing references)
-		Scene sceneByName = SceneManager.GetSceneByName("AssetScene-prefabs");
-		return ((Scene)(ref sceneByName)).isLoaded;
-	}
-
 	private static IEnumerator LoadItem(ulong workshopId, Action failureCallback)
 	{
 		int index = GetBundleIndex(workshopId);
 		AssetBundle val = bundles[index];
-		if ((Object)(object)val == (Object)null && CanUseBundles())
+		if ((Object)(object)val == (Object)null)
 		{
 			AssetBundleCreateRequest val2 = bundleRequests[index];
 			if (val2 == null)
 			{
-				val2 = (bundleRequests[index] = AssetBundle.LoadFromFileAsync("Bundles/textures/textures." + index + ".bundle"));
+				string text = Path.Combine(Application.installPath, $"Bundles/textures/textures.{index}.bundle");
+				val2 = (bundleRequests[index] = AssetBundle.LoadFromFileAsync(text));
 			}
 			yield return val2;
 			val = (bundles[index] = bundleRequests[index].assetBundle);
@@ -819,7 +807,7 @@ public class Skin
 				if ((Object)(object)val == (Object)null && directory != null)
 				{
 					textureName = directory + "/" + mat.Value;
-					if (File.Exists(textureName))
+					if (!textureName.Contains("..") && File.Exists(textureName))
 					{
 						AsyncTextureLoad request = new AsyncTextureLoad(textureName, isNormalMap, !isNormalMap, true, false, compressTexturesOnLoad);
 						yield return request;
@@ -1378,6 +1366,7 @@ public class WorkshopViewmodelControls : MonoBehaviour
 		}
 	}
 
+	[UnityEvent]
 	private void OnAdmirePressed()
 	{
 		_ = currentViewmodel;
@@ -1893,6 +1882,7 @@ public class WorkshopItemEditor : SingletonComponent<WorkshopItemEditor>
 		((TMP_Text)SelectedItemTypeLabel).text = type;
 	}
 
+	[UnityEvent]
 	public void SearchItemTypes(string search)
 	{
 		search = search.ToLower().Trim();
@@ -2063,6 +2053,7 @@ public class WorkshopItemEditor : SingletonComponent<WorkshopItemEditor>
 		return result;
 	}
 
+	[UnityEvent]
 	public void RandomizePlayerPreview()
 	{
 		if (Skinnable.Category != Category.Deployable)
@@ -2072,6 +2063,7 @@ public class WorkshopItemEditor : SingletonComponent<WorkshopItemEditor>
 		}
 	}
 
+	[UnityEvent]
 	public void DownloadModel()
 	{
 		((MonoBehaviour)this).StartCoroutine(DoDownloadModel());
@@ -2121,12 +2113,14 @@ public class WorkshopItemEditor : SingletonComponent<WorkshopItemEditor>
 		ViewmodelControls.DoUpdate(ViewModel);
 	}
 
+	[UnityEvent]
 	public void SwitchMaterial(int i)
 	{
 		EditingMaterial = i;
 		UpdateMaterialRows();
 	}
 
+	[UnityEvent]
 	public void ToggleDepthOfField(bool toggle)
 	{
 		dofToggled = toggle;
@@ -2140,6 +2134,7 @@ public class WorkshopItemEditor : SingletonComponent<WorkshopItemEditor>
 		}
 	}
 
+	[UnityEvent]
 	public void HidePlayerModel(bool toggle)
 	{
 		hiddenPlayerModel = toggle;
@@ -2156,6 +2151,7 @@ public class WorkshopItemEditor : SingletonComponent<WorkshopItemEditor>
 		ToggleFXButton.Toggle(true, true, true);
 	}
 
+	[UnityEvent]
 	public void ToggleWorkshopFX(bool toggle)
 	{
 		if ((Object)(object)Prefab == (Object)null)
@@ -2267,6 +2263,7 @@ public class WorkshopItemEditor : SingletonComponent<WorkshopItemEditor>
 		}
 	}
 
+	[UnityEvent]
 	public void BulkImport()
 	{
 		((MonoBehaviour)this).StartCoroutine(DoBulkImport());
@@ -2322,22 +2319,32 @@ public class ColorRow : MaterialRow
 	{
 		//IL_0007: Unknown result type (might be due to invalid IL or missing references)
 		//IL_000c: Unknown result type (might be due to invalid IL or missing references)
-		//IL_0013: Unknown result type (might be due to invalid IL or missing references)
-		//IL_002a: Unknown result type (might be due to invalid IL or missing references)
-		//IL_0041: Unknown result type (might be due to invalid IL or missing references)
-		//IL_005a: Unknown result type (might be due to invalid IL or missing references)
-		//IL_005f: Unknown result type (might be due to invalid IL or missing references)
+		//IL_0015: Unknown result type (might be due to invalid IL or missing references)
+		//IL_001a: Unknown result type (might be due to invalid IL or missing references)
+		//IL_0021: Unknown result type (might be due to invalid IL or missing references)
+		//IL_007f: Unknown result type (might be due to invalid IL or missing references)
+		//IL_0096: Unknown result type (might be due to invalid IL or missing references)
+		//IL_00ad: Unknown result type (might be due to invalid IL or missing references)
+		//IL_00bf: Unknown result type (might be due to invalid IL or missing references)
+		//IL_0056: Unknown result type (might be due to invalid IL or missing references)
+		//IL_005e: Unknown result type (might be due to invalid IL or missing references)
 		//IL_0066: Unknown result type (might be due to invalid IL or missing references)
-		//IL_0076: Unknown result type (might be due to invalid IL or missing references)
+		//IL_006e: Unknown result type (might be due to invalid IL or missing references)
 		Color color = source.GetColor(ParamName);
+		defaultColour = def.GetColor(ParamName);
+		defaultColourIntensity = ColorEx.GetHDRIntensity(defaultColour);
+		if (defaultColourIntensity != 1f)
+		{
+			float num = 0.7490196f * Mathf.Pow(2f, defaultColourIntensity);
+			((Color)(ref color))..ctor(color.r / num, color.g / num, color.b / num, color.a);
+		}
 		Red.Value = color.r * 255f;
 		Green.Value = color.g * 255f;
 		Blue.Value = color.b * 255f;
-		defaultColour = def.GetColor(ParamName);
-		defaultColourIntensity = ColorEx.GetHDRIntensity(defaultColour);
 		UpdateColour(color);
 	}
 
+	[UnityEvent]
 	public void ResetToDefault()
 	{
 		//IL_0056: Unknown result type (might be due to invalid IL or missing references)
@@ -2347,6 +2354,7 @@ public class ColorRow : MaterialRow
 		UpdateColour(defaultColour);
 	}
 
+	[UnityEvent]
 	public void OnChanged()
 	{
 		//IL_0001: Unknown result type (might be due to invalid IL or missing references)
@@ -2417,12 +2425,14 @@ public class FloatRow : MaterialRow
 		base.Editor.SetFloat(ParamName, @float);
 	}
 
+	[UnityEvent]
 	public void ResetToDefault()
 	{
 		Slider.Value = Default;
 		base.Editor.SetFloat(ParamName, Default);
 	}
 
+	[UnityEvent]
 	public void OnChanged()
 	{
 		base.Editor.SetFloat(ParamName, Slider.Value);
@@ -2529,6 +2539,7 @@ public class TextureRow : MaterialRow
 		}
 	}
 
+	[UnityEvent]
 	public void OpenFileBrowser()
 	{
 		((MonoBehaviour)this).StartCoroutine(BrowseForTexture());
@@ -2597,6 +2608,7 @@ public class TextureRow : MaterialRow
 		SetTexture(texture);
 	}
 
+	[UnityEvent]
 	public void OpenFileLocation()
 	{
 		if (!IsDefault)
@@ -2605,6 +2617,7 @@ public class TextureRow : MaterialRow
 		}
 	}
 
+	[UnityEvent]
 	public void SaveFile()
 	{
 		if (!((Object)(object)TargetImage.texture == (Object)null))
@@ -2635,6 +2648,7 @@ public class TextureRow : MaterialRow
 		}
 	}
 
+	[UnityEvent]
 	public void ResetToDefault()
 	{
 		StopWatching();
@@ -2642,6 +2656,7 @@ public class TextureRow : MaterialRow
 		base.Editor.SetTexture(ParamName, Default);
 	}
 
+	[UnityEvent]
 	public void ResetToClear()
 	{
 		StopWatching();
@@ -2775,7 +2790,7 @@ public class Publisher : MonoBehaviour
 
 	private List<string> AutomatedScreenshotPaths = new List<string>();
 
-	private static readonly int API_SEND_CHUNK_SIZE = 3;
+	private static readonly int API_SEND_CHUNK_SIZE = 1;
 
 	private FileInfo customIconFile;
 
@@ -2785,6 +2800,7 @@ public class Publisher : MonoBehaviour
 
 	protected WorkshopItemEditor Editor => SingletonComponent<WorkshopItemEditor>.Instance;
 
+	[UnityEvent]
 	public void StartExport()
 	{
 		DoExport(publishToSteam: true, openFolder: false);
@@ -3136,6 +3152,7 @@ public class Publisher : MonoBehaviour
 		}
 	}
 
+	[UnityEvent]
 	public void Export()
 	{
 		DoExport();
@@ -3154,6 +3171,7 @@ public class Publisher : MonoBehaviour
 		}
 	}
 
+	[UnityEvent]
 	public void OpenFileBrowserForCustomIcon()
 	{
 		((MonoBehaviour)this).StartCoroutine(BrowseForCustomIcon());
@@ -3179,6 +3197,7 @@ public class Publisher : MonoBehaviour
 		}
 	}
 
+	[UnityEvent]
 	public void OpenCustomIconFileLocation()
 	{
 		if (customIconFile != null)
@@ -3204,6 +3223,7 @@ public class Publisher : MonoBehaviour
 		customIconImage.texture = texture;
 	}
 
+	[UnityEvent]
 	public void ClearCustomIcon()
 	{
 		customIconFile = null;
@@ -3212,6 +3232,7 @@ public class Publisher : MonoBehaviour
 		SetTexturePreview(null);
 	}
 
+	[UnityEvent]
 	public void OpenFileBrowserForCustomPreview()
 	{
 		((MonoBehaviour)this).StartCoroutine(BrowseForCustomPreview());
@@ -3251,6 +3272,7 @@ public class Publisher : MonoBehaviour
 		customPreviews.Remove(button);
 	}
 
+	[UnityEvent]
 	public void OpenDocumentationTips()
 	{
 		SafeOpenURL("https://wiki.facepunch.com/rust/Creating_Skins");
@@ -3265,12 +3287,13 @@ public class Publisher : MonoBehaviour
 
 
 using UnityEngine;
+using UnityEngine.InputSystem;
 
 public class WorkshopCameraKeybindAnchor : MonoBehaviour
 {
-	public KeyCode holdKey = (KeyCode)306;
+	public Key holdKey = (Key)1;
 
-	public KeyCode pressKey;
+	public Key pressKey;
 }
 
 
@@ -3401,6 +3424,7 @@ public class WorkshopView : MonoBehaviour
 		}
 	}
 
+	[UnityEvent]
 	public void OnVoteUp()
 	{
 		//IL_0019: Unknown result type (might be due to invalid IL or missing references)
@@ -3418,6 +3442,7 @@ public class WorkshopView : MonoBehaviour
 		}
 	}
 
+	[UnityEvent]
 	public void OnVoteDown()
 	{
 		//IL_0019: Unknown result type (might be due to invalid IL or missing references)
@@ -3435,6 +3460,7 @@ public class WorkshopView : MonoBehaviour
 		}
 	}
 
+	[UnityEvent]
 	public void OpenWeb()
 	{
 		if (item != null)

@@ -1,4 +1,4442 @@
 using System;
+using System.Collections.Generic;
+using System.IO;
+using Facepunch;
+using ProtoBuf;
+using SilentOrbit.ProtocolBuffers;
+
+public class ZiplineMountable : IDisposable, IPooled, IProto<ZiplineMountable>, IProto
+{
+	public bool ShouldPool = true;
+
+	private bool _disposed;
+
+	[NonSerialized]
+	public List<VectorData> linePoints;
+
+	public static void ResetToPool(ZiplineMountable instance)
+	{
+		if (instance.ShouldPool)
+		{
+			if (instance.linePoints != null)
+			{
+				List<VectorData> list = instance.linePoints;
+				Pool.FreeUnmanaged<VectorData>(ref list);
+				instance.linePoints = list;
+			}
+			Pool.Free<ZiplineMountable>(ref instance);
+		}
+	}
+
+	public void ResetToPool()
+	{
+		ResetToPool(this);
+	}
+
+	public virtual void Dispose()
+	{
+		if (!ShouldPool)
+		{
+			throw new Exception("Trying to dispose ZiplineMountable with ShouldPool set to false!");
+		}
+		if (!_disposed)
+		{
+			ResetToPool();
+			_disposed = true;
+		}
+	}
+
+	public virtual void EnterPool()
+	{
+		_disposed = true;
+	}
+
+	public virtual void LeavePool()
+	{
+		_disposed = false;
+	}
+
+	public void CopyTo(ZiplineMountable instance)
+	{
+		if (linePoints != null)
+		{
+			instance.linePoints = Pool.Get<List<VectorData>>();
+			for (int i = 0; i < linePoints.Count; i++)
+			{
+				VectorData item = linePoints[i];
+				instance.linePoints.Add(item);
+			}
+		}
+		else
+		{
+			instance.linePoints = null;
+		}
+	}
+
+	public ZiplineMountable Copy()
+	{
+		ZiplineMountable ziplineMountable = Pool.Get<ZiplineMountable>();
+		CopyTo(ziplineMountable);
+		return ziplineMountable;
+	}
+
+	public static ZiplineMountable Deserialize(BufferStream stream)
+	{
+		ZiplineMountable ziplineMountable = Pool.Get<ZiplineMountable>();
+		Deserialize(stream, ziplineMountable, isDelta: false);
+		return ziplineMountable;
+	}
+
+	public static ZiplineMountable DeserializeLengthDelimited(BufferStream stream)
+	{
+		ZiplineMountable ziplineMountable = Pool.Get<ZiplineMountable>();
+		DeserializeLengthDelimited(stream, ziplineMountable, isDelta: false);
+		return ziplineMountable;
+	}
+
+	public static ZiplineMountable DeserializeLength(BufferStream stream, int length)
+	{
+		ZiplineMountable ziplineMountable = Pool.Get<ZiplineMountable>();
+		DeserializeLength(stream, length, ziplineMountable, isDelta: false);
+		return ziplineMountable;
+	}
+
+	public static ZiplineMountable Deserialize(byte[] buffer)
+	{
+		ZiplineMountable ziplineMountable = Pool.Get<ZiplineMountable>();
+		using BufferStream stream = Pool.Get<BufferStream>().Initialize(buffer);
+		Deserialize(stream, ziplineMountable, isDelta: false);
+		return ziplineMountable;
+	}
+
+	public void FromProto(BufferStream stream, bool isDelta = false)
+	{
+		Deserialize(stream, this, isDelta);
+	}
+
+	public virtual void WriteToStream(BufferStream stream)
+	{
+		Serialize(stream, this);
+	}
+
+	public virtual void WriteToStreamDelta(BufferStream stream, ZiplineMountable previous)
+	{
+		if (previous == null)
+		{
+			Serialize(stream, this);
+		}
+		else
+		{
+			SerializeDelta(stream, this, previous);
+		}
+	}
+
+	public virtual void ReadFromStream(BufferStream stream, bool isDelta = false)
+	{
+		Deserialize(stream, this, isDelta);
+	}
+
+	public virtual void ReadFromStream(BufferStream stream, int size, bool isDelta = false)
+	{
+		DeserializeLength(stream, size, this, isDelta);
+	}
+
+	public static ZiplineMountable Deserialize(BufferStream stream, ZiplineMountable instance, bool isDelta)
+	{
+		if (!isDelta && instance.linePoints == null)
+		{
+			instance.linePoints = Pool.Get<List<VectorData>>();
+		}
+		while (true)
+		{
+			int num = stream.ReadByte();
+			switch (num)
+			{
+			case 10:
+			{
+				VectorData instance2 = default(VectorData);
+				VectorData.DeserializeLengthDelimited(stream, ref instance2, isDelta);
+				instance.linePoints.Add(instance2);
+				break;
+			}
+			default:
+			{
+				Key key = ProtocolParser.ReadKey((byte)num, stream);
+				_ = key.Field;
+				ProtocolParser.SkipKey(stream, key);
+				break;
+			}
+			case -1:
+			case 0:
+				return instance;
+			}
+		}
+	}
+
+	public static ZiplineMountable DeserializeLengthDelimited(BufferStream stream, ZiplineMountable instance, bool isDelta)
+	{
+		if (!isDelta && instance.linePoints == null)
+		{
+			instance.linePoints = Pool.Get<List<VectorData>>();
+		}
+		long num = ProtocolParser.ReadUInt32(stream);
+		num += stream.Position;
+		while (stream.Position < num)
+		{
+			int num2 = stream.ReadByte();
+			switch (num2)
+			{
+			case -1:
+				throw new EndOfStreamException();
+			case 10:
+			{
+				VectorData instance2 = default(VectorData);
+				VectorData.DeserializeLengthDelimited(stream, ref instance2, isDelta);
+				instance.linePoints.Add(instance2);
+				break;
+			}
+			default:
+			{
+				Key key = ProtocolParser.ReadKey((byte)num2, stream);
+				_ = key.Field;
+				ProtocolParser.SkipKey(stream, key);
+				break;
+			}
+			}
+		}
+		if (stream.Position != num)
+		{
+			throw new ProtocolBufferException("Read past max limit");
+		}
+		return instance;
+	}
+
+	public static ZiplineMountable DeserializeLength(BufferStream stream, int length, ZiplineMountable instance, bool isDelta)
+	{
+		if (!isDelta && instance.linePoints == null)
+		{
+			instance.linePoints = Pool.Get<List<VectorData>>();
+		}
+		long num = stream.Position + length;
+		while (stream.Position < num)
+		{
+			int num2 = stream.ReadByte();
+			switch (num2)
+			{
+			case -1:
+				throw new EndOfStreamException();
+			case 10:
+			{
+				VectorData instance2 = default(VectorData);
+				VectorData.DeserializeLengthDelimited(stream, ref instance2, isDelta);
+				instance.linePoints.Add(instance2);
+				break;
+			}
+			default:
+			{
+				Key key = ProtocolParser.ReadKey((byte)num2, stream);
+				_ = key.Field;
+				ProtocolParser.SkipKey(stream, key);
+				break;
+			}
+			}
+		}
+		if (stream.Position != num)
+		{
+			throw new ProtocolBufferException("Read past max limit");
+		}
+		return instance;
+	}
+
+	public static void SerializeDelta(BufferStream stream, ZiplineMountable instance, ZiplineMountable previous)
+	{
+		if (instance.linePoints == null)
+		{
+			return;
+		}
+		for (int i = 0; i < instance.linePoints.Count; i++)
+		{
+			VectorData vectorData = instance.linePoints[i];
+			stream.WriteByte(10);
+			BufferStream.RangeHandle range = stream.GetRange(1);
+			int position = stream.Position;
+			VectorData.SerializeDelta(stream, vectorData, vectorData);
+			int num = stream.Position - position;
+			if (num > 127)
+			{
+				throw new InvalidOperationException("Not enough space was reserved for the length prefix of field linePoints (ProtoBuf.VectorData)");
+			}
+			Span<byte> span = range.GetSpan();
+			ProtocolParser.WriteUInt32((uint)num, span, 0);
+		}
+	}
+
+	public static void Serialize(BufferStream stream, ZiplineMountable instance)
+	{
+		if (instance.linePoints == null)
+		{
+			return;
+		}
+		for (int i = 0; i < instance.linePoints.Count; i++)
+		{
+			VectorData instance2 = instance.linePoints[i];
+			stream.WriteByte(10);
+			BufferStream.RangeHandle range = stream.GetRange(1);
+			int position = stream.Position;
+			VectorData.Serialize(stream, instance2);
+			int num = stream.Position - position;
+			if (num > 127)
+			{
+				throw new InvalidOperationException("Not enough space was reserved for the length prefix of field linePoints (ProtoBuf.VectorData)");
+			}
+			Span<byte> span = range.GetSpan();
+			ProtocolParser.WriteUInt32((uint)num, span, 0);
+		}
+	}
+
+	public void ToProto(BufferStream stream)
+	{
+		Serialize(stream, this);
+	}
+
+	public void InspectUids(UidInspector<ulong> action)
+	{
+		if (linePoints != null)
+		{
+			for (int i = 0; i < linePoints.Count; i++)
+			{
+				linePoints[i].InspectUids(action);
+			}
+		}
+	}
+}
+
+
+public enum AppEntityType
+{
+	Switch = 1,
+	Alarm,
+	StorageMonitor
+}
+
+
+public enum AppMarkerType
+{
+	Undefined,
+	Player,
+	Explosion,
+	VendingMachine,
+	CH47,
+	CargoShip,
+	Crate,
+	GenericRadius,
+	PatrolHelicopter,
+	TravellingVendor
+}
+
+
+using System;
+using System.Collections.Generic;
+using System.IO;
+using Facepunch;
+using ProtoBuf.Nexus;
+using SilentOrbit.ProtocolBuffers;
+
+public class ClanChatBatchRequest : IDisposable, IPooled, IProto<ClanChatBatchRequest>, IProto
+{
+	public class Message : IDisposable, IPooled, IProto<Message>, IProto
+	{
+		public bool ShouldPool = true;
+
+		private bool _disposed;
+
+		[NonSerialized]
+		public long clanId;
+
+		[NonSerialized]
+		public ulong userId;
+
+		[NonSerialized]
+		public string text;
+
+		[NonSerialized]
+		public string name;
+
+		[NonSerialized]
+		public long timestamp;
+
+		public static void ResetToPool(Message instance)
+		{
+			if (instance.ShouldPool)
+			{
+				instance.clanId = 0L;
+				instance.userId = 0uL;
+				instance.text = string.Empty;
+				instance.name = string.Empty;
+				instance.timestamp = 0L;
+				Pool.Free<Message>(ref instance);
+			}
+		}
+
+		public void ResetToPool()
+		{
+			ResetToPool(this);
+		}
+
+		public virtual void Dispose()
+		{
+			if (!ShouldPool)
+			{
+				throw new Exception("Trying to dispose Message with ShouldPool set to false!");
+			}
+			if (!_disposed)
+			{
+				ResetToPool();
+				_disposed = true;
+			}
+		}
+
+		public virtual void EnterPool()
+		{
+			_disposed = true;
+		}
+
+		public virtual void LeavePool()
+		{
+			_disposed = false;
+		}
+
+		public void CopyTo(Message instance)
+		{
+			instance.clanId = clanId;
+			instance.userId = userId;
+			instance.text = text;
+			instance.name = name;
+			instance.timestamp = timestamp;
+		}
+
+		public Message Copy()
+		{
+			Message message = Pool.Get<Message>();
+			CopyTo(message);
+			return message;
+		}
+
+		public static Message Deserialize(BufferStream stream)
+		{
+			Message message = Pool.Get<Message>();
+			Deserialize(stream, message, isDelta: false);
+			return message;
+		}
+
+		public static Message DeserializeLengthDelimited(BufferStream stream)
+		{
+			Message message = Pool.Get<Message>();
+			DeserializeLengthDelimited(stream, message, isDelta: false);
+			return message;
+		}
+
+		public static Message DeserializeLength(BufferStream stream, int length)
+		{
+			Message message = Pool.Get<Message>();
+			DeserializeLength(stream, length, message, isDelta: false);
+			return message;
+		}
+
+		public static Message Deserialize(byte[] buffer)
+		{
+			Message message = Pool.Get<Message>();
+			using BufferStream stream = Pool.Get<BufferStream>().Initialize(buffer);
+			Deserialize(stream, message, isDelta: false);
+			return message;
+		}
+
+		public void FromProto(BufferStream stream, bool isDelta = false)
+		{
+			Deserialize(stream, this, isDelta);
+		}
+
+		public virtual void WriteToStream(BufferStream stream)
+		{
+			Serialize(stream, this);
+		}
+
+		public virtual void WriteToStreamDelta(BufferStream stream, Message previous)
+		{
+			if (previous == null)
+			{
+				Serialize(stream, this);
+			}
+			else
+			{
+				SerializeDelta(stream, this, previous);
+			}
+		}
+
+		public virtual void ReadFromStream(BufferStream stream, bool isDelta = false)
+		{
+			Deserialize(stream, this, isDelta);
+		}
+
+		public virtual void ReadFromStream(BufferStream stream, int size, bool isDelta = false)
+		{
+			DeserializeLength(stream, size, this, isDelta);
+		}
+
+		public static Message Deserialize(BufferStream stream, Message instance, bool isDelta)
+		{
+			while (true)
+			{
+				int num = stream.ReadByte();
+				switch (num)
+				{
+				case 8:
+					instance.clanId = (long)ProtocolParser.ReadUInt64(stream);
+					continue;
+				case 16:
+					instance.userId = ProtocolParser.ReadUInt64(stream);
+					continue;
+				case 26:
+					instance.text = ProtocolParser.ReadString(stream);
+					continue;
+				case 34:
+					instance.name = ProtocolParser.ReadString(stream);
+					continue;
+				case 40:
+					instance.timestamp = (long)ProtocolParser.ReadUInt64(stream);
+					continue;
+				case -1:
+				case 0:
+					return instance;
+				}
+				Key key = ProtocolParser.ReadKey((byte)num, stream);
+				_ = key.Field;
+				ProtocolParser.SkipKey(stream, key);
+			}
+		}
+
+		public static Message DeserializeLengthDelimited(BufferStream stream, Message instance, bool isDelta)
+		{
+			long num = ProtocolParser.ReadUInt32(stream);
+			num += stream.Position;
+			while (stream.Position < num)
+			{
+				int num2 = stream.ReadByte();
+				switch (num2)
+				{
+				case -1:
+					throw new EndOfStreamException();
+				case 8:
+					instance.clanId = (long)ProtocolParser.ReadUInt64(stream);
+					continue;
+				case 16:
+					instance.userId = ProtocolParser.ReadUInt64(stream);
+					continue;
+				case 26:
+					instance.text = ProtocolParser.ReadString(stream);
+					continue;
+				case 34:
+					instance.name = ProtocolParser.ReadString(stream);
+					continue;
+				case 40:
+					instance.timestamp = (long)ProtocolParser.ReadUInt64(stream);
+					continue;
+				}
+				Key key = ProtocolParser.ReadKey((byte)num2, stream);
+				_ = key.Field;
+				ProtocolParser.SkipKey(stream, key);
+			}
+			if (stream.Position != num)
+			{
+				throw new ProtocolBufferException("Read past max limit");
+			}
+			return instance;
+		}
+
+		public static Message DeserializeLength(BufferStream stream, int length, Message instance, bool isDelta)
+		{
+			long num = stream.Position + length;
+			while (stream.Position < num)
+			{
+				int num2 = stream.ReadByte();
+				switch (num2)
+				{
+				case -1:
+					throw new EndOfStreamException();
+				case 8:
+					instance.clanId = (long)ProtocolParser.ReadUInt64(stream);
+					continue;
+				case 16:
+					instance.userId = ProtocolParser.ReadUInt64(stream);
+					continue;
+				case 26:
+					instance.text = ProtocolParser.ReadString(stream);
+					continue;
+				case 34:
+					instance.name = ProtocolParser.ReadString(stream);
+					continue;
+				case 40:
+					instance.timestamp = (long)ProtocolParser.ReadUInt64(stream);
+					continue;
+				}
+				Key key = ProtocolParser.ReadKey((byte)num2, stream);
+				_ = key.Field;
+				ProtocolParser.SkipKey(stream, key);
+			}
+			if (stream.Position != num)
+			{
+				throw new ProtocolBufferException("Read past max limit");
+			}
+			return instance;
+		}
+
+		public static void SerializeDelta(BufferStream stream, Message instance, Message previous)
+		{
+			stream.WriteByte(8);
+			ProtocolParser.WriteUInt64(stream, (ulong)instance.clanId);
+			if (instance.userId != previous.userId)
+			{
+				stream.WriteByte(16);
+				ProtocolParser.WriteUInt64(stream, instance.userId);
+			}
+			if (instance.text != previous.text)
+			{
+				if (instance.text == null)
+				{
+					throw new ArgumentNullException("text", "Required by proto specification.");
+				}
+				stream.WriteByte(26);
+				ProtocolParser.WriteString(stream, instance.text);
+			}
+			if (instance.name != previous.name)
+			{
+				if (instance.name == null)
+				{
+					throw new ArgumentNullException("name", "Required by proto specification.");
+				}
+				stream.WriteByte(34);
+				ProtocolParser.WriteString(stream, instance.name);
+			}
+			stream.WriteByte(40);
+			ProtocolParser.WriteUInt64(stream, (ulong)instance.timestamp);
+		}
+
+		public static void Serialize(BufferStream stream, Message instance)
+		{
+			if (instance.clanId != 0L)
+			{
+				stream.WriteByte(8);
+				ProtocolParser.WriteUInt64(stream, (ulong)instance.clanId);
+			}
+			if (instance.userId != 0L)
+			{
+				stream.WriteByte(16);
+				ProtocolParser.WriteUInt64(stream, instance.userId);
+			}
+			if (instance.text == null)
+			{
+				throw new ArgumentNullException("text", "Required by proto specification.");
+			}
+			stream.WriteByte(26);
+			ProtocolParser.WriteString(stream, instance.text);
+			if (instance.name == null)
+			{
+				throw new ArgumentNullException("name", "Required by proto specification.");
+			}
+			stream.WriteByte(34);
+			ProtocolParser.WriteString(stream, instance.name);
+			if (instance.timestamp != 0L)
+			{
+				stream.WriteByte(40);
+				ProtocolParser.WriteUInt64(stream, (ulong)instance.timestamp);
+			}
+		}
+
+		public void ToProto(BufferStream stream)
+		{
+			Serialize(stream, this);
+		}
+
+		public void InspectUids(UidInspector<ulong> action)
+		{
+		}
+	}
+
+	public bool ShouldPool = true;
+
+	private bool _disposed;
+
+	[NonSerialized]
+	public List<Message> messages;
+
+	public static void ResetToPool(ClanChatBatchRequest instance)
+	{
+		if (!instance.ShouldPool)
+		{
+			return;
+		}
+		if (instance.messages != null)
+		{
+			for (int i = 0; i < instance.messages.Count; i++)
+			{
+				if (instance.messages[i] != null)
+				{
+					instance.messages[i].ResetToPool();
+					instance.messages[i] = null;
+				}
+			}
+			List<Message> list = instance.messages;
+			Pool.Free<Message>(ref list, false);
+			instance.messages = list;
+		}
+		Pool.Free<ClanChatBatchRequest>(ref instance);
+	}
+
+	public void ResetToPool()
+	{
+		ResetToPool(this);
+	}
+
+	public virtual void Dispose()
+	{
+		if (!ShouldPool)
+		{
+			throw new Exception("Trying to dispose ClanChatBatchRequest with ShouldPool set to false!");
+		}
+		if (!_disposed)
+		{
+			ResetToPool();
+			_disposed = true;
+		}
+	}
+
+	public virtual void EnterPool()
+	{
+		_disposed = true;
+	}
+
+	public virtual void LeavePool()
+	{
+		_disposed = false;
+	}
+
+	public void CopyTo(ClanChatBatchRequest instance)
+	{
+		if (messages != null)
+		{
+			instance.messages = Pool.Get<List<Message>>();
+			for (int i = 0; i < messages.Count; i++)
+			{
+				Message item = messages[i].Copy();
+				instance.messages.Add(item);
+			}
+		}
+		else
+		{
+			instance.messages = null;
+		}
+	}
+
+	public ClanChatBatchRequest Copy()
+	{
+		ClanChatBatchRequest clanChatBatchRequest = Pool.Get<ClanChatBatchRequest>();
+		CopyTo(clanChatBatchRequest);
+		return clanChatBatchRequest;
+	}
+
+	public static ClanChatBatchRequest Deserialize(BufferStream stream)
+	{
+		ClanChatBatchRequest clanChatBatchRequest = Pool.Get<ClanChatBatchRequest>();
+		Deserialize(stream, clanChatBatchRequest, isDelta: false);
+		return clanChatBatchRequest;
+	}
+
+	public static ClanChatBatchRequest DeserializeLengthDelimited(BufferStream stream)
+	{
+		ClanChatBatchRequest clanChatBatchRequest = Pool.Get<ClanChatBatchRequest>();
+		DeserializeLengthDelimited(stream, clanChatBatchRequest, isDelta: false);
+		return clanChatBatchRequest;
+	}
+
+	public static ClanChatBatchRequest DeserializeLength(BufferStream stream, int length)
+	{
+		ClanChatBatchRequest clanChatBatchRequest = Pool.Get<ClanChatBatchRequest>();
+		DeserializeLength(stream, length, clanChatBatchRequest, isDelta: false);
+		return clanChatBatchRequest;
+	}
+
+	public static ClanChatBatchRequest Deserialize(byte[] buffer)
+	{
+		ClanChatBatchRequest clanChatBatchRequest = Pool.Get<ClanChatBatchRequest>();
+		using BufferStream stream = Pool.Get<BufferStream>().Initialize(buffer);
+		Deserialize(stream, clanChatBatchRequest, isDelta: false);
+		return clanChatBatchRequest;
+	}
+
+	public void FromProto(BufferStream stream, bool isDelta = false)
+	{
+		Deserialize(stream, this, isDelta);
+	}
+
+	public virtual void WriteToStream(BufferStream stream)
+	{
+		Serialize(stream, this);
+	}
+
+	public virtual void WriteToStreamDelta(BufferStream stream, ClanChatBatchRequest previous)
+	{
+		if (previous == null)
+		{
+			Serialize(stream, this);
+		}
+		else
+		{
+			SerializeDelta(stream, this, previous);
+		}
+	}
+
+	public virtual void ReadFromStream(BufferStream stream, bool isDelta = false)
+	{
+		Deserialize(stream, this, isDelta);
+	}
+
+	public virtual void ReadFromStream(BufferStream stream, int size, bool isDelta = false)
+	{
+		DeserializeLength(stream, size, this, isDelta);
+	}
+
+	public static ClanChatBatchRequest Deserialize(BufferStream stream, ClanChatBatchRequest instance, bool isDelta)
+	{
+		if (!isDelta && instance.messages == null)
+		{
+			instance.messages = Pool.Get<List<Message>>();
+		}
+		while (true)
+		{
+			int num = stream.ReadByte();
+			switch (num)
+			{
+			case 10:
+				instance.messages.Add(Message.DeserializeLengthDelimited(stream));
+				continue;
+			case -1:
+			case 0:
+				return instance;
+			}
+			Key key = ProtocolParser.ReadKey((byte)num, stream);
+			_ = key.Field;
+			ProtocolParser.SkipKey(stream, key);
+		}
+	}
+
+	public static ClanChatBatchRequest DeserializeLengthDelimited(BufferStream stream, ClanChatBatchRequest instance, bool isDelta)
+	{
+		if (!isDelta && instance.messages == null)
+		{
+			instance.messages = Pool.Get<List<Message>>();
+		}
+		long num = ProtocolParser.ReadUInt32(stream);
+		num += stream.Position;
+		while (stream.Position < num)
+		{
+			int num2 = stream.ReadByte();
+			switch (num2)
+			{
+			case -1:
+				throw new EndOfStreamException();
+			case 10:
+				instance.messages.Add(Message.DeserializeLengthDelimited(stream));
+				continue;
+			}
+			Key key = ProtocolParser.ReadKey((byte)num2, stream);
+			_ = key.Field;
+			ProtocolParser.SkipKey(stream, key);
+		}
+		if (stream.Position != num)
+		{
+			throw new ProtocolBufferException("Read past max limit");
+		}
+		return instance;
+	}
+
+	public static ClanChatBatchRequest DeserializeLength(BufferStream stream, int length, ClanChatBatchRequest instance, bool isDelta)
+	{
+		if (!isDelta && instance.messages == null)
+		{
+			instance.messages = Pool.Get<List<Message>>();
+		}
+		long num = stream.Position + length;
+		while (stream.Position < num)
+		{
+			int num2 = stream.ReadByte();
+			switch (num2)
+			{
+			case -1:
+				throw new EndOfStreamException();
+			case 10:
+				instance.messages.Add(Message.DeserializeLengthDelimited(stream));
+				continue;
+			}
+			Key key = ProtocolParser.ReadKey((byte)num2, stream);
+			_ = key.Field;
+			ProtocolParser.SkipKey(stream, key);
+		}
+		if (stream.Position != num)
+		{
+			throw new ProtocolBufferException("Read past max limit");
+		}
+		return instance;
+	}
+
+	public static void SerializeDelta(BufferStream stream, ClanChatBatchRequest instance, ClanChatBatchRequest previous)
+	{
+		if (instance.messages == null)
+		{
+			return;
+		}
+		for (int i = 0; i < instance.messages.Count; i++)
+		{
+			Message message = instance.messages[i];
+			stream.WriteByte(10);
+			BufferStream.RangeHandle range = stream.GetRange(5);
+			int position = stream.Position;
+			Message.SerializeDelta(stream, message, message);
+			int val = stream.Position - position;
+			Span<byte> span = range.GetSpan();
+			int num = ProtocolParser.WriteUInt32((uint)val, span, 0);
+			if (num < 5)
+			{
+				span[num - 1] |= 128;
+				while (num < 4)
+				{
+					span[num++] = 128;
+				}
+				span[4] = 0;
+			}
+		}
+	}
+
+	public static void Serialize(BufferStream stream, ClanChatBatchRequest instance)
+	{
+		if (instance.messages == null)
+		{
+			return;
+		}
+		for (int i = 0; i < instance.messages.Count; i++)
+		{
+			Message instance2 = instance.messages[i];
+			stream.WriteByte(10);
+			BufferStream.RangeHandle range = stream.GetRange(5);
+			int position = stream.Position;
+			Message.Serialize(stream, instance2);
+			int val = stream.Position - position;
+			Span<byte> span = range.GetSpan();
+			int num = ProtocolParser.WriteUInt32((uint)val, span, 0);
+			if (num < 5)
+			{
+				span[num - 1] |= 128;
+				while (num < 4)
+				{
+					span[num++] = 128;
+				}
+				span[4] = 0;
+			}
+		}
+	}
+
+	public void ToProto(BufferStream stream)
+	{
+		Serialize(stream, this);
+	}
+
+	public void InspectUids(UidInspector<ulong> action)
+	{
+		if (messages != null)
+		{
+			for (int i = 0; i < messages.Count; i++)
+			{
+				messages[i]?.InspectUids(action);
+			}
+		}
+	}
+}
+
+
+using System;
+using System.IO;
+using Facepunch;
+using ProtoBuf.Nexus;
+using SilentOrbit.ProtocolBuffers;
+
+public class FerryRetireRequest : IDisposable, IPooled, IProto<FerryRetireRequest>, IProto
+{
+	public bool ShouldPool = true;
+
+	private bool _disposed;
+
+	[NonSerialized]
+	public NetworkableId entityId;
+
+	[NonSerialized]
+	public long timestamp;
+
+	public static void ResetToPool(FerryRetireRequest instance)
+	{
+		if (instance.ShouldPool)
+		{
+			instance.entityId = default(NetworkableId);
+			instance.timestamp = 0L;
+			Pool.Free<FerryRetireRequest>(ref instance);
+		}
+	}
+
+	public void ResetToPool()
+	{
+		ResetToPool(this);
+	}
+
+	public virtual void Dispose()
+	{
+		if (!ShouldPool)
+		{
+			throw new Exception("Trying to dispose FerryRetireRequest with ShouldPool set to false!");
+		}
+		if (!_disposed)
+		{
+			ResetToPool();
+			_disposed = true;
+		}
+	}
+
+	public virtual void EnterPool()
+	{
+		_disposed = true;
+	}
+
+	public virtual void LeavePool()
+	{
+		_disposed = false;
+	}
+
+	public void CopyTo(FerryRetireRequest instance)
+	{
+		instance.entityId = entityId;
+		instance.timestamp = timestamp;
+	}
+
+	public FerryRetireRequest Copy()
+	{
+		FerryRetireRequest ferryRetireRequest = Pool.Get<FerryRetireRequest>();
+		CopyTo(ferryRetireRequest);
+		return ferryRetireRequest;
+	}
+
+	public static FerryRetireRequest Deserialize(BufferStream stream)
+	{
+		FerryRetireRequest ferryRetireRequest = Pool.Get<FerryRetireRequest>();
+		Deserialize(stream, ferryRetireRequest, isDelta: false);
+		return ferryRetireRequest;
+	}
+
+	public static FerryRetireRequest DeserializeLengthDelimited(BufferStream stream)
+	{
+		FerryRetireRequest ferryRetireRequest = Pool.Get<FerryRetireRequest>();
+		DeserializeLengthDelimited(stream, ferryRetireRequest, isDelta: false);
+		return ferryRetireRequest;
+	}
+
+	public static FerryRetireRequest DeserializeLength(BufferStream stream, int length)
+	{
+		FerryRetireRequest ferryRetireRequest = Pool.Get<FerryRetireRequest>();
+		DeserializeLength(stream, length, ferryRetireRequest, isDelta: false);
+		return ferryRetireRequest;
+	}
+
+	public static FerryRetireRequest Deserialize(byte[] buffer)
+	{
+		FerryRetireRequest ferryRetireRequest = Pool.Get<FerryRetireRequest>();
+		using BufferStream stream = Pool.Get<BufferStream>().Initialize(buffer);
+		Deserialize(stream, ferryRetireRequest, isDelta: false);
+		return ferryRetireRequest;
+	}
+
+	public void FromProto(BufferStream stream, bool isDelta = false)
+	{
+		Deserialize(stream, this, isDelta);
+	}
+
+	public virtual void WriteToStream(BufferStream stream)
+	{
+		Serialize(stream, this);
+	}
+
+	public virtual void WriteToStreamDelta(BufferStream stream, FerryRetireRequest previous)
+	{
+		if (previous == null)
+		{
+			Serialize(stream, this);
+		}
+		else
+		{
+			SerializeDelta(stream, this, previous);
+		}
+	}
+
+	public virtual void ReadFromStream(BufferStream stream, bool isDelta = false)
+	{
+		Deserialize(stream, this, isDelta);
+	}
+
+	public virtual void ReadFromStream(BufferStream stream, int size, bool isDelta = false)
+	{
+		DeserializeLength(stream, size, this, isDelta);
+	}
+
+	public static FerryRetireRequest Deserialize(BufferStream stream, FerryRetireRequest instance, bool isDelta)
+	{
+		while (true)
+		{
+			int num = stream.ReadByte();
+			switch (num)
+			{
+			case 8:
+				instance.entityId = new NetworkableId(ProtocolParser.ReadUInt64(stream));
+				continue;
+			case 16:
+				instance.timestamp = (long)ProtocolParser.ReadUInt64(stream);
+				continue;
+			case -1:
+			case 0:
+				return instance;
+			}
+			Key key = ProtocolParser.ReadKey((byte)num, stream);
+			_ = key.Field;
+			ProtocolParser.SkipKey(stream, key);
+		}
+	}
+
+	public static FerryRetireRequest DeserializeLengthDelimited(BufferStream stream, FerryRetireRequest instance, bool isDelta)
+	{
+		long num = ProtocolParser.ReadUInt32(stream);
+		num += stream.Position;
+		while (stream.Position < num)
+		{
+			int num2 = stream.ReadByte();
+			switch (num2)
+			{
+			case -1:
+				throw new EndOfStreamException();
+			case 8:
+				instance.entityId = new NetworkableId(ProtocolParser.ReadUInt64(stream));
+				continue;
+			case 16:
+				instance.timestamp = (long)ProtocolParser.ReadUInt64(stream);
+				continue;
+			}
+			Key key = ProtocolParser.ReadKey((byte)num2, stream);
+			_ = key.Field;
+			ProtocolParser.SkipKey(stream, key);
+		}
+		if (stream.Position != num)
+		{
+			throw new ProtocolBufferException("Read past max limit");
+		}
+		return instance;
+	}
+
+	public static FerryRetireRequest DeserializeLength(BufferStream stream, int length, FerryRetireRequest instance, bool isDelta)
+	{
+		long num = stream.Position + length;
+		while (stream.Position < num)
+		{
+			int num2 = stream.ReadByte();
+			switch (num2)
+			{
+			case -1:
+				throw new EndOfStreamException();
+			case 8:
+				instance.entityId = new NetworkableId(ProtocolParser.ReadUInt64(stream));
+				continue;
+			case 16:
+				instance.timestamp = (long)ProtocolParser.ReadUInt64(stream);
+				continue;
+			}
+			Key key = ProtocolParser.ReadKey((byte)num2, stream);
+			_ = key.Field;
+			ProtocolParser.SkipKey(stream, key);
+		}
+		if (stream.Position != num)
+		{
+			throw new ProtocolBufferException("Read past max limit");
+		}
+		return instance;
+	}
+
+	public static void SerializeDelta(BufferStream stream, FerryRetireRequest instance, FerryRetireRequest previous)
+	{
+		stream.WriteByte(8);
+		ProtocolParser.WriteUInt64(stream, instance.entityId.Value);
+		stream.WriteByte(16);
+		ProtocolParser.WriteUInt64(stream, (ulong)instance.timestamp);
+	}
+
+	public static void Serialize(BufferStream stream, FerryRetireRequest instance)
+	{
+		if (instance.entityId != default(NetworkableId))
+		{
+			stream.WriteByte(8);
+			ProtocolParser.WriteUInt64(stream, instance.entityId.Value);
+		}
+		if (instance.timestamp != 0L)
+		{
+			stream.WriteByte(16);
+			ProtocolParser.WriteUInt64(stream, (ulong)instance.timestamp);
+		}
+	}
+
+	public void ToProto(BufferStream stream)
+	{
+		Serialize(stream, this);
+	}
+
+	public void InspectUids(UidInspector<ulong> action)
+	{
+		action(UidType.NetworkableId, ref entityId.Value);
+	}
+}
+
+
+using System;
+using System.Collections.Generic;
+using System.IO;
+using Facepunch;
+using ProtoBuf.Nexus;
+using SilentOrbit.ProtocolBuffers;
+
+public class FerryStatus : IDisposable, IPooled, IProto<FerryStatus>, IProto
+{
+	public bool ShouldPool = true;
+
+	private bool _disposed;
+
+	[NonSerialized]
+	public NetworkableId entityId;
+
+	[NonSerialized]
+	public long timestamp;
+
+	[NonSerialized]
+	public string ownerZone;
+
+	[NonSerialized]
+	public List<string> schedule;
+
+	[NonSerialized]
+	public int scheduleIndex;
+
+	[NonSerialized]
+	public int state;
+
+	[NonSerialized]
+	public bool isRetiring;
+
+	public static void ResetToPool(FerryStatus instance)
+	{
+		if (instance.ShouldPool)
+		{
+			instance.entityId = default(NetworkableId);
+			instance.timestamp = 0L;
+			instance.ownerZone = string.Empty;
+			if (instance.schedule != null)
+			{
+				List<string> list = instance.schedule;
+				Pool.FreeUnmanaged<string>(ref list);
+				instance.schedule = list;
+			}
+			instance.scheduleIndex = 0;
+			instance.state = 0;
+			instance.isRetiring = false;
+			Pool.Free<FerryStatus>(ref instance);
+		}
+	}
+
+	public void ResetToPool()
+	{
+		ResetToPool(this);
+	}
+
+	public virtual void Dispose()
+	{
+		if (!ShouldPool)
+		{
+			throw new Exception("Trying to dispose FerryStatus with ShouldPool set to false!");
+		}
+		if (!_disposed)
+		{
+			ResetToPool();
+			_disposed = true;
+		}
+	}
+
+	public virtual void EnterPool()
+	{
+		_disposed = true;
+	}
+
+	public virtual void LeavePool()
+	{
+		_disposed = false;
+	}
+
+	public void CopyTo(FerryStatus instance)
+	{
+		instance.entityId = entityId;
+		instance.timestamp = timestamp;
+		instance.ownerZone = ownerZone;
+		if (schedule != null)
+		{
+			instance.schedule = Pool.Get<List<string>>();
+			for (int i = 0; i < schedule.Count; i++)
+			{
+				string item = schedule[i];
+				instance.schedule.Add(item);
+			}
+		}
+		else
+		{
+			instance.schedule = null;
+		}
+		instance.scheduleIndex = scheduleIndex;
+		instance.state = state;
+		instance.isRetiring = isRetiring;
+	}
+
+	public FerryStatus Copy()
+	{
+		FerryStatus ferryStatus = Pool.Get<FerryStatus>();
+		CopyTo(ferryStatus);
+		return ferryStatus;
+	}
+
+	public static FerryStatus Deserialize(BufferStream stream)
+	{
+		FerryStatus ferryStatus = Pool.Get<FerryStatus>();
+		Deserialize(stream, ferryStatus, isDelta: false);
+		return ferryStatus;
+	}
+
+	public static FerryStatus DeserializeLengthDelimited(BufferStream stream)
+	{
+		FerryStatus ferryStatus = Pool.Get<FerryStatus>();
+		DeserializeLengthDelimited(stream, ferryStatus, isDelta: false);
+		return ferryStatus;
+	}
+
+	public static FerryStatus DeserializeLength(BufferStream stream, int length)
+	{
+		FerryStatus ferryStatus = Pool.Get<FerryStatus>();
+		DeserializeLength(stream, length, ferryStatus, isDelta: false);
+		return ferryStatus;
+	}
+
+	public static FerryStatus Deserialize(byte[] buffer)
+	{
+		FerryStatus ferryStatus = Pool.Get<FerryStatus>();
+		using BufferStream stream = Pool.Get<BufferStream>().Initialize(buffer);
+		Deserialize(stream, ferryStatus, isDelta: false);
+		return ferryStatus;
+	}
+
+	public void FromProto(BufferStream stream, bool isDelta = false)
+	{
+		Deserialize(stream, this, isDelta);
+	}
+
+	public virtual void WriteToStream(BufferStream stream)
+	{
+		Serialize(stream, this);
+	}
+
+	public virtual void WriteToStreamDelta(BufferStream stream, FerryStatus previous)
+	{
+		if (previous == null)
+		{
+			Serialize(stream, this);
+		}
+		else
+		{
+			SerializeDelta(stream, this, previous);
+		}
+	}
+
+	public virtual void ReadFromStream(BufferStream stream, bool isDelta = false)
+	{
+		Deserialize(stream, this, isDelta);
+	}
+
+	public virtual void ReadFromStream(BufferStream stream, int size, bool isDelta = false)
+	{
+		DeserializeLength(stream, size, this, isDelta);
+	}
+
+	public static FerryStatus Deserialize(BufferStream stream, FerryStatus instance, bool isDelta)
+	{
+		if (!isDelta && instance.schedule == null)
+		{
+			instance.schedule = Pool.Get<List<string>>();
+		}
+		while (true)
+		{
+			int num = stream.ReadByte();
+			switch (num)
+			{
+			case 8:
+				instance.entityId = new NetworkableId(ProtocolParser.ReadUInt64(stream));
+				continue;
+			case 16:
+				instance.timestamp = (long)ProtocolParser.ReadUInt64(stream);
+				continue;
+			case 26:
+				instance.ownerZone = ProtocolParser.ReadString(stream);
+				continue;
+			case 34:
+				instance.schedule.Add(ProtocolParser.ReadString(stream));
+				continue;
+			case 40:
+				instance.scheduleIndex = (int)ProtocolParser.ReadUInt64(stream);
+				continue;
+			case 48:
+				instance.state = (int)ProtocolParser.ReadUInt64(stream);
+				continue;
+			case 56:
+				instance.isRetiring = ProtocolParser.ReadBool(stream);
+				continue;
+			case -1:
+			case 0:
+				return instance;
+			}
+			Key key = ProtocolParser.ReadKey((byte)num, stream);
+			_ = key.Field;
+			ProtocolParser.SkipKey(stream, key);
+		}
+	}
+
+	public static FerryStatus DeserializeLengthDelimited(BufferStream stream, FerryStatus instance, bool isDelta)
+	{
+		if (!isDelta && instance.schedule == null)
+		{
+			instance.schedule = Pool.Get<List<string>>();
+		}
+		long num = ProtocolParser.ReadUInt32(stream);
+		num += stream.Position;
+		while (stream.Position < num)
+		{
+			int num2 = stream.ReadByte();
+			switch (num2)
+			{
+			case -1:
+				throw new EndOfStreamException();
+			case 8:
+				instance.entityId = new NetworkableId(ProtocolParser.ReadUInt64(stream));
+				continue;
+			case 16:
+				instance.timestamp = (long)ProtocolParser.ReadUInt64(stream);
+				continue;
+			case 26:
+				instance.ownerZone = ProtocolParser.ReadString(stream);
+				continue;
+			case 34:
+				instance.schedule.Add(ProtocolParser.ReadString(stream));
+				continue;
+			case 40:
+				instance.scheduleIndex = (int)ProtocolParser.ReadUInt64(stream);
+				continue;
+			case 48:
+				instance.state = (int)ProtocolParser.ReadUInt64(stream);
+				continue;
+			case 56:
+				instance.isRetiring = ProtocolParser.ReadBool(stream);
+				continue;
+			}
+			Key key = ProtocolParser.ReadKey((byte)num2, stream);
+			_ = key.Field;
+			ProtocolParser.SkipKey(stream, key);
+		}
+		if (stream.Position != num)
+		{
+			throw new ProtocolBufferException("Read past max limit");
+		}
+		return instance;
+	}
+
+	public static FerryStatus DeserializeLength(BufferStream stream, int length, FerryStatus instance, bool isDelta)
+	{
+		if (!isDelta && instance.schedule == null)
+		{
+			instance.schedule = Pool.Get<List<string>>();
+		}
+		long num = stream.Position + length;
+		while (stream.Position < num)
+		{
+			int num2 = stream.ReadByte();
+			switch (num2)
+			{
+			case -1:
+				throw new EndOfStreamException();
+			case 8:
+				instance.entityId = new NetworkableId(ProtocolParser.ReadUInt64(stream));
+				continue;
+			case 16:
+				instance.timestamp = (long)ProtocolParser.ReadUInt64(stream);
+				continue;
+			case 26:
+				instance.ownerZone = ProtocolParser.ReadString(stream);
+				continue;
+			case 34:
+				instance.schedule.Add(ProtocolParser.ReadString(stream));
+				continue;
+			case 40:
+				instance.scheduleIndex = (int)ProtocolParser.ReadUInt64(stream);
+				continue;
+			case 48:
+				instance.state = (int)ProtocolParser.ReadUInt64(stream);
+				continue;
+			case 56:
+				instance.isRetiring = ProtocolParser.ReadBool(stream);
+				continue;
+			}
+			Key key = ProtocolParser.ReadKey((byte)num2, stream);
+			_ = key.Field;
+			ProtocolParser.SkipKey(stream, key);
+		}
+		if (stream.Position != num)
+		{
+			throw new ProtocolBufferException("Read past max limit");
+		}
+		return instance;
+	}
+
+	public static void SerializeDelta(BufferStream stream, FerryStatus instance, FerryStatus previous)
+	{
+		stream.WriteByte(8);
+		ProtocolParser.WriteUInt64(stream, instance.entityId.Value);
+		stream.WriteByte(16);
+		ProtocolParser.WriteUInt64(stream, (ulong)instance.timestamp);
+		if (instance.ownerZone != previous.ownerZone)
+		{
+			if (instance.ownerZone == null)
+			{
+				throw new ArgumentNullException("ownerZone", "Required by proto specification.");
+			}
+			stream.WriteByte(26);
+			ProtocolParser.WriteString(stream, instance.ownerZone);
+		}
+		if (instance.schedule != null)
+		{
+			for (int i = 0; i < instance.schedule.Count; i++)
+			{
+				string val = instance.schedule[i];
+				stream.WriteByte(34);
+				ProtocolParser.WriteString(stream, val);
+			}
+		}
+		if (instance.scheduleIndex != previous.scheduleIndex)
+		{
+			stream.WriteByte(40);
+			ProtocolParser.WriteUInt64(stream, (ulong)instance.scheduleIndex);
+		}
+		if (instance.state != previous.state)
+		{
+			stream.WriteByte(48);
+			ProtocolParser.WriteUInt64(stream, (ulong)instance.state);
+		}
+		stream.WriteByte(56);
+		ProtocolParser.WriteBool(stream, instance.isRetiring);
+	}
+
+	public static void Serialize(BufferStream stream, FerryStatus instance)
+	{
+		if (instance.entityId != default(NetworkableId))
+		{
+			stream.WriteByte(8);
+			ProtocolParser.WriteUInt64(stream, instance.entityId.Value);
+		}
+		if (instance.timestamp != 0L)
+		{
+			stream.WriteByte(16);
+			ProtocolParser.WriteUInt64(stream, (ulong)instance.timestamp);
+		}
+		if (instance.ownerZone == null)
+		{
+			throw new ArgumentNullException("ownerZone", "Required by proto specification.");
+		}
+		stream.WriteByte(26);
+		ProtocolParser.WriteString(stream, instance.ownerZone);
+		if (instance.schedule != null)
+		{
+			for (int i = 0; i < instance.schedule.Count; i++)
+			{
+				string val = instance.schedule[i];
+				stream.WriteByte(34);
+				ProtocolParser.WriteString(stream, val);
+			}
+		}
+		if (instance.scheduleIndex != 0)
+		{
+			stream.WriteByte(40);
+			ProtocolParser.WriteUInt64(stream, (ulong)instance.scheduleIndex);
+		}
+		if (instance.state != 0)
+		{
+			stream.WriteByte(48);
+			ProtocolParser.WriteUInt64(stream, (ulong)instance.state);
+		}
+		if (instance.isRetiring)
+		{
+			stream.WriteByte(56);
+			ProtocolParser.WriteBool(stream, instance.isRetiring);
+		}
+	}
+
+	public void ToProto(BufferStream stream)
+	{
+		Serialize(stream, this);
+	}
+
+	public void InspectUids(UidInspector<ulong> action)
+	{
+		action(UidType.NetworkableId, ref entityId.Value);
+	}
+}
+
+
+using System;
+using System.IO;
+using Facepunch;
+using ProtoBuf.Nexus;
+using SilentOrbit.ProtocolBuffers;
+
+public class FerryStatusRequest : IDisposable, IPooled, IProto<FerryStatusRequest>, IProto
+{
+	public bool ShouldPool = true;
+
+	private bool _disposed;
+
+	public static void ResetToPool(FerryStatusRequest instance)
+	{
+		if (instance.ShouldPool)
+		{
+			Pool.Free<FerryStatusRequest>(ref instance);
+		}
+	}
+
+	public void ResetToPool()
+	{
+		ResetToPool(this);
+	}
+
+	public virtual void Dispose()
+	{
+		if (!ShouldPool)
+		{
+			throw new Exception("Trying to dispose FerryStatusRequest with ShouldPool set to false!");
+		}
+		if (!_disposed)
+		{
+			ResetToPool();
+			_disposed = true;
+		}
+	}
+
+	public virtual void EnterPool()
+	{
+		_disposed = true;
+	}
+
+	public virtual void LeavePool()
+	{
+		_disposed = false;
+	}
+
+	public void CopyTo(FerryStatusRequest instance)
+	{
+	}
+
+	public FerryStatusRequest Copy()
+	{
+		FerryStatusRequest ferryStatusRequest = Pool.Get<FerryStatusRequest>();
+		CopyTo(ferryStatusRequest);
+		return ferryStatusRequest;
+	}
+
+	public static FerryStatusRequest Deserialize(BufferStream stream)
+	{
+		FerryStatusRequest ferryStatusRequest = Pool.Get<FerryStatusRequest>();
+		Deserialize(stream, ferryStatusRequest, isDelta: false);
+		return ferryStatusRequest;
+	}
+
+	public static FerryStatusRequest DeserializeLengthDelimited(BufferStream stream)
+	{
+		FerryStatusRequest ferryStatusRequest = Pool.Get<FerryStatusRequest>();
+		DeserializeLengthDelimited(stream, ferryStatusRequest, isDelta: false);
+		return ferryStatusRequest;
+	}
+
+	public static FerryStatusRequest DeserializeLength(BufferStream stream, int length)
+	{
+		FerryStatusRequest ferryStatusRequest = Pool.Get<FerryStatusRequest>();
+		DeserializeLength(stream, length, ferryStatusRequest, isDelta: false);
+		return ferryStatusRequest;
+	}
+
+	public static FerryStatusRequest Deserialize(byte[] buffer)
+	{
+		FerryStatusRequest ferryStatusRequest = Pool.Get<FerryStatusRequest>();
+		using BufferStream stream = Pool.Get<BufferStream>().Initialize(buffer);
+		Deserialize(stream, ferryStatusRequest, isDelta: false);
+		return ferryStatusRequest;
+	}
+
+	public void FromProto(BufferStream stream, bool isDelta = false)
+	{
+		Deserialize(stream, this, isDelta);
+	}
+
+	public virtual void WriteToStream(BufferStream stream)
+	{
+		Serialize(stream, this);
+	}
+
+	public virtual void WriteToStreamDelta(BufferStream stream, FerryStatusRequest previous)
+	{
+		if (previous == null)
+		{
+			Serialize(stream, this);
+		}
+		else
+		{
+			SerializeDelta(stream, this, previous);
+		}
+	}
+
+	public virtual void ReadFromStream(BufferStream stream, bool isDelta = false)
+	{
+		Deserialize(stream, this, isDelta);
+	}
+
+	public virtual void ReadFromStream(BufferStream stream, int size, bool isDelta = false)
+	{
+		DeserializeLength(stream, size, this, isDelta);
+	}
+
+	public static FerryStatusRequest Deserialize(BufferStream stream, FerryStatusRequest instance, bool isDelta)
+	{
+		while (true)
+		{
+			int num = stream.ReadByte();
+			if (num == -1 || num == 0)
+			{
+				break;
+			}
+			Key key = ProtocolParser.ReadKey((byte)num, stream);
+			_ = key.Field;
+			ProtocolParser.SkipKey(stream, key);
+		}
+		return instance;
+	}
+
+	public static FerryStatusRequest DeserializeLengthDelimited(BufferStream stream, FerryStatusRequest instance, bool isDelta)
+	{
+		long num = ProtocolParser.ReadUInt32(stream);
+		num += stream.Position;
+		while (true)
+		{
+			if (stream.Position >= num)
+			{
+				if (stream.Position == num)
+				{
+					break;
+				}
+				throw new ProtocolBufferException("Read past max limit");
+			}
+			int num2 = stream.ReadByte();
+			if (num2 == -1)
+			{
+				throw new EndOfStreamException();
+			}
+			Key key = ProtocolParser.ReadKey((byte)num2, stream);
+			_ = key.Field;
+			ProtocolParser.SkipKey(stream, key);
+		}
+		return instance;
+	}
+
+	public static FerryStatusRequest DeserializeLength(BufferStream stream, int length, FerryStatusRequest instance, bool isDelta)
+	{
+		long num = stream.Position + length;
+		while (true)
+		{
+			if (stream.Position >= num)
+			{
+				if (stream.Position == num)
+				{
+					break;
+				}
+				throw new ProtocolBufferException("Read past max limit");
+			}
+			int num2 = stream.ReadByte();
+			if (num2 == -1)
+			{
+				throw new EndOfStreamException();
+			}
+			Key key = ProtocolParser.ReadKey((byte)num2, stream);
+			_ = key.Field;
+			ProtocolParser.SkipKey(stream, key);
+		}
+		return instance;
+	}
+
+	public static void SerializeDelta(BufferStream stream, FerryStatusRequest instance, FerryStatusRequest previous)
+	{
+	}
+
+	public static void Serialize(BufferStream stream, FerryStatusRequest instance)
+	{
+	}
+
+	public void ToProto(BufferStream stream)
+	{
+		Serialize(stream, this);
+	}
+
+	public void InspectUids(UidInspector<ulong> action)
+	{
+	}
+}
+
+
+using System;
+using System.Collections.Generic;
+using System.IO;
+using Facepunch;
+using ProtoBuf.Nexus;
+using SilentOrbit.ProtocolBuffers;
+
+public class FerryStatusResponse : IDisposable, IPooled, IProto<FerryStatusResponse>, IProto
+{
+	public bool ShouldPool = true;
+
+	private bool _disposed;
+
+	[NonSerialized]
+	public List<FerryStatus> statuses;
+
+	public static void ResetToPool(FerryStatusResponse instance)
+	{
+		if (!instance.ShouldPool)
+		{
+			return;
+		}
+		if (instance.statuses != null)
+		{
+			for (int i = 0; i < instance.statuses.Count; i++)
+			{
+				if (instance.statuses[i] != null)
+				{
+					instance.statuses[i].ResetToPool();
+					instance.statuses[i] = null;
+				}
+			}
+			List<FerryStatus> list = instance.statuses;
+			Pool.Free<FerryStatus>(ref list, false);
+			instance.statuses = list;
+		}
+		Pool.Free<FerryStatusResponse>(ref instance);
+	}
+
+	public void ResetToPool()
+	{
+		ResetToPool(this);
+	}
+
+	public virtual void Dispose()
+	{
+		if (!ShouldPool)
+		{
+			throw new Exception("Trying to dispose FerryStatusResponse with ShouldPool set to false!");
+		}
+		if (!_disposed)
+		{
+			ResetToPool();
+			_disposed = true;
+		}
+	}
+
+	public virtual void EnterPool()
+	{
+		_disposed = true;
+	}
+
+	public virtual void LeavePool()
+	{
+		_disposed = false;
+	}
+
+	public void CopyTo(FerryStatusResponse instance)
+	{
+		if (statuses != null)
+		{
+			instance.statuses = Pool.Get<List<FerryStatus>>();
+			for (int i = 0; i < statuses.Count; i++)
+			{
+				FerryStatus item = statuses[i].Copy();
+				instance.statuses.Add(item);
+			}
+		}
+		else
+		{
+			instance.statuses = null;
+		}
+	}
+
+	public FerryStatusResponse Copy()
+	{
+		FerryStatusResponse ferryStatusResponse = Pool.Get<FerryStatusResponse>();
+		CopyTo(ferryStatusResponse);
+		return ferryStatusResponse;
+	}
+
+	public static FerryStatusResponse Deserialize(BufferStream stream)
+	{
+		FerryStatusResponse ferryStatusResponse = Pool.Get<FerryStatusResponse>();
+		Deserialize(stream, ferryStatusResponse, isDelta: false);
+		return ferryStatusResponse;
+	}
+
+	public static FerryStatusResponse DeserializeLengthDelimited(BufferStream stream)
+	{
+		FerryStatusResponse ferryStatusResponse = Pool.Get<FerryStatusResponse>();
+		DeserializeLengthDelimited(stream, ferryStatusResponse, isDelta: false);
+		return ferryStatusResponse;
+	}
+
+	public static FerryStatusResponse DeserializeLength(BufferStream stream, int length)
+	{
+		FerryStatusResponse ferryStatusResponse = Pool.Get<FerryStatusResponse>();
+		DeserializeLength(stream, length, ferryStatusResponse, isDelta: false);
+		return ferryStatusResponse;
+	}
+
+	public static FerryStatusResponse Deserialize(byte[] buffer)
+	{
+		FerryStatusResponse ferryStatusResponse = Pool.Get<FerryStatusResponse>();
+		using BufferStream stream = Pool.Get<BufferStream>().Initialize(buffer);
+		Deserialize(stream, ferryStatusResponse, isDelta: false);
+		return ferryStatusResponse;
+	}
+
+	public void FromProto(BufferStream stream, bool isDelta = false)
+	{
+		Deserialize(stream, this, isDelta);
+	}
+
+	public virtual void WriteToStream(BufferStream stream)
+	{
+		Serialize(stream, this);
+	}
+
+	public virtual void WriteToStreamDelta(BufferStream stream, FerryStatusResponse previous)
+	{
+		if (previous == null)
+		{
+			Serialize(stream, this);
+		}
+		else
+		{
+			SerializeDelta(stream, this, previous);
+		}
+	}
+
+	public virtual void ReadFromStream(BufferStream stream, bool isDelta = false)
+	{
+		Deserialize(stream, this, isDelta);
+	}
+
+	public virtual void ReadFromStream(BufferStream stream, int size, bool isDelta = false)
+	{
+		DeserializeLength(stream, size, this, isDelta);
+	}
+
+	public static FerryStatusResponse Deserialize(BufferStream stream, FerryStatusResponse instance, bool isDelta)
+	{
+		if (!isDelta && instance.statuses == null)
+		{
+			instance.statuses = Pool.Get<List<FerryStatus>>();
+		}
+		while (true)
+		{
+			int num = stream.ReadByte();
+			switch (num)
+			{
+			case 10:
+				instance.statuses.Add(FerryStatus.DeserializeLengthDelimited(stream));
+				continue;
+			case -1:
+			case 0:
+				return instance;
+			}
+			Key key = ProtocolParser.ReadKey((byte)num, stream);
+			_ = key.Field;
+			ProtocolParser.SkipKey(stream, key);
+		}
+	}
+
+	public static FerryStatusResponse DeserializeLengthDelimited(BufferStream stream, FerryStatusResponse instance, bool isDelta)
+	{
+		if (!isDelta && instance.statuses == null)
+		{
+			instance.statuses = Pool.Get<List<FerryStatus>>();
+		}
+		long num = ProtocolParser.ReadUInt32(stream);
+		num += stream.Position;
+		while (stream.Position < num)
+		{
+			int num2 = stream.ReadByte();
+			switch (num2)
+			{
+			case -1:
+				throw new EndOfStreamException();
+			case 10:
+				instance.statuses.Add(FerryStatus.DeserializeLengthDelimited(stream));
+				continue;
+			}
+			Key key = ProtocolParser.ReadKey((byte)num2, stream);
+			_ = key.Field;
+			ProtocolParser.SkipKey(stream, key);
+		}
+		if (stream.Position != num)
+		{
+			throw new ProtocolBufferException("Read past max limit");
+		}
+		return instance;
+	}
+
+	public static FerryStatusResponse DeserializeLength(BufferStream stream, int length, FerryStatusResponse instance, bool isDelta)
+	{
+		if (!isDelta && instance.statuses == null)
+		{
+			instance.statuses = Pool.Get<List<FerryStatus>>();
+		}
+		long num = stream.Position + length;
+		while (stream.Position < num)
+		{
+			int num2 = stream.ReadByte();
+			switch (num2)
+			{
+			case -1:
+				throw new EndOfStreamException();
+			case 10:
+				instance.statuses.Add(FerryStatus.DeserializeLengthDelimited(stream));
+				continue;
+			}
+			Key key = ProtocolParser.ReadKey((byte)num2, stream);
+			_ = key.Field;
+			ProtocolParser.SkipKey(stream, key);
+		}
+		if (stream.Position != num)
+		{
+			throw new ProtocolBufferException("Read past max limit");
+		}
+		return instance;
+	}
+
+	public static void SerializeDelta(BufferStream stream, FerryStatusResponse instance, FerryStatusResponse previous)
+	{
+		if (instance.statuses == null)
+		{
+			return;
+		}
+		for (int i = 0; i < instance.statuses.Count; i++)
+		{
+			FerryStatus ferryStatus = instance.statuses[i];
+			stream.WriteByte(10);
+			BufferStream.RangeHandle range = stream.GetRange(5);
+			int position = stream.Position;
+			FerryStatus.SerializeDelta(stream, ferryStatus, ferryStatus);
+			int val = stream.Position - position;
+			Span<byte> span = range.GetSpan();
+			int num = ProtocolParser.WriteUInt32((uint)val, span, 0);
+			if (num < 5)
+			{
+				span[num - 1] |= 128;
+				while (num < 4)
+				{
+					span[num++] = 128;
+				}
+				span[4] = 0;
+			}
+		}
+	}
+
+	public static void Serialize(BufferStream stream, FerryStatusResponse instance)
+	{
+		if (instance.statuses == null)
+		{
+			return;
+		}
+		for (int i = 0; i < instance.statuses.Count; i++)
+		{
+			FerryStatus instance2 = instance.statuses[i];
+			stream.WriteByte(10);
+			BufferStream.RangeHandle range = stream.GetRange(5);
+			int position = stream.Position;
+			FerryStatus.Serialize(stream, instance2);
+			int val = stream.Position - position;
+			Span<byte> span = range.GetSpan();
+			int num = ProtocolParser.WriteUInt32((uint)val, span, 0);
+			if (num < 5)
+			{
+				span[num - 1] |= 128;
+				while (num < 4)
+				{
+					span[num++] = 128;
+				}
+				span[4] = 0;
+			}
+		}
+	}
+
+	public void ToProto(BufferStream stream)
+	{
+		Serialize(stream, this);
+	}
+
+	public void InspectUids(UidInspector<ulong> action)
+	{
+		if (statuses != null)
+		{
+			for (int i = 0; i < statuses.Count; i++)
+			{
+				statuses[i]?.InspectUids(action);
+			}
+		}
+	}
+}
+
+
+using System;
+using System.Collections.Generic;
+using System.IO;
+using Facepunch;
+using ProtoBuf.Nexus;
+using SilentOrbit.ProtocolBuffers;
+
+public class FerryUpdateScheduleRequest : IDisposable, IPooled, IProto<FerryUpdateScheduleRequest>, IProto
+{
+	public bool ShouldPool = true;
+
+	private bool _disposed;
+
+	[NonSerialized]
+	public NetworkableId entityId;
+
+	[NonSerialized]
+	public long timestamp;
+
+	[NonSerialized]
+	public List<string> schedule;
+
+	public static void ResetToPool(FerryUpdateScheduleRequest instance)
+	{
+		if (instance.ShouldPool)
+		{
+			instance.entityId = default(NetworkableId);
+			instance.timestamp = 0L;
+			if (instance.schedule != null)
+			{
+				List<string> list = instance.schedule;
+				Pool.FreeUnmanaged<string>(ref list);
+				instance.schedule = list;
+			}
+			Pool.Free<FerryUpdateScheduleRequest>(ref instance);
+		}
+	}
+
+	public void ResetToPool()
+	{
+		ResetToPool(this);
+	}
+
+	public virtual void Dispose()
+	{
+		if (!ShouldPool)
+		{
+			throw new Exception("Trying to dispose FerryUpdateScheduleRequest with ShouldPool set to false!");
+		}
+		if (!_disposed)
+		{
+			ResetToPool();
+			_disposed = true;
+		}
+	}
+
+	public virtual void EnterPool()
+	{
+		_disposed = true;
+	}
+
+	public virtual void LeavePool()
+	{
+		_disposed = false;
+	}
+
+	public void CopyTo(FerryUpdateScheduleRequest instance)
+	{
+		instance.entityId = entityId;
+		instance.timestamp = timestamp;
+		if (schedule != null)
+		{
+			instance.schedule = Pool.Get<List<string>>();
+			for (int i = 0; i < schedule.Count; i++)
+			{
+				string item = schedule[i];
+				instance.schedule.Add(item);
+			}
+		}
+		else
+		{
+			instance.schedule = null;
+		}
+	}
+
+	public FerryUpdateScheduleRequest Copy()
+	{
+		FerryUpdateScheduleRequest ferryUpdateScheduleRequest = Pool.Get<FerryUpdateScheduleRequest>();
+		CopyTo(ferryUpdateScheduleRequest);
+		return ferryUpdateScheduleRequest;
+	}
+
+	public static FerryUpdateScheduleRequest Deserialize(BufferStream stream)
+	{
+		FerryUpdateScheduleRequest ferryUpdateScheduleRequest = Pool.Get<FerryUpdateScheduleRequest>();
+		Deserialize(stream, ferryUpdateScheduleRequest, isDelta: false);
+		return ferryUpdateScheduleRequest;
+	}
+
+	public static FerryUpdateScheduleRequest DeserializeLengthDelimited(BufferStream stream)
+	{
+		FerryUpdateScheduleRequest ferryUpdateScheduleRequest = Pool.Get<FerryUpdateScheduleRequest>();
+		DeserializeLengthDelimited(stream, ferryUpdateScheduleRequest, isDelta: false);
+		return ferryUpdateScheduleRequest;
+	}
+
+	public static FerryUpdateScheduleRequest DeserializeLength(BufferStream stream, int length)
+	{
+		FerryUpdateScheduleRequest ferryUpdateScheduleRequest = Pool.Get<FerryUpdateScheduleRequest>();
+		DeserializeLength(stream, length, ferryUpdateScheduleRequest, isDelta: false);
+		return ferryUpdateScheduleRequest;
+	}
+
+	public static FerryUpdateScheduleRequest Deserialize(byte[] buffer)
+	{
+		FerryUpdateScheduleRequest ferryUpdateScheduleRequest = Pool.Get<FerryUpdateScheduleRequest>();
+		using BufferStream stream = Pool.Get<BufferStream>().Initialize(buffer);
+		Deserialize(stream, ferryUpdateScheduleRequest, isDelta: false);
+		return ferryUpdateScheduleRequest;
+	}
+
+	public void FromProto(BufferStream stream, bool isDelta = false)
+	{
+		Deserialize(stream, this, isDelta);
+	}
+
+	public virtual void WriteToStream(BufferStream stream)
+	{
+		Serialize(stream, this);
+	}
+
+	public virtual void WriteToStreamDelta(BufferStream stream, FerryUpdateScheduleRequest previous)
+	{
+		if (previous == null)
+		{
+			Serialize(stream, this);
+		}
+		else
+		{
+			SerializeDelta(stream, this, previous);
+		}
+	}
+
+	public virtual void ReadFromStream(BufferStream stream, bool isDelta = false)
+	{
+		Deserialize(stream, this, isDelta);
+	}
+
+	public virtual void ReadFromStream(BufferStream stream, int size, bool isDelta = false)
+	{
+		DeserializeLength(stream, size, this, isDelta);
+	}
+
+	public static FerryUpdateScheduleRequest Deserialize(BufferStream stream, FerryUpdateScheduleRequest instance, bool isDelta)
+	{
+		if (!isDelta && instance.schedule == null)
+		{
+			instance.schedule = Pool.Get<List<string>>();
+		}
+		while (true)
+		{
+			int num = stream.ReadByte();
+			switch (num)
+			{
+			case 8:
+				instance.entityId = new NetworkableId(ProtocolParser.ReadUInt64(stream));
+				continue;
+			case 16:
+				instance.timestamp = (long)ProtocolParser.ReadUInt64(stream);
+				continue;
+			case 26:
+				instance.schedule.Add(ProtocolParser.ReadString(stream));
+				continue;
+			case -1:
+			case 0:
+				return instance;
+			}
+			Key key = ProtocolParser.ReadKey((byte)num, stream);
+			_ = key.Field;
+			ProtocolParser.SkipKey(stream, key);
+		}
+	}
+
+	public static FerryUpdateScheduleRequest DeserializeLengthDelimited(BufferStream stream, FerryUpdateScheduleRequest instance, bool isDelta)
+	{
+		if (!isDelta && instance.schedule == null)
+		{
+			instance.schedule = Pool.Get<List<string>>();
+		}
+		long num = ProtocolParser.ReadUInt32(stream);
+		num += stream.Position;
+		while (stream.Position < num)
+		{
+			int num2 = stream.ReadByte();
+			switch (num2)
+			{
+			case -1:
+				throw new EndOfStreamException();
+			case 8:
+				instance.entityId = new NetworkableId(ProtocolParser.ReadUInt64(stream));
+				continue;
+			case 16:
+				instance.timestamp = (long)ProtocolParser.ReadUInt64(stream);
+				continue;
+			case 26:
+				instance.schedule.Add(ProtocolParser.ReadString(stream));
+				continue;
+			}
+			Key key = ProtocolParser.ReadKey((byte)num2, stream);
+			_ = key.Field;
+			ProtocolParser.SkipKey(stream, key);
+		}
+		if (stream.Position != num)
+		{
+			throw new ProtocolBufferException("Read past max limit");
+		}
+		return instance;
+	}
+
+	public static FerryUpdateScheduleRequest DeserializeLength(BufferStream stream, int length, FerryUpdateScheduleRequest instance, bool isDelta)
+	{
+		if (!isDelta && instance.schedule == null)
+		{
+			instance.schedule = Pool.Get<List<string>>();
+		}
+		long num = stream.Position + length;
+		while (stream.Position < num)
+		{
+			int num2 = stream.ReadByte();
+			switch (num2)
+			{
+			case -1:
+				throw new EndOfStreamException();
+			case 8:
+				instance.entityId = new NetworkableId(ProtocolParser.ReadUInt64(stream));
+				continue;
+			case 16:
+				instance.timestamp = (long)ProtocolParser.ReadUInt64(stream);
+				continue;
+			case 26:
+				instance.schedule.Add(ProtocolParser.ReadString(stream));
+				continue;
+			}
+			Key key = ProtocolParser.ReadKey((byte)num2, stream);
+			_ = key.Field;
+			ProtocolParser.SkipKey(stream, key);
+		}
+		if (stream.Position != num)
+		{
+			throw new ProtocolBufferException("Read past max limit");
+		}
+		return instance;
+	}
+
+	public static void SerializeDelta(BufferStream stream, FerryUpdateScheduleRequest instance, FerryUpdateScheduleRequest previous)
+	{
+		stream.WriteByte(8);
+		ProtocolParser.WriteUInt64(stream, instance.entityId.Value);
+		stream.WriteByte(16);
+		ProtocolParser.WriteUInt64(stream, (ulong)instance.timestamp);
+		if (instance.schedule != null)
+		{
+			for (int i = 0; i < instance.schedule.Count; i++)
+			{
+				string val = instance.schedule[i];
+				stream.WriteByte(26);
+				ProtocolParser.WriteString(stream, val);
+			}
+		}
+	}
+
+	public static void Serialize(BufferStream stream, FerryUpdateScheduleRequest instance)
+	{
+		if (instance.entityId != default(NetworkableId))
+		{
+			stream.WriteByte(8);
+			ProtocolParser.WriteUInt64(stream, instance.entityId.Value);
+		}
+		if (instance.timestamp != 0L)
+		{
+			stream.WriteByte(16);
+			ProtocolParser.WriteUInt64(stream, (ulong)instance.timestamp);
+		}
+		if (instance.schedule != null)
+		{
+			for (int i = 0; i < instance.schedule.Count; i++)
+			{
+				string val = instance.schedule[i];
+				stream.WriteByte(26);
+				ProtocolParser.WriteString(stream, val);
+			}
+		}
+	}
+
+	public void ToProto(BufferStream stream)
+	{
+		Serialize(stream, this);
+	}
+
+	public void InspectUids(UidInspector<ulong> action)
+	{
+		action(UidType.NetworkableId, ref entityId.Value);
+	}
+}
+
+
+using System;
+using System.IO;
+using Facepunch;
+using ProtoBuf.Nexus;
+using SilentOrbit.ProtocolBuffers;
+
+public class Packet : IDisposable, IPooled, IProto<Packet>, IProto
+{
+	public bool ShouldPool = true;
+
+	private bool _disposed;
+
+	[NonSerialized]
+	public uint protocol;
+
+	[NonSerialized]
+	public int sourceZone;
+
+	[NonSerialized]
+	public Request request;
+
+	[NonSerialized]
+	public Response response;
+
+	public static void ResetToPool(Packet instance)
+	{
+		if (instance.ShouldPool)
+		{
+			instance.protocol = 0u;
+			instance.sourceZone = 0;
+			if (instance.request != null)
+			{
+				instance.request.ResetToPool();
+				instance.request = null;
+			}
+			if (instance.response != null)
+			{
+				instance.response.ResetToPool();
+				instance.response = null;
+			}
+			Pool.Free<Packet>(ref instance);
+		}
+	}
+
+	public void ResetToPool()
+	{
+		ResetToPool(this);
+	}
+
+	public virtual void Dispose()
+	{
+		if (!ShouldPool)
+		{
+			throw new Exception("Trying to dispose Packet with ShouldPool set to false!");
+		}
+		if (!_disposed)
+		{
+			ResetToPool();
+			_disposed = true;
+		}
+	}
+
+	public virtual void EnterPool()
+	{
+		_disposed = true;
+	}
+
+	public virtual void LeavePool()
+	{
+		_disposed = false;
+	}
+
+	public void CopyTo(Packet instance)
+	{
+		instance.protocol = protocol;
+		instance.sourceZone = sourceZone;
+		if (request != null)
+		{
+			if (instance.request == null)
+			{
+				instance.request = request.Copy();
+			}
+			else
+			{
+				request.CopyTo(instance.request);
+			}
+		}
+		else
+		{
+			instance.request = null;
+		}
+		if (response != null)
+		{
+			if (instance.response == null)
+			{
+				instance.response = response.Copy();
+			}
+			else
+			{
+				response.CopyTo(instance.response);
+			}
+		}
+		else
+		{
+			instance.response = null;
+		}
+	}
+
+	public Packet Copy()
+	{
+		Packet packet = Pool.Get<Packet>();
+		CopyTo(packet);
+		return packet;
+	}
+
+	public static Packet Deserialize(BufferStream stream)
+	{
+		Packet packet = Pool.Get<Packet>();
+		Deserialize(stream, packet, isDelta: false);
+		return packet;
+	}
+
+	public static Packet DeserializeLengthDelimited(BufferStream stream)
+	{
+		Packet packet = Pool.Get<Packet>();
+		DeserializeLengthDelimited(stream, packet, isDelta: false);
+		return packet;
+	}
+
+	public static Packet DeserializeLength(BufferStream stream, int length)
+	{
+		Packet packet = Pool.Get<Packet>();
+		DeserializeLength(stream, length, packet, isDelta: false);
+		return packet;
+	}
+
+	public static Packet Deserialize(byte[] buffer)
+	{
+		Packet packet = Pool.Get<Packet>();
+		using BufferStream stream = Pool.Get<BufferStream>().Initialize(buffer);
+		Deserialize(stream, packet, isDelta: false);
+		return packet;
+	}
+
+	public void FromProto(BufferStream stream, bool isDelta = false)
+	{
+		Deserialize(stream, this, isDelta);
+	}
+
+	public virtual void WriteToStream(BufferStream stream)
+	{
+		Serialize(stream, this);
+	}
+
+	public virtual void WriteToStreamDelta(BufferStream stream, Packet previous)
+	{
+		if (previous == null)
+		{
+			Serialize(stream, this);
+		}
+		else
+		{
+			SerializeDelta(stream, this, previous);
+		}
+	}
+
+	public virtual void ReadFromStream(BufferStream stream, bool isDelta = false)
+	{
+		Deserialize(stream, this, isDelta);
+	}
+
+	public virtual void ReadFromStream(BufferStream stream, int size, bool isDelta = false)
+	{
+		DeserializeLength(stream, size, this, isDelta);
+	}
+
+	public static Packet Deserialize(BufferStream stream, Packet instance, bool isDelta)
+	{
+		while (true)
+		{
+			int num = stream.ReadByte();
+			switch (num)
+			{
+			case 8:
+				instance.protocol = ProtocolParser.ReadUInt32(stream);
+				break;
+			case 16:
+				instance.sourceZone = (int)ProtocolParser.ReadUInt64(stream);
+				break;
+			case 26:
+				if (instance.request == null)
+				{
+					instance.request = Request.DeserializeLengthDelimited(stream);
+				}
+				else
+				{
+					Request.DeserializeLengthDelimited(stream, instance.request, isDelta);
+				}
+				break;
+			case 34:
+				if (instance.response == null)
+				{
+					instance.response = Response.DeserializeLengthDelimited(stream);
+				}
+				else
+				{
+					Response.DeserializeLengthDelimited(stream, instance.response, isDelta);
+				}
+				break;
+			default:
+			{
+				Key key = ProtocolParser.ReadKey((byte)num, stream);
+				_ = key.Field;
+				ProtocolParser.SkipKey(stream, key);
+				break;
+			}
+			case -1:
+			case 0:
+				return instance;
+			}
+		}
+	}
+
+	public static Packet DeserializeLengthDelimited(BufferStream stream, Packet instance, bool isDelta)
+	{
+		long num = ProtocolParser.ReadUInt32(stream);
+		num += stream.Position;
+		while (stream.Position < num)
+		{
+			int num2 = stream.ReadByte();
+			switch (num2)
+			{
+			case -1:
+				throw new EndOfStreamException();
+			case 8:
+				instance.protocol = ProtocolParser.ReadUInt32(stream);
+				break;
+			case 16:
+				instance.sourceZone = (int)ProtocolParser.ReadUInt64(stream);
+				break;
+			case 26:
+				if (instance.request == null)
+				{
+					instance.request = Request.DeserializeLengthDelimited(stream);
+				}
+				else
+				{
+					Request.DeserializeLengthDelimited(stream, instance.request, isDelta);
+				}
+				break;
+			case 34:
+				if (instance.response == null)
+				{
+					instance.response = Response.DeserializeLengthDelimited(stream);
+				}
+				else
+				{
+					Response.DeserializeLengthDelimited(stream, instance.response, isDelta);
+				}
+				break;
+			default:
+			{
+				Key key = ProtocolParser.ReadKey((byte)num2, stream);
+				_ = key.Field;
+				ProtocolParser.SkipKey(stream, key);
+				break;
+			}
+			}
+		}
+		if (stream.Position != num)
+		{
+			throw new ProtocolBufferException("Read past max limit");
+		}
+		return instance;
+	}
+
+	public static Packet DeserializeLength(BufferStream stream, int length, Packet instance, bool isDelta)
+	{
+		long num = stream.Position + length;
+		while (stream.Position < num)
+		{
+			int num2 = stream.ReadByte();
+			switch (num2)
+			{
+			case -1:
+				throw new EndOfStreamException();
+			case 8:
+				instance.protocol = ProtocolParser.ReadUInt32(stream);
+				break;
+			case 16:
+				instance.sourceZone = (int)ProtocolParser.ReadUInt64(stream);
+				break;
+			case 26:
+				if (instance.request == null)
+				{
+					instance.request = Request.DeserializeLengthDelimited(stream);
+				}
+				else
+				{
+					Request.DeserializeLengthDelimited(stream, instance.request, isDelta);
+				}
+				break;
+			case 34:
+				if (instance.response == null)
+				{
+					instance.response = Response.DeserializeLengthDelimited(stream);
+				}
+				else
+				{
+					Response.DeserializeLengthDelimited(stream, instance.response, isDelta);
+				}
+				break;
+			default:
+			{
+				Key key = ProtocolParser.ReadKey((byte)num2, stream);
+				_ = key.Field;
+				ProtocolParser.SkipKey(stream, key);
+				break;
+			}
+			}
+		}
+		if (stream.Position != num)
+		{
+			throw new ProtocolBufferException("Read past max limit");
+		}
+		return instance;
+	}
+
+	public static void SerializeDelta(BufferStream stream, Packet instance, Packet previous)
+	{
+		if (instance.protocol != previous.protocol)
+		{
+			stream.WriteByte(8);
+			ProtocolParser.WriteUInt32(stream, instance.protocol);
+		}
+		if (instance.sourceZone != previous.sourceZone)
+		{
+			stream.WriteByte(16);
+			ProtocolParser.WriteUInt64(stream, (ulong)instance.sourceZone);
+		}
+		if (instance.request != null)
+		{
+			stream.WriteByte(26);
+			BufferStream.RangeHandle range = stream.GetRange(5);
+			int position = stream.Position;
+			Request.SerializeDelta(stream, instance.request, previous.request);
+			int val = stream.Position - position;
+			Span<byte> span = range.GetSpan();
+			int num = ProtocolParser.WriteUInt32((uint)val, span, 0);
+			if (num < 5)
+			{
+				span[num - 1] |= 128;
+				while (num < 4)
+				{
+					span[num++] = 128;
+				}
+				span[4] = 0;
+			}
+		}
+		if (instance.response == null)
+		{
+			return;
+		}
+		stream.WriteByte(34);
+		BufferStream.RangeHandle range2 = stream.GetRange(5);
+		int position2 = stream.Position;
+		Response.SerializeDelta(stream, instance.response, previous.response);
+		int val2 = stream.Position - position2;
+		Span<byte> span2 = range2.GetSpan();
+		int num2 = ProtocolParser.WriteUInt32((uint)val2, span2, 0);
+		if (num2 < 5)
+		{
+			span2[num2 - 1] |= 128;
+			while (num2 < 4)
+			{
+				span2[num2++] = 128;
+			}
+			span2[4] = 0;
+		}
+	}
+
+	public static void Serialize(BufferStream stream, Packet instance)
+	{
+		if (instance.protocol != 0)
+		{
+			stream.WriteByte(8);
+			ProtocolParser.WriteUInt32(stream, instance.protocol);
+		}
+		if (instance.sourceZone != 0)
+		{
+			stream.WriteByte(16);
+			ProtocolParser.WriteUInt64(stream, (ulong)instance.sourceZone);
+		}
+		if (instance.request != null)
+		{
+			stream.WriteByte(26);
+			BufferStream.RangeHandle range = stream.GetRange(5);
+			int position = stream.Position;
+			Request.Serialize(stream, instance.request);
+			int val = stream.Position - position;
+			Span<byte> span = range.GetSpan();
+			int num = ProtocolParser.WriteUInt32((uint)val, span, 0);
+			if (num < 5)
+			{
+				span[num - 1] |= 128;
+				while (num < 4)
+				{
+					span[num++] = 128;
+				}
+				span[4] = 0;
+			}
+		}
+		if (instance.response == null)
+		{
+			return;
+		}
+		stream.WriteByte(34);
+		BufferStream.RangeHandle range2 = stream.GetRange(5);
+		int position2 = stream.Position;
+		Response.Serialize(stream, instance.response);
+		int val2 = stream.Position - position2;
+		Span<byte> span2 = range2.GetSpan();
+		int num2 = ProtocolParser.WriteUInt32((uint)val2, span2, 0);
+		if (num2 < 5)
+		{
+			span2[num2 - 1] |= 128;
+			while (num2 < 4)
+			{
+				span2[num2++] = 128;
+			}
+			span2[4] = 0;
+		}
+	}
+
+	public void ToProto(BufferStream stream)
+	{
+		Serialize(stream, this);
+	}
+
+	public void InspectUids(UidInspector<ulong> action)
+	{
+		request?.InspectUids(action);
+		response?.InspectUids(action);
+	}
+}
+
+
+using System;
+using System.IO;
+using Facepunch;
+using ProtoBuf.Nexus;
+using SilentOrbit.ProtocolBuffers;
+
+public class PingRequest : IDisposable, IPooled, IProto<PingRequest>, IProto
+{
+	public bool ShouldPool = true;
+
+	private bool _disposed;
+
+	public static void ResetToPool(PingRequest instance)
+	{
+		if (instance.ShouldPool)
+		{
+			Pool.Free<PingRequest>(ref instance);
+		}
+	}
+
+	public void ResetToPool()
+	{
+		ResetToPool(this);
+	}
+
+	public virtual void Dispose()
+	{
+		if (!ShouldPool)
+		{
+			throw new Exception("Trying to dispose PingRequest with ShouldPool set to false!");
+		}
+		if (!_disposed)
+		{
+			ResetToPool();
+			_disposed = true;
+		}
+	}
+
+	public virtual void EnterPool()
+	{
+		_disposed = true;
+	}
+
+	public virtual void LeavePool()
+	{
+		_disposed = false;
+	}
+
+	public void CopyTo(PingRequest instance)
+	{
+	}
+
+	public PingRequest Copy()
+	{
+		PingRequest pingRequest = Pool.Get<PingRequest>();
+		CopyTo(pingRequest);
+		return pingRequest;
+	}
+
+	public static PingRequest Deserialize(BufferStream stream)
+	{
+		PingRequest pingRequest = Pool.Get<PingRequest>();
+		Deserialize(stream, pingRequest, isDelta: false);
+		return pingRequest;
+	}
+
+	public static PingRequest DeserializeLengthDelimited(BufferStream stream)
+	{
+		PingRequest pingRequest = Pool.Get<PingRequest>();
+		DeserializeLengthDelimited(stream, pingRequest, isDelta: false);
+		return pingRequest;
+	}
+
+	public static PingRequest DeserializeLength(BufferStream stream, int length)
+	{
+		PingRequest pingRequest = Pool.Get<PingRequest>();
+		DeserializeLength(stream, length, pingRequest, isDelta: false);
+		return pingRequest;
+	}
+
+	public static PingRequest Deserialize(byte[] buffer)
+	{
+		PingRequest pingRequest = Pool.Get<PingRequest>();
+		using BufferStream stream = Pool.Get<BufferStream>().Initialize(buffer);
+		Deserialize(stream, pingRequest, isDelta: false);
+		return pingRequest;
+	}
+
+	public void FromProto(BufferStream stream, bool isDelta = false)
+	{
+		Deserialize(stream, this, isDelta);
+	}
+
+	public virtual void WriteToStream(BufferStream stream)
+	{
+		Serialize(stream, this);
+	}
+
+	public virtual void WriteToStreamDelta(BufferStream stream, PingRequest previous)
+	{
+		if (previous == null)
+		{
+			Serialize(stream, this);
+		}
+		else
+		{
+			SerializeDelta(stream, this, previous);
+		}
+	}
+
+	public virtual void ReadFromStream(BufferStream stream, bool isDelta = false)
+	{
+		Deserialize(stream, this, isDelta);
+	}
+
+	public virtual void ReadFromStream(BufferStream stream, int size, bool isDelta = false)
+	{
+		DeserializeLength(stream, size, this, isDelta);
+	}
+
+	public static PingRequest Deserialize(BufferStream stream, PingRequest instance, bool isDelta)
+	{
+		while (true)
+		{
+			int num = stream.ReadByte();
+			if (num == -1 || num == 0)
+			{
+				break;
+			}
+			Key key = ProtocolParser.ReadKey((byte)num, stream);
+			_ = key.Field;
+			ProtocolParser.SkipKey(stream, key);
+		}
+		return instance;
+	}
+
+	public static PingRequest DeserializeLengthDelimited(BufferStream stream, PingRequest instance, bool isDelta)
+	{
+		long num = ProtocolParser.ReadUInt32(stream);
+		num += stream.Position;
+		while (true)
+		{
+			if (stream.Position >= num)
+			{
+				if (stream.Position == num)
+				{
+					break;
+				}
+				throw new ProtocolBufferException("Read past max limit");
+			}
+			int num2 = stream.ReadByte();
+			if (num2 == -1)
+			{
+				throw new EndOfStreamException();
+			}
+			Key key = ProtocolParser.ReadKey((byte)num2, stream);
+			_ = key.Field;
+			ProtocolParser.SkipKey(stream, key);
+		}
+		return instance;
+	}
+
+	public static PingRequest DeserializeLength(BufferStream stream, int length, PingRequest instance, bool isDelta)
+	{
+		long num = stream.Position + length;
+		while (true)
+		{
+			if (stream.Position >= num)
+			{
+				if (stream.Position == num)
+				{
+					break;
+				}
+				throw new ProtocolBufferException("Read past max limit");
+			}
+			int num2 = stream.ReadByte();
+			if (num2 == -1)
+			{
+				throw new EndOfStreamException();
+			}
+			Key key = ProtocolParser.ReadKey((byte)num2, stream);
+			_ = key.Field;
+			ProtocolParser.SkipKey(stream, key);
+		}
+		return instance;
+	}
+
+	public static void SerializeDelta(BufferStream stream, PingRequest instance, PingRequest previous)
+	{
+	}
+
+	public static void Serialize(BufferStream stream, PingRequest instance)
+	{
+	}
+
+	public void ToProto(BufferStream stream)
+	{
+		Serialize(stream, this);
+	}
+
+	public void InspectUids(UidInspector<ulong> action)
+	{
+	}
+}
+
+
+using System;
+using System.IO;
+using Facepunch;
+using ProtoBuf.Nexus;
+using SilentOrbit.ProtocolBuffers;
+
+public class PingResponse : IDisposable, IPooled, IProto<PingResponse>, IProto
+{
+	public bool ShouldPool = true;
+
+	private bool _disposed;
+
+	[NonSerialized]
+	public int players;
+
+	[NonSerialized]
+	public int maxPlayers;
+
+	[NonSerialized]
+	public int queuedPlayers;
+
+	public static void ResetToPool(PingResponse instance)
+	{
+		if (instance.ShouldPool)
+		{
+			instance.players = 0;
+			instance.maxPlayers = 0;
+			instance.queuedPlayers = 0;
+			Pool.Free<PingResponse>(ref instance);
+		}
+	}
+
+	public void ResetToPool()
+	{
+		ResetToPool(this);
+	}
+
+	public virtual void Dispose()
+	{
+		if (!ShouldPool)
+		{
+			throw new Exception("Trying to dispose PingResponse with ShouldPool set to false!");
+		}
+		if (!_disposed)
+		{
+			ResetToPool();
+			_disposed = true;
+		}
+	}
+
+	public virtual void EnterPool()
+	{
+		_disposed = true;
+	}
+
+	public virtual void LeavePool()
+	{
+		_disposed = false;
+	}
+
+	public void CopyTo(PingResponse instance)
+	{
+		instance.players = players;
+		instance.maxPlayers = maxPlayers;
+		instance.queuedPlayers = queuedPlayers;
+	}
+
+	public PingResponse Copy()
+	{
+		PingResponse pingResponse = Pool.Get<PingResponse>();
+		CopyTo(pingResponse);
+		return pingResponse;
+	}
+
+	public static PingResponse Deserialize(BufferStream stream)
+	{
+		PingResponse pingResponse = Pool.Get<PingResponse>();
+		Deserialize(stream, pingResponse, isDelta: false);
+		return pingResponse;
+	}
+
+	public static PingResponse DeserializeLengthDelimited(BufferStream stream)
+	{
+		PingResponse pingResponse = Pool.Get<PingResponse>();
+		DeserializeLengthDelimited(stream, pingResponse, isDelta: false);
+		return pingResponse;
+	}
+
+	public static PingResponse DeserializeLength(BufferStream stream, int length)
+	{
+		PingResponse pingResponse = Pool.Get<PingResponse>();
+		DeserializeLength(stream, length, pingResponse, isDelta: false);
+		return pingResponse;
+	}
+
+	public static PingResponse Deserialize(byte[] buffer)
+	{
+		PingResponse pingResponse = Pool.Get<PingResponse>();
+		using BufferStream stream = Pool.Get<BufferStream>().Initialize(buffer);
+		Deserialize(stream, pingResponse, isDelta: false);
+		return pingResponse;
+	}
+
+	public void FromProto(BufferStream stream, bool isDelta = false)
+	{
+		Deserialize(stream, this, isDelta);
+	}
+
+	public virtual void WriteToStream(BufferStream stream)
+	{
+		Serialize(stream, this);
+	}
+
+	public virtual void WriteToStreamDelta(BufferStream stream, PingResponse previous)
+	{
+		if (previous == null)
+		{
+			Serialize(stream, this);
+		}
+		else
+		{
+			SerializeDelta(stream, this, previous);
+		}
+	}
+
+	public virtual void ReadFromStream(BufferStream stream, bool isDelta = false)
+	{
+		Deserialize(stream, this, isDelta);
+	}
+
+	public virtual void ReadFromStream(BufferStream stream, int size, bool isDelta = false)
+	{
+		DeserializeLength(stream, size, this, isDelta);
+	}
+
+	public static PingResponse Deserialize(BufferStream stream, PingResponse instance, bool isDelta)
+	{
+		while (true)
+		{
+			int num = stream.ReadByte();
+			switch (num)
+			{
+			case 8:
+				instance.players = (int)ProtocolParser.ReadUInt64(stream);
+				continue;
+			case 16:
+				instance.maxPlayers = (int)ProtocolParser.ReadUInt64(stream);
+				continue;
+			case 24:
+				instance.queuedPlayers = (int)ProtocolParser.ReadUInt64(stream);
+				continue;
+			case -1:
+			case 0:
+				return instance;
+			}
+			Key key = ProtocolParser.ReadKey((byte)num, stream);
+			_ = key.Field;
+			ProtocolParser.SkipKey(stream, key);
+		}
+	}
+
+	public static PingResponse DeserializeLengthDelimited(BufferStream stream, PingResponse instance, bool isDelta)
+	{
+		long num = ProtocolParser.ReadUInt32(stream);
+		num += stream.Position;
+		while (stream.Position < num)
+		{
+			int num2 = stream.ReadByte();
+			switch (num2)
+			{
+			case -1:
+				throw new EndOfStreamException();
+			case 8:
+				instance.players = (int)ProtocolParser.ReadUInt64(stream);
+				continue;
+			case 16:
+				instance.maxPlayers = (int)ProtocolParser.ReadUInt64(stream);
+				continue;
+			case 24:
+				instance.queuedPlayers = (int)ProtocolParser.ReadUInt64(stream);
+				continue;
+			}
+			Key key = ProtocolParser.ReadKey((byte)num2, stream);
+			_ = key.Field;
+			ProtocolParser.SkipKey(stream, key);
+		}
+		if (stream.Position != num)
+		{
+			throw new ProtocolBufferException("Read past max limit");
+		}
+		return instance;
+	}
+
+	public static PingResponse DeserializeLength(BufferStream stream, int length, PingResponse instance, bool isDelta)
+	{
+		long num = stream.Position + length;
+		while (stream.Position < num)
+		{
+			int num2 = stream.ReadByte();
+			switch (num2)
+			{
+			case -1:
+				throw new EndOfStreamException();
+			case 8:
+				instance.players = (int)ProtocolParser.ReadUInt64(stream);
+				continue;
+			case 16:
+				instance.maxPlayers = (int)ProtocolParser.ReadUInt64(stream);
+				continue;
+			case 24:
+				instance.queuedPlayers = (int)ProtocolParser.ReadUInt64(stream);
+				continue;
+			}
+			Key key = ProtocolParser.ReadKey((byte)num2, stream);
+			_ = key.Field;
+			ProtocolParser.SkipKey(stream, key);
+		}
+		if (stream.Position != num)
+		{
+			throw new ProtocolBufferException("Read past max limit");
+		}
+		return instance;
+	}
+
+	public static void SerializeDelta(BufferStream stream, PingResponse instance, PingResponse previous)
+	{
+		if (instance.players != previous.players)
+		{
+			stream.WriteByte(8);
+			ProtocolParser.WriteUInt64(stream, (ulong)instance.players);
+		}
+		if (instance.maxPlayers != previous.maxPlayers)
+		{
+			stream.WriteByte(16);
+			ProtocolParser.WriteUInt64(stream, (ulong)instance.maxPlayers);
+		}
+		if (instance.queuedPlayers != previous.queuedPlayers)
+		{
+			stream.WriteByte(24);
+			ProtocolParser.WriteUInt64(stream, (ulong)instance.queuedPlayers);
+		}
+	}
+
+	public static void Serialize(BufferStream stream, PingResponse instance)
+	{
+		if (instance.players != 0)
+		{
+			stream.WriteByte(8);
+			ProtocolParser.WriteUInt64(stream, (ulong)instance.players);
+		}
+		if (instance.maxPlayers != 0)
+		{
+			stream.WriteByte(16);
+			ProtocolParser.WriteUInt64(stream, (ulong)instance.maxPlayers);
+		}
+		if (instance.queuedPlayers != 0)
+		{
+			stream.WriteByte(24);
+			ProtocolParser.WriteUInt64(stream, (ulong)instance.queuedPlayers);
+		}
+	}
+
+	public void ToProto(BufferStream stream)
+	{
+		Serialize(stream, this);
+	}
+
+	public void InspectUids(UidInspector<ulong> action)
+	{
+	}
+}
+
+
+using System;
+using System.Collections.Generic;
+using System.IO;
+using Facepunch;
+using ProtoBuf.Nexus;
+using SilentOrbit.ProtocolBuffers;
+
+public class PlayerManifestRequest : IDisposable, IPooled, IProto<PlayerManifestRequest>, IProto
+{
+	public bool ShouldPool = true;
+
+	private bool _disposed;
+
+	[NonSerialized]
+	public List<ulong> userIds;
+
+	public static void ResetToPool(PlayerManifestRequest instance)
+	{
+		if (instance.ShouldPool)
+		{
+			if (instance.userIds != null)
+			{
+				List<ulong> list = instance.userIds;
+				Pool.FreeUnmanaged<ulong>(ref list);
+				instance.userIds = list;
+			}
+			Pool.Free<PlayerManifestRequest>(ref instance);
+		}
+	}
+
+	public void ResetToPool()
+	{
+		ResetToPool(this);
+	}
+
+	public virtual void Dispose()
+	{
+		if (!ShouldPool)
+		{
+			throw new Exception("Trying to dispose PlayerManifestRequest with ShouldPool set to false!");
+		}
+		if (!_disposed)
+		{
+			ResetToPool();
+			_disposed = true;
+		}
+	}
+
+	public virtual void EnterPool()
+	{
+		_disposed = true;
+	}
+
+	public virtual void LeavePool()
+	{
+		_disposed = false;
+	}
+
+	public void CopyTo(PlayerManifestRequest instance)
+	{
+		if (userIds != null)
+		{
+			instance.userIds = Pool.Get<List<ulong>>();
+			for (int i = 0; i < userIds.Count; i++)
+			{
+				ulong item = userIds[i];
+				instance.userIds.Add(item);
+			}
+		}
+		else
+		{
+			instance.userIds = null;
+		}
+	}
+
+	public PlayerManifestRequest Copy()
+	{
+		PlayerManifestRequest playerManifestRequest = Pool.Get<PlayerManifestRequest>();
+		CopyTo(playerManifestRequest);
+		return playerManifestRequest;
+	}
+
+	public static PlayerManifestRequest Deserialize(BufferStream stream)
+	{
+		PlayerManifestRequest playerManifestRequest = Pool.Get<PlayerManifestRequest>();
+		Deserialize(stream, playerManifestRequest, isDelta: false);
+		return playerManifestRequest;
+	}
+
+	public static PlayerManifestRequest DeserializeLengthDelimited(BufferStream stream)
+	{
+		PlayerManifestRequest playerManifestRequest = Pool.Get<PlayerManifestRequest>();
+		DeserializeLengthDelimited(stream, playerManifestRequest, isDelta: false);
+		return playerManifestRequest;
+	}
+
+	public static PlayerManifestRequest DeserializeLength(BufferStream stream, int length)
+	{
+		PlayerManifestRequest playerManifestRequest = Pool.Get<PlayerManifestRequest>();
+		DeserializeLength(stream, length, playerManifestRequest, isDelta: false);
+		return playerManifestRequest;
+	}
+
+	public static PlayerManifestRequest Deserialize(byte[] buffer)
+	{
+		PlayerManifestRequest playerManifestRequest = Pool.Get<PlayerManifestRequest>();
+		using BufferStream stream = Pool.Get<BufferStream>().Initialize(buffer);
+		Deserialize(stream, playerManifestRequest, isDelta: false);
+		return playerManifestRequest;
+	}
+
+	public void FromProto(BufferStream stream, bool isDelta = false)
+	{
+		Deserialize(stream, this, isDelta);
+	}
+
+	public virtual void WriteToStream(BufferStream stream)
+	{
+		Serialize(stream, this);
+	}
+
+	public virtual void WriteToStreamDelta(BufferStream stream, PlayerManifestRequest previous)
+	{
+		if (previous == null)
+		{
+			Serialize(stream, this);
+		}
+		else
+		{
+			SerializeDelta(stream, this, previous);
+		}
+	}
+
+	public virtual void ReadFromStream(BufferStream stream, bool isDelta = false)
+	{
+		Deserialize(stream, this, isDelta);
+	}
+
+	public virtual void ReadFromStream(BufferStream stream, int size, bool isDelta = false)
+	{
+		DeserializeLength(stream, size, this, isDelta);
+	}
+
+	public static PlayerManifestRequest Deserialize(BufferStream stream, PlayerManifestRequest instance, bool isDelta)
+	{
+		if (!isDelta && instance.userIds == null)
+		{
+			instance.userIds = Pool.Get<List<ulong>>();
+		}
+		while (true)
+		{
+			int num = stream.ReadByte();
+			switch (num)
+			{
+			case 8:
+				instance.userIds.Add(ProtocolParser.ReadUInt64(stream));
+				continue;
+			case -1:
+			case 0:
+				return instance;
+			}
+			Key key = ProtocolParser.ReadKey((byte)num, stream);
+			_ = key.Field;
+			ProtocolParser.SkipKey(stream, key);
+		}
+	}
+
+	public static PlayerManifestRequest DeserializeLengthDelimited(BufferStream stream, PlayerManifestRequest instance, bool isDelta)
+	{
+		if (!isDelta && instance.userIds == null)
+		{
+			instance.userIds = Pool.Get<List<ulong>>();
+		}
+		long num = ProtocolParser.ReadUInt32(stream);
+		num += stream.Position;
+		while (stream.Position < num)
+		{
+			int num2 = stream.ReadByte();
+			switch (num2)
+			{
+			case -1:
+				throw new EndOfStreamException();
+			case 8:
+				instance.userIds.Add(ProtocolParser.ReadUInt64(stream));
+				continue;
+			}
+			Key key = ProtocolParser.ReadKey((byte)num2, stream);
+			_ = key.Field;
+			ProtocolParser.SkipKey(stream, key);
+		}
+		if (stream.Position != num)
+		{
+			throw new ProtocolBufferException("Read past max limit");
+		}
+		return instance;
+	}
+
+	public static PlayerManifestRequest DeserializeLength(BufferStream stream, int length, PlayerManifestRequest instance, bool isDelta)
+	{
+		if (!isDelta && instance.userIds == null)
+		{
+			instance.userIds = Pool.Get<List<ulong>>();
+		}
+		long num = stream.Position + length;
+		while (stream.Position < num)
+		{
+			int num2 = stream.ReadByte();
+			switch (num2)
+			{
+			case -1:
+				throw new EndOfStreamException();
+			case 8:
+				instance.userIds.Add(ProtocolParser.ReadUInt64(stream));
+				continue;
+			}
+			Key key = ProtocolParser.ReadKey((byte)num2, stream);
+			_ = key.Field;
+			ProtocolParser.SkipKey(stream, key);
+		}
+		if (stream.Position != num)
+		{
+			throw new ProtocolBufferException("Read past max limit");
+		}
+		return instance;
+	}
+
+	public static void SerializeDelta(BufferStream stream, PlayerManifestRequest instance, PlayerManifestRequest previous)
+	{
+		if (instance.userIds != null)
+		{
+			for (int i = 0; i < instance.userIds.Count; i++)
+			{
+				ulong val = instance.userIds[i];
+				stream.WriteByte(8);
+				ProtocolParser.WriteUInt64(stream, val);
+			}
+		}
+	}
+
+	public static void Serialize(BufferStream stream, PlayerManifestRequest instance)
+	{
+		if (instance.userIds != null)
+		{
+			for (int i = 0; i < instance.userIds.Count; i++)
+			{
+				ulong val = instance.userIds[i];
+				stream.WriteByte(8);
+				ProtocolParser.WriteUInt64(stream, val);
+			}
+		}
+	}
+
+	public void ToProto(BufferStream stream)
+	{
+		Serialize(stream, this);
+	}
+
+	public void InspectUids(UidInspector<ulong> action)
+	{
+	}
+}
+
+
+using System;
+using System.Collections.Generic;
+using System.IO;
+using Facepunch;
+using ProtoBuf;
+using ProtoBuf.Nexus;
+using SilentOrbit.ProtocolBuffers;
+
+public class PlayerSecondaryData : IDisposable, IPooled, IProto<PlayerSecondaryData>, IProto
+{
+	public class RelationshipData : IDisposable, IPooled, IProto<RelationshipData>, IProto
+	{
+		public bool ShouldPool = true;
+
+		private bool _disposed;
+
+		[NonSerialized]
+		public RelationshipManager.PlayerRelationshipInfo info;
+
+		[NonSerialized]
+		public ArraySegment<byte> mugshotData;
+
+		public static void ResetToPool(RelationshipData instance)
+		{
+			if (instance.ShouldPool)
+			{
+				if (instance.info != null)
+				{
+					instance.info.ResetToPool();
+					instance.info = null;
+				}
+				if (instance.mugshotData.Array != null)
+				{
+					BufferStream.Shared.ArrayPool.Return(instance.mugshotData.Array);
+				}
+				instance.mugshotData = default(ArraySegment<byte>);
+				Pool.Free<RelationshipData>(ref instance);
+			}
+		}
+
+		public void ResetToPool()
+		{
+			ResetToPool(this);
+		}
+
+		public virtual void Dispose()
+		{
+			if (!ShouldPool)
+			{
+				throw new Exception("Trying to dispose RelationshipData with ShouldPool set to false!");
+			}
+			if (!_disposed)
+			{
+				ResetToPool();
+				_disposed = true;
+			}
+		}
+
+		public virtual void EnterPool()
+		{
+			_disposed = true;
+		}
+
+		public virtual void LeavePool()
+		{
+			_disposed = false;
+		}
+
+		public void CopyTo(RelationshipData instance)
+		{
+			if (info != null)
+			{
+				if (instance.info == null)
+				{
+					instance.info = info.Copy();
+				}
+				else
+				{
+					info.CopyTo(instance.info);
+				}
+			}
+			else
+			{
+				instance.info = null;
+			}
+			if (mugshotData.Array == null)
+			{
+				instance.mugshotData = default(ArraySegment<byte>);
+				return;
+			}
+			byte[] array = BufferStream.Shared.ArrayPool.Rent(mugshotData.Count);
+			Array.Copy(mugshotData.Array, 0, array, 0, mugshotData.Count);
+			instance.mugshotData = new ArraySegment<byte>(array, 0, mugshotData.Count);
+		}
+
+		public RelationshipData Copy()
+		{
+			RelationshipData relationshipData = Pool.Get<RelationshipData>();
+			CopyTo(relationshipData);
+			return relationshipData;
+		}
+
+		public static RelationshipData Deserialize(BufferStream stream)
+		{
+			RelationshipData relationshipData = Pool.Get<RelationshipData>();
+			Deserialize(stream, relationshipData, isDelta: false);
+			return relationshipData;
+		}
+
+		public static RelationshipData DeserializeLengthDelimited(BufferStream stream)
+		{
+			RelationshipData relationshipData = Pool.Get<RelationshipData>();
+			DeserializeLengthDelimited(stream, relationshipData, isDelta: false);
+			return relationshipData;
+		}
+
+		public static RelationshipData DeserializeLength(BufferStream stream, int length)
+		{
+			RelationshipData relationshipData = Pool.Get<RelationshipData>();
+			DeserializeLength(stream, length, relationshipData, isDelta: false);
+			return relationshipData;
+		}
+
+		public static RelationshipData Deserialize(byte[] buffer)
+		{
+			RelationshipData relationshipData = Pool.Get<RelationshipData>();
+			using BufferStream stream = Pool.Get<BufferStream>().Initialize(buffer);
+			Deserialize(stream, relationshipData, isDelta: false);
+			return relationshipData;
+		}
+
+		public void FromProto(BufferStream stream, bool isDelta = false)
+		{
+			Deserialize(stream, this, isDelta);
+		}
+
+		public virtual void WriteToStream(BufferStream stream)
+		{
+			Serialize(stream, this);
+		}
+
+		public virtual void WriteToStreamDelta(BufferStream stream, RelationshipData previous)
+		{
+			if (previous == null)
+			{
+				Serialize(stream, this);
+			}
+			else
+			{
+				SerializeDelta(stream, this, previous);
+			}
+		}
+
+		public virtual void ReadFromStream(BufferStream stream, bool isDelta = false)
+		{
+			Deserialize(stream, this, isDelta);
+		}
+
+		public virtual void ReadFromStream(BufferStream stream, int size, bool isDelta = false)
+		{
+			DeserializeLength(stream, size, this, isDelta);
+		}
+
+		public static RelationshipData Deserialize(BufferStream stream, RelationshipData instance, bool isDelta)
+		{
+			while (true)
+			{
+				int num = stream.ReadByte();
+				switch (num)
+				{
+				case 10:
+					if (instance.info == null)
+					{
+						instance.info = RelationshipManager.PlayerRelationshipInfo.DeserializeLengthDelimited(stream);
+					}
+					else
+					{
+						RelationshipManager.PlayerRelationshipInfo.DeserializeLengthDelimited(stream, instance.info, isDelta);
+					}
+					break;
+				case 18:
+					instance.mugshotData = ProtocolParser.ReadPooledBytes(stream);
+					break;
+				default:
+				{
+					Key key = ProtocolParser.ReadKey((byte)num, stream);
+					_ = key.Field;
+					ProtocolParser.SkipKey(stream, key);
+					break;
+				}
+				case -1:
+				case 0:
+					return instance;
+				}
+			}
+		}
+
+		public static RelationshipData DeserializeLengthDelimited(BufferStream stream, RelationshipData instance, bool isDelta)
+		{
+			long num = ProtocolParser.ReadUInt32(stream);
+			num += stream.Position;
+			while (stream.Position < num)
+			{
+				int num2 = stream.ReadByte();
+				switch (num2)
+				{
+				case -1:
+					throw new EndOfStreamException();
+				case 10:
+					if (instance.info == null)
+					{
+						instance.info = RelationshipManager.PlayerRelationshipInfo.DeserializeLengthDelimited(stream);
+					}
+					else
+					{
+						RelationshipManager.PlayerRelationshipInfo.DeserializeLengthDelimited(stream, instance.info, isDelta);
+					}
+					break;
+				case 18:
+					instance.mugshotData = ProtocolParser.ReadPooledBytes(stream);
+					break;
+				default:
+				{
+					Key key = ProtocolParser.ReadKey((byte)num2, stream);
+					_ = key.Field;
+					ProtocolParser.SkipKey(stream, key);
+					break;
+				}
+				}
+			}
+			if (stream.Position != num)
+			{
+				throw new ProtocolBufferException("Read past max limit");
+			}
+			return instance;
+		}
+
+		public static RelationshipData DeserializeLength(BufferStream stream, int length, RelationshipData instance, bool isDelta)
+		{
+			long num = stream.Position + length;
+			while (stream.Position < num)
+			{
+				int num2 = stream.ReadByte();
+				switch (num2)
+				{
+				case -1:
+					throw new EndOfStreamException();
+				case 10:
+					if (instance.info == null)
+					{
+						instance.info = RelationshipManager.PlayerRelationshipInfo.DeserializeLengthDelimited(stream);
+					}
+					else
+					{
+						RelationshipManager.PlayerRelationshipInfo.DeserializeLengthDelimited(stream, instance.info, isDelta);
+					}
+					break;
+				case 18:
+					instance.mugshotData = ProtocolParser.ReadPooledBytes(stream);
+					break;
+				default:
+				{
+					Key key = ProtocolParser.ReadKey((byte)num2, stream);
+					_ = key.Field;
+					ProtocolParser.SkipKey(stream, key);
+					break;
+				}
+				}
+			}
+			if (stream.Position != num)
+			{
+				throw new ProtocolBufferException("Read past max limit");
+			}
+			return instance;
+		}
+
+		public static void SerializeDelta(BufferStream stream, RelationshipData instance, RelationshipData previous)
+		{
+			if (instance.info == null)
+			{
+				throw new ArgumentNullException("info", "Required by proto specification.");
+			}
+			stream.WriteByte(10);
+			BufferStream.RangeHandle range = stream.GetRange(5);
+			int position = stream.Position;
+			RelationshipManager.PlayerRelationshipInfo.SerializeDelta(stream, instance.info, previous.info);
+			int val = stream.Position - position;
+			Span<byte> span = range.GetSpan();
+			int num = ProtocolParser.WriteUInt32((uint)val, span, 0);
+			if (num < 5)
+			{
+				span[num - 1] |= 128;
+				while (num < 4)
+				{
+					span[num++] = 128;
+				}
+				span[4] = 0;
+			}
+			if (instance.mugshotData.Array != null)
+			{
+				stream.WriteByte(18);
+				ProtocolParser.WritePooledBytes(stream, instance.mugshotData);
+			}
+		}
+
+		public static void Serialize(BufferStream stream, RelationshipData instance)
+		{
+			if (instance.info == null)
+			{
+				throw new ArgumentNullException("info", "Required by proto specification.");
+			}
+			stream.WriteByte(10);
+			BufferStream.RangeHandle range = stream.GetRange(5);
+			int position = stream.Position;
+			RelationshipManager.PlayerRelationshipInfo.Serialize(stream, instance.info);
+			int val = stream.Position - position;
+			Span<byte> span = range.GetSpan();
+			int num = ProtocolParser.WriteUInt32((uint)val, span, 0);
+			if (num < 5)
+			{
+				span[num - 1] |= 128;
+				while (num < 4)
+				{
+					span[num++] = 128;
+				}
+				span[4] = 0;
+			}
+			if (instance.mugshotData.Array != null)
+			{
+				stream.WriteByte(18);
+				ProtocolParser.WritePooledBytes(stream, instance.mugshotData);
+			}
+		}
+
+		public void ToProto(BufferStream stream)
+		{
+			Serialize(stream, this);
+		}
+
+		public void InspectUids(UidInspector<ulong> action)
+		{
+			info?.InspectUids(action);
+		}
+	}
+
+	public bool ShouldPool = true;
+
+	private bool _disposed;
+
+	[NonSerialized]
+	public ulong userId;
+
+	[NonSerialized]
+	public PlayerState playerState;
+
+	[NonSerialized]
+	public List<RelationshipData> relationships;
+
+	[NonSerialized]
+	public ulong teamId;
+
+	[NonSerialized]
+	public bool isTeamLeader;
+
+	public static void ResetToPool(PlayerSecondaryData instance)
+	{
+		if (!instance.ShouldPool)
+		{
+			return;
+		}
+		instance.userId = 0uL;
+		if (instance.playerState != null)
+		{
+			instance.playerState.ResetToPool();
+			instance.playerState = null;
+		}
+		if (instance.relationships != null)
+		{
+			for (int i = 0; i < instance.relationships.Count; i++)
+			{
+				if (instance.relationships[i] != null)
+				{
+					instance.relationships[i].ResetToPool();
+					instance.relationships[i] = null;
+				}
+			}
+			List<RelationshipData> list = instance.relationships;
+			Pool.Free<RelationshipData>(ref list, false);
+			instance.relationships = list;
+		}
+		instance.teamId = 0uL;
+		instance.isTeamLeader = false;
+		Pool.Free<PlayerSecondaryData>(ref instance);
+	}
+
+	public void ResetToPool()
+	{
+		ResetToPool(this);
+	}
+
+	public virtual void Dispose()
+	{
+		if (!ShouldPool)
+		{
+			throw new Exception("Trying to dispose PlayerSecondaryData with ShouldPool set to false!");
+		}
+		if (!_disposed)
+		{
+			ResetToPool();
+			_disposed = true;
+		}
+	}
+
+	public virtual void EnterPool()
+	{
+		_disposed = true;
+	}
+
+	public virtual void LeavePool()
+	{
+		_disposed = false;
+	}
+
+	public void CopyTo(PlayerSecondaryData instance)
+	{
+		instance.userId = userId;
+		if (playerState != null)
+		{
+			if (instance.playerState == null)
+			{
+				instance.playerState = playerState.Copy();
+			}
+			else
+			{
+				playerState.CopyTo(instance.playerState);
+			}
+		}
+		else
+		{
+			instance.playerState = null;
+		}
+		if (relationships != null)
+		{
+			instance.relationships = Pool.Get<List<RelationshipData>>();
+			for (int i = 0; i < relationships.Count; i++)
+			{
+				RelationshipData item = relationships[i].Copy();
+				instance.relationships.Add(item);
+			}
+		}
+		else
+		{
+			instance.relationships = null;
+		}
+		instance.teamId = teamId;
+		instance.isTeamLeader = isTeamLeader;
+	}
+
+	public PlayerSecondaryData Copy()
+	{
+		PlayerSecondaryData playerSecondaryData = Pool.Get<PlayerSecondaryData>();
+		CopyTo(playerSecondaryData);
+		return playerSecondaryData;
+	}
+
+	public static PlayerSecondaryData Deserialize(BufferStream stream)
+	{
+		PlayerSecondaryData playerSecondaryData = Pool.Get<PlayerSecondaryData>();
+		Deserialize(stream, playerSecondaryData, isDelta: false);
+		return playerSecondaryData;
+	}
+
+	public static PlayerSecondaryData DeserializeLengthDelimited(BufferStream stream)
+	{
+		PlayerSecondaryData playerSecondaryData = Pool.Get<PlayerSecondaryData>();
+		DeserializeLengthDelimited(stream, playerSecondaryData, isDelta: false);
+		return playerSecondaryData;
+	}
+
+	public static PlayerSecondaryData DeserializeLength(BufferStream stream, int length)
+	{
+		PlayerSecondaryData playerSecondaryData = Pool.Get<PlayerSecondaryData>();
+		DeserializeLength(stream, length, playerSecondaryData, isDelta: false);
+		return playerSecondaryData;
+	}
+
+	public static PlayerSecondaryData Deserialize(byte[] buffer)
+	{
+		PlayerSecondaryData playerSecondaryData = Pool.Get<PlayerSecondaryData>();
+		using BufferStream stream = Pool.Get<BufferStream>().Initialize(buffer);
+		Deserialize(stream, playerSecondaryData, isDelta: false);
+		return playerSecondaryData;
+	}
+
+	public void FromProto(BufferStream stream, bool isDelta = false)
+	{
+		Deserialize(stream, this, isDelta);
+	}
+
+	public virtual void WriteToStream(BufferStream stream)
+	{
+		Serialize(stream, this);
+	}
+
+	public virtual void WriteToStreamDelta(BufferStream stream, PlayerSecondaryData previous)
+	{
+		if (previous == null)
+		{
+			Serialize(stream, this);
+		}
+		else
+		{
+			SerializeDelta(stream, this, previous);
+		}
+	}
+
+	public virtual void ReadFromStream(BufferStream stream, bool isDelta = false)
+	{
+		Deserialize(stream, this, isDelta);
+	}
+
+	public virtual void ReadFromStream(BufferStream stream, int size, bool isDelta = false)
+	{
+		DeserializeLength(stream, size, this, isDelta);
+	}
+
+	public static PlayerSecondaryData Deserialize(BufferStream stream, PlayerSecondaryData instance, bool isDelta)
+	{
+		if (!isDelta && instance.relationships == null)
+		{
+			instance.relationships = Pool.Get<List<RelationshipData>>();
+		}
+		while (true)
+		{
+			int num = stream.ReadByte();
+			switch (num)
+			{
+			case 8:
+				instance.userId = ProtocolParser.ReadUInt64(stream);
+				break;
+			case 18:
+				if (instance.playerState == null)
+				{
+					instance.playerState = PlayerState.DeserializeLengthDelimited(stream);
+				}
+				else
+				{
+					PlayerState.DeserializeLengthDelimited(stream, instance.playerState, isDelta);
+				}
+				break;
+			case 26:
+				instance.relationships.Add(RelationshipData.DeserializeLengthDelimited(stream));
+				break;
+			case 32:
+				instance.teamId = ProtocolParser.ReadUInt64(stream);
+				break;
+			case 40:
+				instance.isTeamLeader = ProtocolParser.ReadBool(stream);
+				break;
+			default:
+			{
+				Key key = ProtocolParser.ReadKey((byte)num, stream);
+				_ = key.Field;
+				ProtocolParser.SkipKey(stream, key);
+				break;
+			}
+			case -1:
+			case 0:
+				return instance;
+			}
+		}
+	}
+
+	public static PlayerSecondaryData DeserializeLengthDelimited(BufferStream stream, PlayerSecondaryData instance, bool isDelta)
+	{
+		if (!isDelta && instance.relationships == null)
+		{
+			instance.relationships = Pool.Get<List<RelationshipData>>();
+		}
+		long num = ProtocolParser.ReadUInt32(stream);
+		num += stream.Position;
+		while (stream.Position < num)
+		{
+			int num2 = stream.ReadByte();
+			switch (num2)
+			{
+			case -1:
+				throw new EndOfStreamException();
+			case 8:
+				instance.userId = ProtocolParser.ReadUInt64(stream);
+				break;
+			case 18:
+				if (instance.playerState == null)
+				{
+					instance.playerState = PlayerState.DeserializeLengthDelimited(stream);
+				}
+				else
+				{
+					PlayerState.DeserializeLengthDelimited(stream, instance.playerState, isDelta);
+				}
+				break;
+			case 26:
+				instance.relationships.Add(RelationshipData.DeserializeLengthDelimited(stream));
+				break;
+			case 32:
+				instance.teamId = ProtocolParser.ReadUInt64(stream);
+				break;
+			case 40:
+				instance.isTeamLeader = ProtocolParser.ReadBool(stream);
+				break;
+			default:
+			{
+				Key key = ProtocolParser.ReadKey((byte)num2, stream);
+				_ = key.Field;
+				ProtocolParser.SkipKey(stream, key);
+				break;
+			}
+			}
+		}
+		if (stream.Position != num)
+		{
+			throw new ProtocolBufferException("Read past max limit");
+		}
+		return instance;
+	}
+
+	public static PlayerSecondaryData DeserializeLength(BufferStream stream, int length, PlayerSecondaryData instance, bool isDelta)
+	{
+		if (!isDelta && instance.relationships == null)
+		{
+			instance.relationships = Pool.Get<List<RelationshipData>>();
+		}
+		long num = stream.Position + length;
+		while (stream.Position < num)
+		{
+			int num2 = stream.ReadByte();
+			switch (num2)
+			{
+			case -1:
+				throw new EndOfStreamException();
+			case 8:
+				instance.userId = ProtocolParser.ReadUInt64(stream);
+				break;
+			case 18:
+				if (instance.playerState == null)
+				{
+					instance.playerState = PlayerState.DeserializeLengthDelimited(stream);
+				}
+				else
+				{
+					PlayerState.DeserializeLengthDelimited(stream, instance.playerState, isDelta);
+				}
+				break;
+			case 26:
+				instance.relationships.Add(RelationshipData.DeserializeLengthDelimited(stream));
+				break;
+			case 32:
+				instance.teamId = ProtocolParser.ReadUInt64(stream);
+				break;
+			case 40:
+				instance.isTeamLeader = ProtocolParser.ReadBool(stream);
+				break;
+			default:
+			{
+				Key key = ProtocolParser.ReadKey((byte)num2, stream);
+				_ = key.Field;
+				ProtocolParser.SkipKey(stream, key);
+				break;
+			}
+			}
+		}
+		if (stream.Position != num)
+		{
+			throw new ProtocolBufferException("Read past max limit");
+		}
+		return instance;
+	}
+
+	public static void SerializeDelta(BufferStream stream, PlayerSecondaryData instance, PlayerSecondaryData previous)
+	{
+		if (instance.userId != previous.userId)
+		{
+			stream.WriteByte(8);
+			ProtocolParser.WriteUInt64(stream, instance.userId);
+		}
+		if (instance.playerState != null)
+		{
+			stream.WriteByte(18);
+			BufferStream.RangeHandle range = stream.GetRange(5);
+			int position = stream.Position;
+			PlayerState.SerializeDelta(stream, instance.playerState, previous.playerState);
+			int val = stream.Position - position;
+			Span<byte> span = range.GetSpan();
+			int num = ProtocolParser.WriteUInt32((uint)val, span, 0);
+			if (num < 5)
+			{
+				span[num - 1] |= 128;
+				while (num < 4)
+				{
+					span[num++] = 128;
+				}
+				span[4] = 0;
+			}
+		}
+		if (instance.relationships != null)
+		{
+			for (int i = 0; i < instance.relationships.Count; i++)
+			{
+				RelationshipData relationshipData = instance.relationships[i];
+				stream.WriteByte(26);
+				BufferStream.RangeHandle range2 = stream.GetRange(5);
+				int position2 = stream.Position;
+				RelationshipData.SerializeDelta(stream, relationshipData, relationshipData);
+				int val2 = stream.Position - position2;
+				Span<byte> span2 = range2.GetSpan();
+				int num2 = ProtocolParser.WriteUInt32((uint)val2, span2, 0);
+				if (num2 < 5)
+				{
+					span2[num2 - 1] |= 128;
+					while (num2 < 4)
+					{
+						span2[num2++] = 128;
+					}
+					span2[4] = 0;
+				}
+			}
+		}
+		if (instance.teamId != previous.teamId)
+		{
+			stream.WriteByte(32);
+			ProtocolParser.WriteUInt64(stream, instance.teamId);
+		}
+		stream.WriteByte(40);
+		ProtocolParser.WriteBool(stream, instance.isTeamLeader);
+	}
+
+	public static void Serialize(BufferStream stream, PlayerSecondaryData instance)
+	{
+		if (instance.userId != 0L)
+		{
+			stream.WriteByte(8);
+			ProtocolParser.WriteUInt64(stream, instance.userId);
+		}
+		if (instance.playerState != null)
+		{
+			stream.WriteByte(18);
+			BufferStream.RangeHandle range = stream.GetRange(5);
+			int position = stream.Position;
+			PlayerState.Serialize(stream, instance.playerState);
+			int val = stream.Position - position;
+			Span<byte> span = range.GetSpan();
+			int num = ProtocolParser.WriteUInt32((uint)val, span, 0);
+			if (num < 5)
+			{
+				span[num - 1] |= 128;
+				while (num < 4)
+				{
+					span[num++] = 128;
+				}
+				span[4] = 0;
+			}
+		}
+		if (instance.relationships != null)
+		{
+			for (int i = 0; i < instance.relationships.Count; i++)
+			{
+				RelationshipData instance2 = instance.relationships[i];
+				stream.WriteByte(26);
+				BufferStream.RangeHandle range2 = stream.GetRange(5);
+				int position2 = stream.Position;
+				RelationshipData.Serialize(stream, instance2);
+				int val2 = stream.Position - position2;
+				Span<byte> span2 = range2.GetSpan();
+				int num2 = ProtocolParser.WriteUInt32((uint)val2, span2, 0);
+				if (num2 < 5)
+				{
+					span2[num2 - 1] |= 128;
+					while (num2 < 4)
+					{
+						span2[num2++] = 128;
+					}
+					span2[4] = 0;
+				}
+			}
+		}
+		if (instance.teamId != 0L)
+		{
+			stream.WriteByte(32);
+			ProtocolParser.WriteUInt64(stream, instance.teamId);
+		}
+		if (instance.isTeamLeader)
+		{
+			stream.WriteByte(40);
+			ProtocolParser.WriteBool(stream, instance.isTeamLeader);
+		}
+	}
+
+	public void ToProto(BufferStream stream)
+	{
+		Serialize(stream, this);
+	}
+
+	public void InspectUids(UidInspector<ulong> action)
+	{
+		playerState?.InspectUids(action);
+		if (relationships != null)
+		{
+			for (int i = 0; i < relationships.Count; i++)
+			{
+				relationships[i]?.InspectUids(action);
+			}
+		}
+	}
+}
+
+
+using System;
 using System.IO;
 using Facepunch;
 using ProtoBuf.Nexus;
@@ -6,6 +4444,10 @@ using SilentOrbit.ProtocolBuffers;
 
 public class Request : IDisposable, IPooled, IProto<Request>, IProto
 {
+	public bool ShouldPool = true;
+
+	private bool _disposed;
+
 	[NonSerialized]
 	public bool isFireAndForget;
 
@@ -38,10 +4480,6 @@ public class Request : IDisposable, IPooled, IProto<Request>, IProto
 
 	[NonSerialized]
 	public PlayerManifestRequest playerManifest;
-
-	public bool ShouldPool = true;
-
-	private bool _disposed;
 
 	public static void ResetToPool(Request instance)
 	{
@@ -1121,6 +5559,10 @@ using SilentOrbit.ProtocolBuffers;
 
 public class Response : IDisposable, IPooled, IProto<Response>, IProto
 {
+	public bool ShouldPool = true;
+
+	private bool _disposed;
+
 	[NonSerialized]
 	public Uuid id;
 
@@ -1135,10 +5577,6 @@ public class Response : IDisposable, IPooled, IProto<Response>, IProto
 
 	[NonSerialized]
 	public FerryStatusResponse ferryStatus;
-
-	public bool ShouldPool = true;
-
-	private bool _disposed;
 
 	public static void ResetToPool(Response instance)
 	{
@@ -1747,15 +6185,15 @@ using SilentOrbit.ProtocolBuffers;
 
 public class SleepingBagDestroyRequest : IDisposable, IPooled, IProto<SleepingBagDestroyRequest>, IProto
 {
+	public bool ShouldPool = true;
+
+	private bool _disposed;
+
 	[NonSerialized]
 	public ulong userId;
 
 	[NonSerialized]
 	public NetworkableId sleepingBagId;
-
-	public bool ShouldPool = true;
-
-	private bool _disposed;
 
 	public static void ResetToPool(SleepingBagDestroyRequest instance)
 	{
@@ -1994,6 +6432,10 @@ using SilentOrbit.ProtocolBuffers;
 
 public class SleepingBagRespawnRequest : IDisposable, IPooled, IProto<SleepingBagRespawnRequest>, IProto
 {
+	public bool ShouldPool = true;
+
+	private bool _disposed;
+
 	[NonSerialized]
 	public ulong userId;
 
@@ -2002,10 +6444,6 @@ public class SleepingBagRespawnRequest : IDisposable, IPooled, IProto<SleepingBa
 
 	[NonSerialized]
 	public PlayerSecondaryData secondaryData;
-
-	public bool ShouldPool = true;
-
-	private bool _disposed;
 
 	public static void ResetToPool(SleepingBagRespawnRequest instance)
 	{
@@ -2347,12 +6785,12 @@ using SilentOrbit.ProtocolBuffers;
 
 public class SpawnOptionsRequest : IDisposable, IPooled, IProto<SpawnOptionsRequest>, IProto
 {
-	[NonSerialized]
-	public ulong userId;
-
 	public bool ShouldPool = true;
 
 	private bool _disposed;
+
+	[NonSerialized]
+	public ulong userId;
 
 	public static void ResetToPool(SpawnOptionsRequest instance)
 	{
@@ -2574,12 +7012,12 @@ using SilentOrbit.ProtocolBuffers;
 
 public class SpawnOptionsResponse : IDisposable, IPooled, IProto<SpawnOptionsResponse>, IProto
 {
-	[NonSerialized]
-	public List<RespawnInformation.SpawnOptions> spawnOptions;
-
 	public bool ShouldPool = true;
 
 	private bool _disposed;
+
+	[NonSerialized]
+	public List<RespawnInformation.SpawnOptions> spawnOptions;
 
 	public static void ResetToPool(SpawnOptionsResponse instance)
 	{
@@ -2882,15 +7320,15 @@ using SilentOrbit.ProtocolBuffers;
 
 public class Status : IDisposable, IPooled, IProto<Status>, IProto
 {
+	public bool ShouldPool = true;
+
+	private bool _disposed;
+
 	[NonSerialized]
 	public bool success;
 
 	[NonSerialized]
 	public string errorMessage;
-
-	public bool ShouldPool = true;
-
-	private bool _disposed;
 
 	public static void ResetToPool(Status instance)
 	{
@@ -3130,6 +7568,10 @@ using SilentOrbit.ProtocolBuffers;
 
 public class TransferRequest : IDisposable, IPooled, IProto<TransferRequest>, IProto
 {
+	public bool ShouldPool = true;
+
+	private bool _disposed;
+
 	[NonSerialized]
 	public string method;
 
@@ -3144,10 +7586,6 @@ public class TransferRequest : IDisposable, IPooled, IProto<TransferRequest>, IP
 
 	[NonSerialized]
 	public List<PlayerSecondaryData> secondaryData;
-
-	public bool ShouldPool = true;
-
-	private bool _disposed;
 
 	public static void ResetToPool(TransferRequest instance)
 	{
@@ -3628,7 +8066,7 @@ public enum Flag
 	Prone = 0x100,
 	Mounted = 0x200,
 	Relaxed = 0x400,
-	OnPhone = 0x800,
+	Unused = 0x800,
 	Crawling = 0x1000,
 	Loading = 0x2000,
 	HeadLook = 0x4000,
@@ -3707,13 +8145,6 @@ private struct MonoScriptData
 }
 
 
-public enum EntityType
-{
-	Tree = 1,
-	Player
-}
-
-
 using System;
 using System.IO;
 using Facepunch;
@@ -3722,6 +8153,10 @@ using UnityEngine;
 
 public class Entity : IDisposable, IPooled, IProto<Entity>, IProto
 {
+	public bool ShouldPool = true;
+
+	private bool _disposed;
+
 	[NonSerialized]
 	public NetworkableId entityId;
 
@@ -3739,10 +8174,6 @@ public class Entity : IDisposable, IPooled, IProto<Entity>, IProto
 
 	[NonSerialized]
 	public string name;
-
-	public bool ShouldPool = true;
-
-	private bool _disposed;
 
 	public static void ResetToPool(Entity instance)
 	{
@@ -4147,6 +8578,13 @@ public class Entity : IDisposable, IPooled, IProto<Entity>, IProto
 }
 
 
+public enum EntityType
+{
+	Tree = 1,
+	Player
+}
+
+
 using System;
 using System.IO;
 using Facepunch;
@@ -4154,6 +8592,10 @@ using SilentOrbit.ProtocolBuffers;
 
 public class Item : IDisposable, IPooled, IProto<Item>, IProto
 {
+	public bool ShouldPool = true;
+
+	private bool _disposed;
+
 	[NonSerialized]
 	public int itemId;
 
@@ -4162,10 +8604,6 @@ public class Item : IDisposable, IPooled, IProto<Item>, IProto
 
 	[NonSerialized]
 	public bool itemIsBlueprint;
-
-	public bool ShouldPool = true;
-
-	private bool _disposed;
 
 	public static void ResetToPool(Item instance)
 	{
@@ -4441,6 +8879,10 @@ using SilentOrbit.ProtocolBuffers;
 
 public class Monument : IDisposable, IPooled, IProto<Monument>, IProto
 {
+	public bool ShouldPool = true;
+
+	private bool _disposed;
+
 	[NonSerialized]
 	public string token;
 
@@ -4449,10 +8891,6 @@ public class Monument : IDisposable, IPooled, IProto<Monument>, IProto
 
 	[NonSerialized]
 	public float y;
-
-	public bool ShouldPool = true;
-
-	private bool _disposed;
 
 	public static void ResetToPool(Monument instance)
 	{
@@ -4733,6 +9171,10 @@ using SilentOrbit.ProtocolBuffers;
 
 public class SellOrder : IDisposable, IPooled, IProto<SellOrder>, IProto
 {
+	public bool ShouldPool = true;
+
+	private bool _disposed;
+
 	[NonSerialized]
 	public int itemId;
 
@@ -4762,10 +9204,6 @@ public class SellOrder : IDisposable, IPooled, IProto<SellOrder>, IProto
 
 	[NonSerialized]
 	public float priceMultiplier;
-
-	public bool ShouldPool = true;
-
-	private bool _disposed;
 
 	public static void ResetToPool(SellOrder instance)
 	{
@@ -5206,6 +9644,10 @@ using SilentOrbit.ProtocolBuffers;
 
 public class Member : IDisposable, IPooled, IProto<Member>, IProto
 {
+	public bool ShouldPool = true;
+
+	private bool _disposed;
+
 	[NonSerialized]
 	public ulong steamId;
 
@@ -5229,10 +9671,6 @@ public class Member : IDisposable, IPooled, IProto<Member>, IProto
 
 	[NonSerialized]
 	public uint deathTime;
-
-	public bool ShouldPool = true;
-
-	private bool _disposed;
 
 	public static void ResetToPool(Member instance)
 	{
@@ -5627,6 +10065,10 @@ using SilentOrbit.ProtocolBuffers;
 
 public class Note : IDisposable, IPooled, IProto<Note>, IProto
 {
+	public bool ShouldPool = true;
+
+	private bool _disposed;
+
 	[NonSerialized]
 	public int type;
 
@@ -5644,10 +10086,6 @@ public class Note : IDisposable, IPooled, IProto<Note>, IProto
 
 	[NonSerialized]
 	public string label;
-
-	public bool ShouldPool = true;
-
-	private bool _disposed;
 
 	public static void ResetToPool(Note instance)
 	{
@@ -5996,6 +10434,10 @@ using UnityEngine;
 
 public class arcadeEnt : IDisposable, IPooled, IProto<arcadeEnt>, IProto
 {
+	public bool ShouldPool = true;
+
+	private bool _disposed;
+
 	[NonSerialized]
 	public uint id;
 
@@ -6034,10 +10476,6 @@ public class arcadeEnt : IDisposable, IPooled, IProto<arcadeEnt>, IProto
 
 	[NonSerialized]
 	public uint parentID;
-
-	public bool ShouldPool = true;
-
-	private bool _disposed;
 
 	public static void ResetToPool(arcadeEnt instance)
 	{
@@ -6635,6 +11073,10 @@ using SilentOrbit.ProtocolBuffers;
 
 public class ScoreEntry : IDisposable, IPooled, IProto<ScoreEntry>, IProto
 {
+	public bool ShouldPool = true;
+
+	private bool _disposed;
+
 	[NonSerialized]
 	public ulong playerID;
 
@@ -6643,10 +11085,6 @@ public class ScoreEntry : IDisposable, IPooled, IProto<ScoreEntry>, IProto
 
 	[NonSerialized]
 	public int score;
-
-	public bool ShouldPool = true;
-
-	private bool _disposed;
 
 	public static void ResetToPool(ScoreEntry instance)
 	{
@@ -6907,6 +11345,10 @@ using SilentOrbit.ProtocolBuffers;
 
 public class AssociatedFile : IDisposable, IPooled, IProto<AssociatedFile>, IProto
 {
+	public bool ShouldPool = true;
+
+	private bool _disposed;
+
 	[NonSerialized]
 	public int type;
 
@@ -6918,10 +11360,6 @@ public class AssociatedFile : IDisposable, IPooled, IProto<AssociatedFile>, IPro
 
 	[NonSerialized]
 	public byte[] data;
-
-	public bool ShouldPool = true;
-
-	private bool _disposed;
 
 	public static void ResetToPool(AssociatedFile instance)
 	{
@@ -7211,6 +11649,10 @@ using SilentOrbit.ProtocolBuffers;
 
 public class CookingItem : IDisposable, IPooled, IProto<CookingItem>, IProto
 {
+	public bool ShouldPool = true;
+
+	private bool _disposed;
+
 	[NonSerialized]
 	public int itemID;
 
@@ -7222,10 +11664,6 @@ public class CookingItem : IDisposable, IPooled, IProto<CookingItem>, IProto
 
 	[NonSerialized]
 	public float cookingProgress;
-
-	public bool ShouldPool = true;
-
-	private bool _disposed;
 
 	public static void ResetToPool(CookingItem instance)
 	{
@@ -7507,15 +11945,15 @@ using SilentOrbit.ProtocolBuffers;
 
 public class MountPoint : IDisposable, IPooled, IProto<MountPoint>, IProto
 {
+	public bool ShouldPool = true;
+
+	private bool _disposed;
+
 	[NonSerialized]
 	public int index;
 
 	[NonSerialized]
 	public NetworkableId mountableId;
-
-	public bool ShouldPool = true;
-
-	private bool _disposed;
 
 	public static void ResetToPool(MountPoint instance)
 	{
@@ -7754,6 +12192,10 @@ using UnityEngine;
 
 public class StoredBuriedItem : IDisposable, IPooled, IProto<StoredBuriedItem>, IProto
 {
+	public bool ShouldPool = true;
+
+	private bool _disposed;
+
 	[NonSerialized]
 	public int itemId;
 
@@ -7774,10 +12216,6 @@ public class StoredBuriedItem : IDisposable, IPooled, IProto<StoredBuriedItem>, 
 
 	[NonSerialized]
 	public ulong uid;
-
-	public bool ShouldPool = true;
-
-	private bool _disposed;
 
 	public static void ResetToPool(StoredBuriedItem instance)
 	{
@@ -8232,15 +12670,15 @@ using SilentOrbit.ProtocolBuffers;
 
 public class Blackjack : IDisposable, IPooled, IProto<Blackjack>, IProto
 {
+	public bool ShouldPool = true;
+
+	private bool _disposed;
+
 	[NonSerialized]
 	public List<int> dealerCards;
 
 	[NonSerialized]
 	public List<BlackjackCardPlayer> players;
-
-	public bool ShouldPool = true;
-
-	private bool _disposed;
 
 	public static void ResetToPool(Blackjack instance)
 	{
@@ -8618,6 +13056,10 @@ using SilentOrbit.ProtocolBuffers;
 
 public class BlackjackCardPlayer : IDisposable, IPooled, IProto<BlackjackCardPlayer>, IProto
 {
+	public bool ShouldPool = true;
+
+	private bool _disposed;
+
 	[NonSerialized]
 	public List<int> splitCards;
 
@@ -8629,10 +13071,6 @@ public class BlackjackCardPlayer : IDisposable, IPooled, IProto<BlackjackCardPla
 
 	[NonSerialized]
 	public bool playingSplitCards;
-
-	public bool ShouldPool = true;
-
-	private bool _disposed;
 
 	public static void ResetToPool(BlackjackCardPlayer instance)
 	{
@@ -8949,12 +13387,12 @@ using SilentOrbit.ProtocolBuffers;
 
 public class CardList : IDisposable, IPooled, IProto<CardList>, IProto
 {
-	[NonSerialized]
-	public List<int> cards;
-
 	public bool ShouldPool = true;
 
 	private bool _disposed;
+
+	[NonSerialized]
+	public List<int> cards;
 
 	public static void ResetToPool(CardList instance)
 	{
@@ -9211,6 +13649,10 @@ using SilentOrbit.ProtocolBuffers;
 
 public class CardPlayer : IDisposable, IPooled, IProto<CardPlayer>, IProto
 {
+	public bool ShouldPool = true;
+
+	private bool _disposed;
+
 	[NonSerialized]
 	public ulong userid;
 
@@ -9237,10 +13679,6 @@ public class CardPlayer : IDisposable, IPooled, IProto<CardPlayer>, IProto
 
 	[NonSerialized]
 	public bool sendCardDetails;
-
-	public bool ShouldPool = true;
-
-	private bool _disposed;
 
 	public static void ResetToPool(CardPlayer instance)
 	{
@@ -9661,6 +14099,10 @@ public class RoundResults : IDisposable, IPooled, IProto<RoundResults>, IProto
 {
 	public class Result : IDisposable, IPooled, IProto<Result>, IProto
 	{
+		public bool ShouldPool = true;
+
+		private bool _disposed;
+
 		[NonSerialized]
 		public ulong ID;
 
@@ -9669,10 +14111,6 @@ public class RoundResults : IDisposable, IPooled, IProto<RoundResults>, IProto
 
 		[NonSerialized]
 		public int resultCode;
-
-		public bool ShouldPool = true;
-
-		private bool _disposed;
 
 		public static void ResetToPool(Result instance)
 		{
@@ -9925,15 +14363,15 @@ public class RoundResults : IDisposable, IPooled, IProto<RoundResults>, IProto
 		}
 	}
 
+	public bool ShouldPool = true;
+
+	private bool _disposed;
+
 	[NonSerialized]
 	public List<Result> results;
 
 	[NonSerialized]
 	public int winningScore;
-
-	public bool ShouldPool = true;
-
-	private bool _disposed;
 
 	public static void ResetToPool(RoundResults instance)
 	{
@@ -10245,6 +14683,10 @@ using SilentOrbit.ProtocolBuffers;
 
 public class TexasHoldEm : IDisposable, IPooled, IProto<TexasHoldEm>, IProto
 {
+	public bool ShouldPool = true;
+
+	private bool _disposed;
+
 	[NonSerialized]
 	public int dealerIndex;
 
@@ -10253,10 +14695,6 @@ public class TexasHoldEm : IDisposable, IPooled, IProto<TexasHoldEm>, IProto
 
 	[NonSerialized]
 	public int biggestRaiseThisTurn;
-
-	public bool ShouldPool = true;
-
-	private bool _disposed;
 
 	public static void ResetToPool(TexasHoldEm instance)
 	{
@@ -10554,6 +14992,10 @@ using SilentOrbit.ProtocolBuffers;
 
 public class Invite : IDisposable, IPooled, IProto<Invite>, IProto
 {
+	public bool ShouldPool = true;
+
+	private bool _disposed;
+
 	[NonSerialized]
 	public ulong steamId;
 
@@ -10562,10 +15004,6 @@ public class Invite : IDisposable, IPooled, IProto<Invite>, IProto
 
 	[NonSerialized]
 	public long timestamp;
-
-	public bool ShouldPool = true;
-
-	private bool _disposed;
 
 	public static void ResetToPool(Invite instance)
 	{
@@ -10841,6 +15279,10 @@ using SilentOrbit.ProtocolBuffers;
 
 public class Member : IDisposable, IPooled, IProto<Member>, IProto
 {
+	public bool ShouldPool = true;
+
+	private bool _disposed;
+
 	[NonSerialized]
 	public ulong steamId;
 
@@ -10858,10 +15300,6 @@ public class Member : IDisposable, IPooled, IProto<Member>, IProto
 
 	[NonSerialized]
 	public bool online;
-
-	public bool ShouldPool = true;
-
-	private bool _disposed;
 
 	public static void ResetToPool(Member instance)
 	{
@@ -11200,6 +15638,10 @@ using SilentOrbit.ProtocolBuffers;
 
 public class Role : IDisposable, IPooled, IProto<Role>, IProto
 {
+	public bool ShouldPool = true;
+
+	private bool _disposed;
+
 	[NonSerialized]
 	public int roleId;
 
@@ -11235,10 +15677,6 @@ public class Role : IDisposable, IPooled, IProto<Role>, IProto
 
 	[NonSerialized]
 	public bool canAccessScoreEvents;
-
-	public bool ShouldPool = true;
-
-	private bool _disposed;
 
 	public static void ResetToPool(Role instance)
 	{
@@ -11708,6 +16146,10 @@ using SilentOrbit.ProtocolBuffers;
 
 public class Invitation : IDisposable, IPooled, IProto<Invitation>, IProto
 {
+	public bool ShouldPool = true;
+
+	private bool _disposed;
+
 	[NonSerialized]
 	public long clanId;
 
@@ -11716,10 +16158,6 @@ public class Invitation : IDisposable, IPooled, IProto<Invitation>, IProto
 
 	[NonSerialized]
 	public long timestamp;
-
-	public bool ShouldPool = true;
-
-	private bool _disposed;
 
 	public static void ResetToPool(Invitation instance)
 	{
@@ -11992,6 +16430,10 @@ using SilentOrbit.ProtocolBuffers;
 
 public class Entry : IDisposable, IPooled, IProto<Entry>, IProto
 {
+	public bool ShouldPool = true;
+
+	private bool _disposed;
+
 	[NonSerialized]
 	public long clanId;
 
@@ -12000,10 +16442,6 @@ public class Entry : IDisposable, IPooled, IProto<Entry>, IProto
 
 	[NonSerialized]
 	public long score;
-
-	public bool ShouldPool = true;
-
-	private bool _disposed;
 
 	public static void ResetToPool(Entry instance)
 	{
@@ -12278,6 +16716,10 @@ using SilentOrbit.ProtocolBuffers;
 
 public class Entry : IDisposable, IPooled, IProto<Entry>, IProto
 {
+	public bool ShouldPool = true;
+
+	private bool _disposed;
+
 	[NonSerialized]
 	public long timestamp;
 
@@ -12295,10 +16737,6 @@ public class Entry : IDisposable, IPooled, IProto<Entry>, IProto
 
 	[NonSerialized]
 	public string arg4;
-
-	public bool ShouldPool = true;
-
-	private bool _disposed;
 
 	public static void ResetToPool(Entry instance)
 	{
@@ -12636,6 +17074,10 @@ using SilentOrbit.ProtocolBuffers;
 
 public class Entry : IDisposable, IPooled, IProto<Entry>, IProto
 {
+	public bool ShouldPool = true;
+
+	private bool _disposed;
+
 	[NonSerialized]
 	public long timestamp;
 
@@ -12662,10 +17104,6 @@ public class Entry : IDisposable, IPooled, IProto<Entry>, IProto
 
 	[NonSerialized]
 	public string arg2;
-
-	public bool ShouldPool = true;
-
-	private bool _disposed;
 
 	public static void ResetToPool(Entry instance)
 	{
@@ -13076,15 +17514,15 @@ using SilentOrbit.ProtocolBuffers;
 
 public class ClientInfo : IDisposable, IPooled, IProto<ClientInfo>, IProto
 {
+	public bool ShouldPool = true;
+
+	private bool _disposed;
+
 	[NonSerialized]
 	public string name;
 
 	[NonSerialized]
 	public string value;
-
-	public bool ShouldPool = true;
-
-	private bool _disposed;
 
 	public static void ResetToPool(ClientInfo instance)
 	{
@@ -13335,6 +17773,10 @@ using SilentOrbit.ProtocolBuffers;
 
 public class Private : IDisposable, IPooled, IProto<Private>, IProto
 {
+	public bool ShouldPool = true;
+
+	private bool _disposed;
+
 	[NonSerialized]
 	public string code;
 
@@ -13346,10 +17788,6 @@ public class Private : IDisposable, IPooled, IProto<Private>, IProto
 
 	[NonSerialized]
 	public List<ulong> guestUsers;
-
-	public bool ShouldPool = true;
-
-	private bool _disposed;
 
 	public static void ResetToPool(Private instance)
 	{
@@ -13714,6 +18152,10 @@ using SilentOrbit.ProtocolBuffers;
 
 public class EggHunter : IDisposable, IPooled, IProto<EggHunter>, IProto
 {
+	public bool ShouldPool = true;
+
+	private bool _disposed;
+
 	[NonSerialized]
 	public string displayName;
 
@@ -13722,10 +18164,6 @@ public class EggHunter : IDisposable, IPooled, IProto<EggHunter>, IProto
 
 	[NonSerialized]
 	public ulong playerID;
-
-	public bool ShouldPool = true;
-
-	private bool _disposed;
 
 	public static void ResetToPool(EggHunter instance)
 	{
@@ -13987,6 +18425,10 @@ using SilentOrbit.ProtocolBuffers;
 
 public class PlayerScore : IDisposable, IPooled, IProto<PlayerScore>, IProto
 {
+	public bool ShouldPool = true;
+
+	private bool _disposed;
+
 	[NonSerialized]
 	public string playerName;
 
@@ -13998,10 +18440,6 @@ public class PlayerScore : IDisposable, IPooled, IProto<PlayerScore>, IProto
 
 	[NonSerialized]
 	public int team;
-
-	public bool ShouldPool = true;
-
-	private bool _disposed;
 
 	public static void ResetToPool(PlayerScore instance)
 	{
@@ -14325,12 +18763,12 @@ using SilentOrbit.ProtocolBuffers;
 
 public class ScoreColumn : IDisposable, IPooled, IProto<ScoreColumn>, IProto
 {
-	[NonSerialized]
-	public string name;
-
 	public bool ShouldPool = true;
 
 	private bool _disposed;
+
+	[NonSerialized]
+	public string name;
 
 	public static void ResetToPool(ScoreColumn instance)
 	{
@@ -14554,12 +18992,12 @@ using SilentOrbit.ProtocolBuffers;
 
 public class TeamInfo : IDisposable, IPooled, IProto<TeamInfo>, IProto
 {
-	[NonSerialized]
-	public int score;
-
 	public bool ShouldPool = true;
 
 	private bool _disposed;
+
+	[NonSerialized]
+	public int score;
 
 	public static void ResetToPool(TeamInfo instance)
 	{
@@ -14778,6 +19216,10 @@ using SilentOrbit.ProtocolBuffers;
 
 public class SpawnedEnt : IDisposable, IPooled, IProto<SpawnedEnt>, IProto
 {
+	public bool ShouldPool = true;
+
+	private bool _disposed;
+
 	[NonSerialized]
 	public uint uid;
 
@@ -14786,10 +19228,6 @@ public class SpawnedEnt : IDisposable, IPooled, IProto<SpawnedEnt>, IProto
 
 	[NonSerialized]
 	public bool mobile;
-
-	public bool ShouldPool = true;
-
-	private bool _disposed;
 
 	public static void ResetToPool(SpawnedEnt instance)
 	{
@@ -15048,6 +19486,10 @@ using UnityEngine;
 
 public class QueuedMove : IDisposable, IPooled, IProto<QueuedMove>, IProto
 {
+	public bool ShouldPool = true;
+
+	private bool _disposed;
+
 	[NonSerialized]
 	public NetworkableId targetEntity;
 
@@ -15059,10 +19501,6 @@ public class QueuedMove : IDisposable, IPooled, IProto<QueuedMove>, IProto
 
 	[NonSerialized]
 	public bool hasTarget;
-
-	public bool ShouldPool = true;
-
-	private bool _disposed;
 
 	public static void ResetToPool(QueuedMove instance)
 	{
@@ -15403,6 +19841,10 @@ using SilentOrbit.ProtocolBuffers;
 
 public class ItemFilter : IDisposable, IPooled, IProto<ItemFilter>, IProto
 {
+	public bool ShouldPool = true;
+
+	private bool _disposed;
+
 	[NonSerialized]
 	public int itemDef;
 
@@ -15423,10 +19865,6 @@ public class ItemFilter : IDisposable, IPooled, IProto<ItemFilter>, IProto
 
 	[NonSerialized]
 	public int bufferTransferRemaining;
-
-	public bool ShouldPool = true;
-
-	private bool _disposed;
 
 	public static void ResetToPool(ItemFilter instance)
 	{
@@ -15772,12 +20210,12 @@ using SilentOrbit.ProtocolBuffers;
 
 public class ItemFilterList : IDisposable, IPooled, IProto<ItemFilterList>, IProto
 {
-	[NonSerialized]
-	public List<ItemFilter> filters;
-
 	public bool ShouldPool = true;
 
 	private bool _disposed;
+
+	[NonSerialized]
+	public List<ItemFilter> filters;
 
 	public static void ResetToPool(ItemFilterList instance)
 	{
@@ -16278,6 +20716,10 @@ public class IOConnection : IDisposable, IPooled, IProto<IOConnection>, IProto
 {
 	public class LinePointList : IDisposable, IPooled, IProto<LinePointList>, IProto
 	{
+		public bool ShouldPool = true;
+
+		private bool _disposed;
+
 		[NonSerialized]
 		public Vector4 a;
 
@@ -16301,10 +20743,6 @@ public class IOConnection : IDisposable, IPooled, IProto<IOConnection>, IProto
 
 		[NonSerialized]
 		public Vector4 h;
-
-		public bool ShouldPool = true;
-
-		private bool _disposed;
 
 		public static void ResetToPool(LinePointList instance)
 		{
@@ -16920,12 +21358,12 @@ public class IOConnection : IDisposable, IPooled, IProto<IOConnection>, IProto
 
 	public class LineVec : IDisposable, IPooled, IProto<LineVec>, IProto
 	{
-		[NonSerialized]
-		public Vector4 vec;
-
 		public bool ShouldPool = true;
 
 		private bool _disposed;
+
+		[NonSerialized]
+		public Vector4 vec;
 
 		public static void ResetToPool(LineVec instance)
 		{
@@ -17168,6 +21606,10 @@ public class IOConnection : IDisposable, IPooled, IProto<IOConnection>, IProto
 		}
 	}
 
+	public bool ShouldPool = true;
+
+	private bool _disposed;
+
 	[NonSerialized]
 	public string niceName;
 
@@ -17206,10 +21648,6 @@ public class IOConnection : IDisposable, IPooled, IProto<IOConnection>, IProto
 
 	[NonSerialized]
 	public List<float> slackLevels;
-
-	public bool ShouldPool = true;
-
-	private bool _disposed;
 
 	public static void ResetToPool(IOConnection instance)
 	{
@@ -17968,15 +22406,15 @@ using SilentOrbit.ProtocolBuffers;
 
 public class ConditionData : IDisposable, IPooled, IProto<ConditionData>, IProto
 {
+	public bool ShouldPool = true;
+
+	private bool _disposed;
+
 	[NonSerialized]
 	public float condition;
 
 	[NonSerialized]
 	public float maxCondition;
-
-	public bool ShouldPool = true;
-
-	private bool _disposed;
 
 	public static void ResetToPool(ConditionData instance)
 	{
@@ -18216,6 +22654,10 @@ using SilentOrbit.ProtocolBuffers;
 
 public class InstanceData : IDisposable, IPooled, IProto<InstanceData>, IProto
 {
+	public bool ShouldPool = true;
+
+	private bool _disposed;
+
 	[NonSerialized]
 	public int dataInt;
 
@@ -18230,10 +22672,6 @@ public class InstanceData : IDisposable, IPooled, IProto<InstanceData>, IProto
 
 	[NonSerialized]
 	public float dataFloat;
-
-	public bool ShouldPool = true;
-
-	private bool _disposed;
 
 	public static void ResetToPool(InstanceData instance)
 	{
@@ -18535,6 +22973,10 @@ using SilentOrbit.ProtocolBuffers;
 
 public class Task : IDisposable, IPooled, IProto<Task>, IProto
 {
+	public bool ShouldPool = true;
+
+	private bool _disposed;
+
 	[NonSerialized]
 	public int itemID;
 
@@ -18567,10 +23009,6 @@ public class Task : IDisposable, IPooled, IProto<Task>, IProto
 
 	[NonSerialized]
 	public NetworkableId workbenchEntity;
-
-	public bool ShouldPool = true;
-
-	private bool _disposed;
 
 	public static void ResetToPool(Task instance)
 	{
@@ -19146,6 +23584,10 @@ using UnityEngine;
 
 public class StringPoint : IDisposable, IPooled, IProto<StringPoint>, IProto
 {
+	public bool ShouldPool = true;
+
+	private bool _disposed;
+
 	[NonSerialized]
 	public Vector3 point;
 
@@ -19154,10 +23596,6 @@ public class StringPoint : IDisposable, IPooled, IProto<StringPoint>, IProto
 
 	[NonSerialized]
 	public float slack;
-
-	public bool ShouldPool = true;
-
-	private bool _disposed;
 
 	public static void ResetToPool(StringPoint instance)
 	{
@@ -19483,12 +23921,12 @@ using SilentOrbit.ProtocolBuffers;
 
 public class Private : IDisposable, IPooled, IProto<Private>, IProto
 {
-	[NonSerialized]
-	public List<ItemContainer> container;
-
 	public bool ShouldPool = true;
 
 	private bool _disposed;
+
+	[NonSerialized]
+	public List<ItemContainer> container;
 
 	public static void ResetToPool(Private instance)
 	{
@@ -19790,6 +24228,10 @@ using SilentOrbit.ProtocolBuffers;
 
 public class ClothingItem : IDisposable, IPooled, IProto<ClothingItem>, IProto
 {
+	public bool ShouldPool = true;
+
+	private bool _disposed;
+
 	[NonSerialized]
 	public int itemId;
 
@@ -19801,10 +24243,6 @@ public class ClothingItem : IDisposable, IPooled, IProto<ClothingItem>, IProto
 
 	[NonSerialized]
 	public int reserved_int_0;
-
-	public bool ShouldPool = true;
-
-	private bool _disposed;
 
 	public static void ResetToPool(ClothingItem instance)
 	{
@@ -20084,6 +24522,10 @@ using SilentOrbit.ProtocolBuffers;
 
 public class PendingOrder : IDisposable, IPooled, IProto<PendingOrder>, IProto
 {
+	public bool ShouldPool = true;
+
+	private bool _disposed;
+
 	[NonSerialized]
 	public NetworkableId vendingMachineId;
 
@@ -20092,10 +24534,6 @@ public class PendingOrder : IDisposable, IPooled, IProto<PendingOrder>, IProto
 
 	[NonSerialized]
 	public TimeUntil timeUntilExpiry;
-
-	public bool ShouldPool = true;
-
-	private bool _disposed;
 
 	public static void ResetToPool(PendingOrder instance)
 	{
@@ -20368,6 +24806,10 @@ using UnityEngine;
 
 public class Lights : IDisposable, IPooled, IProto<Lights>, IProto
 {
+	public bool ShouldPool = true;
+
+	private bool _disposed;
+
 	[NonSerialized]
 	public Color topLeft;
 
@@ -20379,10 +24821,6 @@ public class Lights : IDisposable, IPooled, IProto<Lights>, IProto
 
 	[NonSerialized]
 	public Color bottomRight;
-
-	public bool ShouldPool = true;
-
-	private bool _disposed;
 
 	public static void ResetToPool(Lights instance)
 	{
@@ -20792,15 +25230,15 @@ using SilentOrbit.ProtocolBuffers;
 
 public class ScheduleEntry : IDisposable, IPooled, IProto<ScheduleEntry>, IProto
 {
+	public bool ShouldPool = true;
+
+	private bool _disposed;
+
 	[NonSerialized]
 	public int nextZoneId;
 
 	[NonSerialized]
 	public int estimate;
-
-	public bool ShouldPool = true;
-
-	private bool _disposed;
 
 	public static void ResetToPool(ScheduleEntry instance)
 	{
@@ -21041,15 +25479,15 @@ using SilentOrbit.ProtocolBuffers;
 
 public class Design : IDisposable, IPooled, IProto<Design>, IProto
 {
+	public bool ShouldPool = true;
+
+	private bool _disposed;
+
 	[NonSerialized]
 	public List<Star> stars;
 
 	[NonSerialized]
 	public ulong editedBy;
-
-	public bool ShouldPool = true;
-
-	private bool _disposed;
 
 	public static void ResetToPool(Design instance)
 	{
@@ -21360,6 +25798,10 @@ using SilentOrbit.ProtocolBuffers;
 
 public class SavedDesign : IDisposable, IPooled, IProto<SavedDesign>, IProto
 {
+	public bool ShouldPool = true;
+
+	private bool _disposed;
+
 	[NonSerialized]
 	public int version;
 
@@ -21368,10 +25810,6 @@ public class SavedDesign : IDisposable, IPooled, IProto<SavedDesign>, IProto
 
 	[NonSerialized]
 	public Design design;
-
-	public bool ShouldPool = true;
-
-	private bool _disposed;
 
 	public static void ResetToPool(SavedDesign instance)
 	{
@@ -21728,15 +26166,15 @@ using UnityEngine;
 
 public class Star : IDisposable, IPooled, IProto<Star>, IProto
 {
+	public bool ShouldPool = true;
+
+	private bool _disposed;
+
 	[NonSerialized]
 	public Vector2 position;
 
 	[NonSerialized]
 	public Color color;
-
-	public bool ShouldPool = true;
-
-	private bool _disposed;
 
 	public static void ResetToPool(Star instance)
 	{
@@ -22040,15 +26478,15 @@ using SilentOrbit.ProtocolBuffers;
 
 public class DirectoryEntry : IDisposable, IPooled, IProto<DirectoryEntry>, IProto
 {
+	public bool ShouldPool = true;
+
+	private bool _disposed;
+
 	[NonSerialized]
 	public int phoneNumber;
 
 	[NonSerialized]
 	public string phoneName;
-
-	public bool ShouldPool = true;
-
-	private bool _disposed;
 
 	public static void ResetToPool(DirectoryEntry instance)
 	{
@@ -22293,6 +26731,10 @@ using SilentOrbit.ProtocolBuffers;
 
 public class DeathInfo : IDisposable, IPooled, IProto<DeathInfo>, IProto
 {
+	public bool ShouldPool = true;
+
+	private bool _disposed;
+
 	[NonSerialized]
 	public string attackerName;
 
@@ -22310,10 +26752,6 @@ public class DeathInfo : IDisposable, IPooled, IProto<DeathInfo>, IProto
 
 	[NonSerialized]
 	public float attackerDistance;
-
-	public bool ShouldPool = true;
-
-	private bool _disposed;
 
 	public static void ResetToPool(DeathInfo instance)
 	{
@@ -22637,15 +27075,15 @@ using SilentOrbit.ProtocolBuffers;
 
 public class GenericStat : IDisposable, IPooled, IProto<GenericStat>, IProto
 {
+	public bool ShouldPool = true;
+
+	private bool _disposed;
+
 	[NonSerialized]
 	public string key;
 
 	[NonSerialized]
 	public int value;
-
-	public bool ShouldPool = true;
-
-	private bool _disposed;
 
 	public static void ResetToPool(GenericStat instance)
 	{
@@ -22890,6 +27328,10 @@ using SilentOrbit.ProtocolBuffers;
 
 public class WeaponStats : IDisposable, IPooled, IProto<WeaponStats>, IProto
 {
+	public bool ShouldPool = true;
+
+	private bool _disposed;
+
 	[NonSerialized]
 	public string weaponName;
 
@@ -22898,10 +27340,6 @@ public class WeaponStats : IDisposable, IPooled, IProto<WeaponStats>, IProto
 
 	[NonSerialized]
 	public ulong shotsHit;
-
-	public bool ShouldPool = true;
-
-	private bool _disposed;
 
 	public static void ResetToPool(WeaponStats instance)
 	{
@@ -23168,6 +27606,10 @@ using UnityEngine;
 
 public class TeamMember : IDisposable, IPooled, IProto<TeamMember>, IProto
 {
+	public bool ShouldPool = true;
+
+	private bool _disposed;
+
 	[NonSerialized]
 	public string displayName;
 
@@ -23188,10 +27630,6 @@ public class TeamMember : IDisposable, IPooled, IProto<TeamMember>, IProto
 
 	[NonSerialized]
 	public ulong teamID;
-
-	public bool ShouldPool = true;
-
-	private bool _disposed;
 
 	public static void ResetToPool(TeamMember instance)
 	{
@@ -23563,6 +28001,10 @@ using UnityEngine;
 
 public class Projectile : IDisposable, IPooled, IProto<Projectile>, IProto
 {
+	public bool ShouldPool = true;
+
+	private bool _disposed;
+
 	[NonSerialized]
 	public int projectileID;
 
@@ -23574,10 +28016,6 @@ public class Projectile : IDisposable, IPooled, IProto<Projectile>, IProto
 
 	[NonSerialized]
 	public int seed;
-
-	public bool ShouldPool = true;
-
-	private bool _disposed;
 
 	public static void ResetToPool(Projectile instance)
 	{
@@ -23923,6 +28361,10 @@ using SilentOrbit.ProtocolBuffers;
 
 public class ReclaimInfo : IDisposable, IPooled, IProto<ReclaimInfo>, IProto
 {
+	public bool ShouldPool = true;
+
+	private bool _disposed;
+
 	[NonSerialized]
 	public ulong victimID;
 
@@ -23940,10 +28382,6 @@ public class ReclaimInfo : IDisposable, IPooled, IProto<ReclaimInfo>, IProto
 
 	[NonSerialized]
 	public int reclaimId;
-
-	public bool ShouldPool = true;
-
-	private bool _disposed;
 
 	public static void ResetToPool(ReclaimInfo instance)
 	{
@@ -24559,6 +28997,10 @@ using SilentOrbit.ProtocolBuffers;
 
 public class PlayerRelationshipInfo : IDisposable, IPooled, IProto<PlayerRelationshipInfo>, IProto
 {
+	public bool ShouldPool = true;
+
+	private bool _disposed;
+
 	[NonSerialized]
 	public ulong playerID;
 
@@ -24579,10 +29021,6 @@ public class PlayerRelationshipInfo : IDisposable, IPooled, IProto<PlayerRelatio
 
 	[NonSerialized]
 	public float timeSinceSeen;
-
-	public bool ShouldPool = true;
-
-	private bool _disposed;
 
 	public static void ResetToPool(PlayerRelationshipInfo instance)
 	{
@@ -24928,15 +29366,15 @@ using SilentOrbit.ProtocolBuffers;
 
 public class PlayerRelationships : IDisposable, IPooled, IProto<PlayerRelationships>, IProto
 {
+	public bool ShouldPool = true;
+
+	private bool _disposed;
+
 	[NonSerialized]
 	public ulong playerID;
 
 	[NonSerialized]
 	public List<PlayerRelationshipInfo> relations;
-
-	public bool ShouldPool = true;
-
-	private bool _disposed;
 
 	public static void ResetToPool(PlayerRelationships instance)
 	{
@@ -25277,6 +29715,10 @@ public class SpawnOptions : IDisposable, IPooled, IProto<SpawnOptions>, IProto
 		InNoRespawnZone
 	}
 
+	public bool ShouldPool = true;
+
+	private bool _disposed;
+
 	[NonSerialized]
 	public RespawnType type;
 
@@ -25306,10 +29748,6 @@ public class SpawnOptions : IDisposable, IPooled, IProto<SpawnOptions>, IProto
 
 	[NonSerialized]
 	public bool deepSea;
-
-	public bool ShouldPool = true;
-
-	private bool _disposed;
 
 	public static void ResetToPool(SpawnOptions instance)
 	{
@@ -25756,6 +30194,10 @@ public class PlayerStorage : IDisposable, IPooled, IProto<PlayerStorage>, IProto
 {
 	public class PlayerStoredVehicle : IDisposable, IPooled, IProto<PlayerStoredVehicle>, IProto
 	{
+		public bool ShouldPool = true;
+
+		private bool _disposed;
+
 		[NonSerialized]
 		public string shortname;
 
@@ -25764,10 +30206,6 @@ public class PlayerStorage : IDisposable, IPooled, IProto<PlayerStorage>, IProto
 
 		[NonSerialized]
 		public float health;
-
-		public bool ShouldPool = true;
-
-		private bool _disposed;
 
 		public static void ResetToPool(PlayerStoredVehicle instance)
 		{
@@ -26020,15 +30458,15 @@ public class PlayerStorage : IDisposable, IPooled, IProto<PlayerStorage>, IProto
 		}
 	}
 
+	public bool ShouldPool = true;
+
+	private bool _disposed;
+
 	[NonSerialized]
 	public ulong userid;
 
 	[NonSerialized]
 	public List<PlayerStoredVehicle> storedVehicles;
-
-	public bool ShouldPool = true;
-
-	private bool _disposed;
 
 	public static void ResetToPool(PlayerStorage instance)
 	{
@@ -26352,6 +30790,10 @@ using SilentOrbit.ProtocolBuffers;
 
 public class SellOrder : IDisposable, IPooled, IProto<SellOrder>, IProto
 {
+	public bool ShouldPool = true;
+
+	private bool _disposed;
+
 	[NonSerialized]
 	public int itemToSellID;
 
@@ -26405,10 +30847,6 @@ public class SellOrder : IDisposable, IPooled, IProto<SellOrder>, IProto
 
 	[NonSerialized]
 	public ulong costSkinId;
-
-	public bool ShouldPool = true;
-
-	private bool _disposed;
 
 	public static void ResetToPool(SellOrder instance)
 	{
@@ -27061,12 +31499,12 @@ using SilentOrbit.ProtocolBuffers;
 
 public class SellOrderContainer : IDisposable, IPooled, IProto<SellOrderContainer>, IProto
 {
-	[NonSerialized]
-	public List<SellOrder> sellOrders;
-
 	public bool ShouldPool = true;
 
 	private bool _disposed;
+
+	[NonSerialized]
+	public List<SellOrder> sellOrders;
 
 	public static void ResetToPool(SellOrderContainer instance)
 	{
@@ -27384,6 +31822,10 @@ using SilentOrbit.ProtocolBuffers;
 
 public class Message : IDisposable, IPooled, IProto<Message>, IProto
 {
+	public bool ShouldPool = true;
+
+	private bool _disposed;
+
 	[NonSerialized]
 	public long clanId;
 
@@ -27398,10 +31840,6 @@ public class Message : IDisposable, IPooled, IProto<Message>, IProto
 
 	[NonSerialized]
 	public long timestamp;
-
-	public bool ShouldPool = true;
-
-	private bool _disposed;
 
 	public static void ResetToPool(Message instance)
 	{
@@ -27708,15 +32146,15 @@ using SilentOrbit.ProtocolBuffers;
 
 public class RelationshipData : IDisposable, IPooled, IProto<RelationshipData>, IProto
 {
+	public bool ShouldPool = true;
+
+	private bool _disposed;
+
 	[NonSerialized]
 	public RelationshipManager.PlayerRelationshipInfo info;
 
 	[NonSerialized]
 	public ArraySegment<byte> mugshotData;
-
-	public bool ShouldPool = true;
-
-	private bool _disposed;
 
 	public static void ResetToPool(RelationshipData instance)
 	{
@@ -28049,6 +32487,10 @@ using SilentOrbit.ProtocolBuffers;
 
 public class Result : IDisposable, IPooled, IProto<Result>, IProto
 {
+	public bool ShouldPool = true;
+
+	private bool _disposed;
+
 	[NonSerialized]
 	public ulong ID;
 
@@ -28057,10 +32499,6 @@ public class Result : IDisposable, IPooled, IProto<Result>, IProto
 
 	[NonSerialized]
 	public int resultCode;
-
-	public bool ShouldPool = true;
-
-	private bool _disposed;
 
 	public static void ResetToPool(Result instance)
 	{
@@ -28322,6 +32760,10 @@ using UnityEngine;
 
 public class LinePointList : IDisposable, IPooled, IProto<LinePointList>, IProto
 {
+	public bool ShouldPool = true;
+
+	private bool _disposed;
+
 	[NonSerialized]
 	public Vector4 a;
 
@@ -28345,10 +32787,6 @@ public class LinePointList : IDisposable, IPooled, IProto<LinePointList>, IProto
 
 	[NonSerialized]
 	public Vector4 h;
-
-	public bool ShouldPool = true;
-
-	private bool _disposed;
 
 	public static void ResetToPool(LinePointList instance)
 	{
@@ -28971,12 +33409,12 @@ using UnityEngine;
 
 public class LineVec : IDisposable, IPooled, IProto<LineVec>, IProto
 {
-	[NonSerialized]
-	public Vector4 vec;
-
 	public bool ShouldPool = true;
 
 	private bool _disposed;
+
+	[NonSerialized]
+	public Vector4 vec;
 
 	public static void ResetToPool(LineVec instance)
 	{
@@ -29246,6 +33684,10 @@ using SilentOrbit.ProtocolBuffers;
 
 public class PlayerStoredVehicle : IDisposable, IPooled, IProto<PlayerStoredVehicle>, IProto
 {
+	public bool ShouldPool = true;
+
+	private bool _disposed;
+
 	[NonSerialized]
 	public string shortname;
 
@@ -29254,10 +33696,6 @@ public class PlayerStoredVehicle : IDisposable, IPooled, IProto<PlayerStoredVehi
 
 	[NonSerialized]
 	public float health;
-
-	public bool ShouldPool = true;
-
-	private bool _disposed;
 
 	public static void ResetToPool(PlayerStoredVehicle instance)
 	{

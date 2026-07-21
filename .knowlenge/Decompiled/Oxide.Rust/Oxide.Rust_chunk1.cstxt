@@ -2998,6 +2998,7 @@ public class ComponentConverter : JsonConverter
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using Facepunch;
 using Oxide.Core;
 using Oxide.Core.Libraries;
 using Oxide.Core.Plugins;
@@ -3043,19 +3044,19 @@ public class Command : Library
 
 		public ConsoleCommand(string name)
 		{
-			//IL_0036: Unknown result type (might be due to invalid IL or missing references)
-			//IL_003b: Unknown result type (might be due to invalid IL or missing references)
-			//IL_0044: Unknown result type (might be due to invalid IL or missing references)
-			//IL_004d: Unknown result type (might be due to invalid IL or missing references)
-			//IL_0054: Unknown result type (might be due to invalid IL or missing references)
-			//IL_005b: Unknown result type (might be due to invalid IL or missing references)
-			//IL_0062: Unknown result type (might be due to invalid IL or missing references)
-			//IL_0069: Unknown result type (might be due to invalid IL or missing references)
-			//IL_0070: Unknown result type (might be due to invalid IL or missing references)
-			//IL_0077: Unknown result type (might be due to invalid IL or missing references)
-			//IL_008e: Expected O, but got Unknown
+			//IL_002e: Unknown result type (might be due to invalid IL or missing references)
+			//IL_0033: Unknown result type (might be due to invalid IL or missing references)
+			//IL_003c: Unknown result type (might be due to invalid IL or missing references)
+			//IL_0045: Unknown result type (might be due to invalid IL or missing references)
+			//IL_004c: Unknown result type (might be due to invalid IL or missing references)
+			//IL_0053: Unknown result type (might be due to invalid IL or missing references)
+			//IL_005a: Unknown result type (might be due to invalid IL or missing references)
+			//IL_0061: Unknown result type (might be due to invalid IL or missing references)
+			//IL_0068: Unknown result type (might be due to invalid IL or missing references)
+			//IL_006f: Unknown result type (might be due to invalid IL or missing references)
+			//IL_0086: Expected O, but got Unknown
 			Name = name;
-			string[] array = Name.Split(new char[1] { '.' });
+			string[] array = Name.Split('.');
 			RustCommand = new Command
 			{
 				Name = array[1],
@@ -3191,11 +3192,16 @@ public class Command : Library
 
 	public void AddConsoleCommand(string command, Plugin plugin, Func<Arg, bool> callback)
 	{
+		//IL_02c7: Unknown result type (might be due to invalid IL or missing references)
+		//IL_032b: Unknown result type (might be due to invalid IL or missing references)
+		//IL_034f: Unknown result type (might be due to invalid IL or missing references)
+		//IL_0195: Unknown result type (might be due to invalid IL or missing references)
+		//IL_01be: Unknown result type (might be due to invalid IL or missing references)
 		if (plugin != null && !pluginRemovedFromManager.ContainsKey(plugin))
 		{
 			pluginRemovedFromManager[plugin] = ((Event<Plugin, PluginManager>)(object)plugin.OnRemovedFromManager).Add((Action<Plugin, PluginManager>)plugin_OnRemovedFromManager);
 		}
-		string[] array = command.Split(new char[1] { '.' });
+		string[] array = command.Split('.');
 		string text = ((array.Length >= 2) ? array[0].Trim() : "global");
 		string text2 = ((array.Length >= 2) ? string.Join(".", array.Skip(1).ToArray()) : array[0].Trim());
 		string text3 = text + "." + text2;
@@ -3217,10 +3223,10 @@ public class Command : Library
 			string text6 = ((plugin != null) ? plugin.Name : null) ?? "An unknown plugin";
 			string text7 = text6 + " has replaced the '" + command + "' console command previously registered by " + text5;
 			Interface.Oxide.LogWarning(text7, Array.Empty<object>());
-			Server.Dict.Remove(value.RustCommand.FullName);
+			Server.Dict.Remove(StringView.op_Implicit(value.RustCommand.FullName));
 			if (text == "global")
 			{
-				Server.GlobalDict.Remove(value.RustCommand.Name);
+				Server.GlobalDict.Remove(StringView.op_Implicit(value.RustCommand.Name));
 			}
 			Index.All = Server.Dict.Values.ToArray();
 		}
@@ -3238,7 +3244,7 @@ public class Command : Library
 			RustCore.Covalence.CommandSystem.UnregisterCommand((text == "global") ? text2 : text3, value2.Source);
 		}
 		consoleCommand.AddCallback(plugin, callback);
-		if (Server.Dict.TryGetValue(text3, out var value3))
+		if (Server.Dict.TryGetValue(StringView.op_Implicit(text3), out var value3))
 		{
 			if (value3.Variable)
 			{
@@ -3248,10 +3254,10 @@ public class Command : Library
 			}
 			consoleCommand.OriginalCallback = value3.Call;
 		}
-		Server.Dict[text3] = consoleCommand.RustCommand;
+		Server.Dict[StringView.op_Implicit(text3)] = consoleCommand.RustCommand;
 		if (text == "global")
 		{
-			Server.GlobalDict[text2] = consoleCommand.RustCommand;
+			Server.GlobalDict[StringView.op_Implicit(text2)] = consoleCommand.RustCommand;
 		}
 		Index.All = Server.Dict.Values.ToArray();
 		consoleCommands[text3] = consoleCommand;
@@ -3287,6 +3293,10 @@ public class Command : Library
 
 	private void RemoveConsoleCommand(ConsoleCommand command)
 	{
+		//IL_00a5: Unknown result type (might be due to invalid IL or missing references)
+		//IL_0040: Unknown result type (might be due to invalid IL or missing references)
+		//IL_00d2: Unknown result type (might be due to invalid IL or missing references)
+		//IL_007f: Unknown result type (might be due to invalid IL or missing references)
 		if (!consoleCommands.ContainsKey(command.Name))
 		{
 			return;
@@ -3294,17 +3304,17 @@ public class Command : Library
 		consoleCommands.Remove(command.Name);
 		if (command.OriginalCallback != null)
 		{
-			Server.Dict[command.RustCommand.FullName].Call = command.OriginalCallback;
+			Server.Dict[StringView.op_Implicit(command.RustCommand.FullName)].Call = command.OriginalCallback;
 			if (command.RustCommand.FullName.StartsWith("global."))
 			{
-				Server.GlobalDict[command.RustCommand.Name].Call = command.OriginalCallback;
+				Server.GlobalDict[StringView.op_Implicit(command.RustCommand.Name)].Call = command.OriginalCallback;
 			}
 			return;
 		}
-		Server.Dict.Remove(command.RustCommand.FullName);
+		Server.Dict.Remove(StringView.op_Implicit(command.RustCommand.FullName));
 		if (command.Name.StartsWith("global."))
 		{
-			Server.GlobalDict.Remove(command.RustCommand.Name);
+			Server.GlobalDict.Remove(StringView.op_Implicit(command.RustCommand.Name));
 		}
 		Index.All = Server.Dict.Values.ToArray();
 	}
@@ -3340,7 +3350,7 @@ public class Command : Library
 
 	private bool CanOverrideCommand(string command, string type)
 	{
-		string[] array = command.Split(new char[1] { '.' });
+		string[] array = command.Split('.');
 		string text = ((array.Length >= 2) ? array[0].Trim() : "global");
 		string text2 = ((array.Length >= 2) ? string.Join(".", array.Skip(1).ToArray()) : array[0].Trim());
 		string text3 = text + "." + text2;
@@ -3378,7 +3388,7 @@ public class Item : Library
 
 	public static Item GetItem(int itemId)
 	{
-		return ItemManager.CreateByItemID(itemId, 1, 0uL);
+		return ItemManager.CreateByItemID(itemId, 1, 0uL, 0uL);
 	}
 }
 
@@ -3898,7 +3908,7 @@ public class Player : Library
 
 	public void GiveItem(BasePlayer player, Item item, int quantity = 1)
 	{
-		player.inventory.GiveItem(ItemManager.CreateByItemID(item.info.itemid, quantity, 0uL), (ItemContainer)null, (GiveItemOptions)0);
+		player.inventory.GiveItem(ItemManager.CreateByItemID(item.info.itemid, quantity, 0uL, 0uL), (ItemContainer)null, (GiveItemOptions)0);
 	}
 
 	public PlayerInventory Inventory(BasePlayer player)
@@ -4066,6 +4076,7 @@ public class Server : Library
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using Facepunch;
 using Facepunch.Extend;
 using Oxide.Core;
 using Oxide.Core.Libraries.Covalence;
@@ -4129,20 +4140,27 @@ public class RustCommandSystem : ICommandSystem
 
 	public void RegisterCommand(string command, Plugin plugin, CommandCallback callback)
 	{
-		//IL_00cf: Unknown result type (might be due to invalid IL or missing references)
-		//IL_03dd: Unknown result type (might be due to invalid IL or missing references)
-		//IL_03e2: Unknown result type (might be due to invalid IL or missing references)
-		//IL_03e9: Unknown result type (might be due to invalid IL or missing references)
-		//IL_03f0: Unknown result type (might be due to invalid IL or missing references)
-		//IL_03fc: Unknown result type (might be due to invalid IL or missing references)
-		//IL_0403: Unknown result type (might be due to invalid IL or missing references)
-		//IL_040a: Unknown result type (might be due to invalid IL or missing references)
-		//IL_0411: Unknown result type (might be due to invalid IL or missing references)
-		//IL_0418: Unknown result type (might be due to invalid IL or missing references)
-		//IL_041f: Unknown result type (might be due to invalid IL or missing references)
-		//IL_0436: Expected O, but got Unknown
+		//IL_00c7: Unknown result type (might be due to invalid IL or missing references)
+		//IL_0384: Unknown result type (might be due to invalid IL or missing references)
+		//IL_03ee: Unknown result type (might be due to invalid IL or missing references)
+		//IL_03f3: Unknown result type (might be due to invalid IL or missing references)
+		//IL_03fa: Unknown result type (might be due to invalid IL or missing references)
+		//IL_0401: Unknown result type (might be due to invalid IL or missing references)
+		//IL_040d: Unknown result type (might be due to invalid IL or missing references)
+		//IL_0414: Unknown result type (might be due to invalid IL or missing references)
+		//IL_041b: Unknown result type (might be due to invalid IL or missing references)
+		//IL_0422: Unknown result type (might be due to invalid IL or missing references)
+		//IL_0429: Unknown result type (might be due to invalid IL or missing references)
+		//IL_0430: Unknown result type (might be due to invalid IL or missing references)
+		//IL_0447: Expected O, but got Unknown
+		//IL_044e: Unknown result type (might be due to invalid IL or missing references)
+		//IL_0472: Unknown result type (might be due to invalid IL or missing references)
+		//IL_0179: Unknown result type (might be due to invalid IL or missing references)
+		//IL_0197: Unknown result type (might be due to invalid IL or missing references)
+		//IL_0318: Unknown result type (might be due to invalid IL or missing references)
+		//IL_0341: Unknown result type (might be due to invalid IL or missing references)
 		command = command.ToLowerInvariant().Trim();
-		string[] array = command.Split(new char[1] { '.' });
+		string[] array = command.Split('.');
 		string text = ((array.Length >= 2) ? array[0].Trim() : "global");
 		string text2 = ((array.Length >= 2) ? string.Join(".", array.Skip(1).ToArray()) : array[0].Trim());
 		string text3 = text + "." + text2;
@@ -4166,10 +4184,10 @@ public class RustCommandSystem : ICommandSystem
 			string text5 = ((plugin != null) ? plugin.Name : null) ?? "An unknown plugin";
 			string text6 = text5 + " has replaced the '" + command + "' command previously registered by " + text4;
 			Interface.Oxide.LogWarning(text6, Array.Empty<object>());
-			Server.Dict.Remove(text3);
+			Server.Dict.Remove(StringView.op_Implicit(text3));
 			if (text == "global")
 			{
-				Server.GlobalDict.Remove(text2);
+				Server.GlobalDict.Remove(StringView.op_Implicit(text2));
 			}
 			Index.All = Server.Dict.Values.ToArray();
 		}
@@ -4193,15 +4211,15 @@ public class RustCommandSystem : ICommandSystem
 			string text11 = ((plugin != null) ? plugin.Name : null) ?? "An unknown plugin";
 			string text12 = text11 + " has replaced the '" + text3 + "' console command previously registered by " + text10;
 			Interface.Oxide.LogWarning(text12, Array.Empty<object>());
-			Server.Dict.Remove(value3.RustCommand.FullName);
+			Server.Dict.Remove(StringView.op_Implicit(value3.RustCommand.FullName));
 			if (text == "global")
 			{
-				Server.GlobalDict.Remove(value3.RustCommand.Name);
+				Server.GlobalDict.Remove(StringView.op_Implicit(value3.RustCommand.Name));
 			}
 			Index.All = Server.Dict.Values.ToArray();
 			cmdlib.consoleCommands.Remove(value3.RustCommand.FullName);
 		}
-		if (Server.Dict.TryGetValue(text3, out var value4))
+		if (Server.Dict.TryGetValue(StringView.op_Implicit(text3), out var value4))
 		{
 			if (value4.Variable)
 			{
@@ -4243,10 +4261,10 @@ public class RustCommandSystem : ICommandSystem
 				}
 			}
 		};
-		Server.Dict[text3] = registeredCommand.RustCommand;
+		Server.Dict[StringView.op_Implicit(text3)] = registeredCommand.RustCommand;
 		if (text == "global")
 		{
-			Server.GlobalDict[text2] = registeredCommand.RustCommand;
+			Server.GlobalDict[StringView.op_Implicit(text2)] = registeredCommand.RustCommand;
 		}
 		Index.All = Server.Dict.Values.ToArray();
 		registeredCommands[command] = registeredCommand;
@@ -4254,43 +4272,53 @@ public class RustCommandSystem : ICommandSystem
 
 	public void UnregisterCommand(string command, Plugin plugin)
 	{
+		//IL_015c: Unknown result type (might be due to invalid IL or missing references)
+		//IL_008b: Unknown result type (might be due to invalid IL or missing references)
+		//IL_017a: Unknown result type (might be due to invalid IL or missing references)
+		//IL_009d: Unknown result type (might be due to invalid IL or missing references)
+		//IL_00c5: Unknown result type (might be due to invalid IL or missing references)
+		//IL_00fd: Unknown result type (might be due to invalid IL or missing references)
+		//IL_00d7: Unknown result type (might be due to invalid IL or missing references)
+		//IL_010f: Unknown result type (might be due to invalid IL or missing references)
+		//IL_0132: Unknown result type (might be due to invalid IL or missing references)
+		//IL_0144: Unknown result type (might be due to invalid IL or missing references)
 		if (!registeredCommands.TryGetValue(command, out var value) || plugin != value.Source)
 		{
 			return;
 		}
-		string[] array = command.Split(new char[1] { '.' });
+		string[] array = command.Split('.');
 		string obj = ((array.Length >= 2) ? array[0].Trim() : "global");
 		string text = ((array.Length >= 2) ? string.Join(".", array.Skip(1).ToArray()) : array[0].Trim());
 		string text2 = obj + "." + text;
 		registeredCommands.Remove(command);
 		if (value.OriginalCallback != null)
 		{
-			if (Server.Dict.ContainsKey(text2))
+			if (Server.Dict.ContainsKey(StringView.op_Implicit(text2)))
 			{
-				Server.Dict[text2].Call = value.OriginalCallback;
+				Server.Dict[StringView.op_Implicit(text2)].Call = value.OriginalCallback;
 			}
-			if (text2.StartsWith("global.") && Server.GlobalDict.ContainsKey(text))
+			if (text2.StartsWith("global.") && Server.GlobalDict.ContainsKey(StringView.op_Implicit(text)))
 			{
-				Server.GlobalDict[text].Call = value.OriginalCallback;
+				Server.GlobalDict[StringView.op_Implicit(text)].Call = value.OriginalCallback;
 			}
 			if (value.OriginalRustCommand != null)
 			{
-				if (Server.Dict.ContainsKey(text2))
+				if (Server.Dict.ContainsKey(StringView.op_Implicit(text2)))
 				{
-					Server.Dict[text2] = value.OriginalRustCommand;
+					Server.Dict[StringView.op_Implicit(text2)] = value.OriginalRustCommand;
 				}
-				if (text2.StartsWith("global.") && Server.GlobalDict.ContainsKey(text))
+				if (text2.StartsWith("global.") && Server.GlobalDict.ContainsKey(StringView.op_Implicit(text)))
 				{
-					Server.GlobalDict[text] = value.OriginalRustCommand;
+					Server.GlobalDict[StringView.op_Implicit(text)] = value.OriginalRustCommand;
 				}
 			}
 		}
 		else
 		{
-			Server.Dict.Remove(text2);
+			Server.Dict.Remove(StringView.op_Implicit(text2));
 			if (text2.StartsWith("global."))
 			{
-				Server.GlobalDict.Remove(text);
+				Server.GlobalDict.Remove(StringView.op_Implicit(text));
 			}
 		}
 		Index.All = Server.Dict.Values.ToArray();
@@ -4303,7 +4331,7 @@ public class RustCommandSystem : ICommandSystem
 
 	private bool CanOverrideCommand(string command)
 	{
-		string[] array = command.Split(new char[1] { '.' });
+		string[] array = command.Split('.');
 		string obj = ((array.Length >= 2) ? array[0].Trim() : "global");
 		string text = ((array.Length >= 2) ? string.Join(".", array.Skip(1).ToArray()) : array[0].Trim());
 		string text2 = obj + "." + text;
@@ -4332,7 +4360,7 @@ public class RustCommandSystem : ICommandSystem
 		{
 			return new string[0];
 		}
-		return StringExtensions.SplitQuotesStrings(arg.FullString, int.MaxValue);
+		return StringExtensions.SplitQuotesStrings(((object)(StringView)(ref arg.FullString)/*cast due to .constrained prefix*/).ToString(), int.MaxValue);
 	}
 }
 
@@ -5261,19 +5289,19 @@ internal class ConsoleCommand
 
 	public ConsoleCommand(string name)
 	{
-		//IL_0036: Unknown result type (might be due to invalid IL or missing references)
-		//IL_003b: Unknown result type (might be due to invalid IL or missing references)
-		//IL_0044: Unknown result type (might be due to invalid IL or missing references)
-		//IL_004d: Unknown result type (might be due to invalid IL or missing references)
-		//IL_0054: Unknown result type (might be due to invalid IL or missing references)
-		//IL_005b: Unknown result type (might be due to invalid IL or missing references)
-		//IL_0062: Unknown result type (might be due to invalid IL or missing references)
-		//IL_0069: Unknown result type (might be due to invalid IL or missing references)
-		//IL_0070: Unknown result type (might be due to invalid IL or missing references)
-		//IL_0077: Unknown result type (might be due to invalid IL or missing references)
-		//IL_008e: Expected O, but got Unknown
+		//IL_002e: Unknown result type (might be due to invalid IL or missing references)
+		//IL_0033: Unknown result type (might be due to invalid IL or missing references)
+		//IL_003c: Unknown result type (might be due to invalid IL or missing references)
+		//IL_0045: Unknown result type (might be due to invalid IL or missing references)
+		//IL_004c: Unknown result type (might be due to invalid IL or missing references)
+		//IL_0053: Unknown result type (might be due to invalid IL or missing references)
+		//IL_005a: Unknown result type (might be due to invalid IL or missing references)
+		//IL_0061: Unknown result type (might be due to invalid IL or missing references)
+		//IL_0068: Unknown result type (might be due to invalid IL or missing references)
+		//IL_006f: Unknown result type (might be due to invalid IL or missing references)
+		//IL_0086: Expected O, but got Unknown
 		Name = name;
-		string[] array = Name.Split(new char[1] { '.' });
+		string[] array = Name.Split('.');
 		RustCommand = new Command
 		{
 			Name = array[1],

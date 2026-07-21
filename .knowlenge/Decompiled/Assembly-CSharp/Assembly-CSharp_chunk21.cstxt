@@ -1,3 +1,415 @@
+using System.Collections.Generic;
+using UnityEngine;
+
+public class BezierPath
+{
+	public int SegmentsPerCurve = 10;
+
+	public float MINIMUM_SQR_DISTANCE = 0.01f;
+
+	public float DIVISION_THRESHOLD = -0.99f;
+
+	private List<Vector2> controlPoints;
+
+	private int curveCount;
+
+	public BezierPath()
+	{
+		controlPoints = new List<Vector2>();
+	}
+
+	public void SetControlPoints(List<Vector2> newControlPoints)
+	{
+		controlPoints.Clear();
+		controlPoints.AddRange(newControlPoints);
+		curveCount = (controlPoints.Count - 1) / 3;
+	}
+
+	public void SetControlPoints(Vector2[] newControlPoints)
+	{
+		controlPoints.Clear();
+		controlPoints.AddRange(newControlPoints);
+		curveCount = (controlPoints.Count - 1) / 3;
+	}
+
+	public List<Vector2> GetControlPoints()
+	{
+		return controlPoints;
+	}
+
+	public void Interpolate(List<Vector2> segmentPoints, float scale)
+	{
+		//IL_0021: Unknown result type (might be due to invalid IL or missing references)
+		//IL_0026: Unknown result type (might be due to invalid IL or missing references)
+		//IL_002b: Unknown result type (might be due to invalid IL or missing references)
+		//IL_0030: Unknown result type (might be due to invalid IL or missing references)
+		//IL_0031: Unknown result type (might be due to invalid IL or missing references)
+		//IL_0036: Unknown result type (might be due to invalid IL or missing references)
+		//IL_0037: Unknown result type (might be due to invalid IL or missing references)
+		//IL_0039: Unknown result type (might be due to invalid IL or missing references)
+		//IL_003a: Unknown result type (might be due to invalid IL or missing references)
+		//IL_003f: Unknown result type (might be due to invalid IL or missing references)
+		//IL_0044: Unknown result type (might be due to invalid IL or missing references)
+		//IL_004b: Unknown result type (might be due to invalid IL or missing references)
+		//IL_0057: Unknown result type (might be due to invalid IL or missing references)
+		//IL_00c0: Unknown result type (might be due to invalid IL or missing references)
+		//IL_00c5: Unknown result type (might be due to invalid IL or missing references)
+		//IL_00c9: Unknown result type (might be due to invalid IL or missing references)
+		//IL_00ce: Unknown result type (might be due to invalid IL or missing references)
+		//IL_00d4: Unknown result type (might be due to invalid IL or missing references)
+		//IL_00d9: Unknown result type (might be due to invalid IL or missing references)
+		//IL_00db: Unknown result type (might be due to invalid IL or missing references)
+		//IL_00dd: Unknown result type (might be due to invalid IL or missing references)
+		//IL_00df: Unknown result type (might be due to invalid IL or missing references)
+		//IL_00e4: Unknown result type (might be due to invalid IL or missing references)
+		//IL_00e8: Unknown result type (might be due to invalid IL or missing references)
+		//IL_00ed: Unknown result type (might be due to invalid IL or missing references)
+		//IL_00ef: Unknown result type (might be due to invalid IL or missing references)
+		//IL_00f2: Unknown result type (might be due to invalid IL or missing references)
+		//IL_00f4: Unknown result type (might be due to invalid IL or missing references)
+		//IL_00f9: Unknown result type (might be due to invalid IL or missing references)
+		//IL_00fb: Unknown result type (might be due to invalid IL or missing references)
+		//IL_00fd: Unknown result type (might be due to invalid IL or missing references)
+		//IL_0102: Unknown result type (might be due to invalid IL or missing references)
+		//IL_010b: Unknown result type (might be due to invalid IL or missing references)
+		//IL_0110: Unknown result type (might be due to invalid IL or missing references)
+		//IL_0115: Unknown result type (might be due to invalid IL or missing references)
+		//IL_0117: Unknown result type (might be due to invalid IL or missing references)
+		//IL_011a: Unknown result type (might be due to invalid IL or missing references)
+		//IL_011c: Unknown result type (might be due to invalid IL or missing references)
+		//IL_0121: Unknown result type (might be due to invalid IL or missing references)
+		//IL_0123: Unknown result type (might be due to invalid IL or missing references)
+		//IL_0125: Unknown result type (might be due to invalid IL or missing references)
+		//IL_012a: Unknown result type (might be due to invalid IL or missing references)
+		//IL_0133: Unknown result type (might be due to invalid IL or missing references)
+		//IL_0138: Unknown result type (might be due to invalid IL or missing references)
+		//IL_013d: Unknown result type (might be due to invalid IL or missing references)
+		//IL_0145: Unknown result type (might be due to invalid IL or missing references)
+		//IL_0152: Unknown result type (might be due to invalid IL or missing references)
+		//IL_015f: Unknown result type (might be due to invalid IL or missing references)
+		//IL_0071: Unknown result type (might be due to invalid IL or missing references)
+		//IL_0076: Unknown result type (might be due to invalid IL or missing references)
+		//IL_007a: Unknown result type (might be due to invalid IL or missing references)
+		//IL_007f: Unknown result type (might be due to invalid IL or missing references)
+		//IL_0081: Unknown result type (might be due to invalid IL or missing references)
+		//IL_0083: Unknown result type (might be due to invalid IL or missing references)
+		//IL_0085: Unknown result type (might be due to invalid IL or missing references)
+		//IL_008a: Unknown result type (might be due to invalid IL or missing references)
+		//IL_008c: Unknown result type (might be due to invalid IL or missing references)
+		//IL_008f: Unknown result type (might be due to invalid IL or missing references)
+		//IL_0091: Unknown result type (might be due to invalid IL or missing references)
+		//IL_0096: Unknown result type (might be due to invalid IL or missing references)
+		//IL_009b: Unknown result type (might be due to invalid IL or missing references)
+		//IL_00a3: Unknown result type (might be due to invalid IL or missing references)
+		//IL_00b0: Unknown result type (might be due to invalid IL or missing references)
+		controlPoints.Clear();
+		if (segmentPoints.Count < 2)
+		{
+			return;
+		}
+		for (int i = 0; i < segmentPoints.Count; i++)
+		{
+			if (i == 0)
+			{
+				Vector2 val = segmentPoints[i];
+				Vector2 val2 = segmentPoints[i + 1] - val;
+				Vector2 item = val + scale * val2;
+				controlPoints.Add(val);
+				controlPoints.Add(item);
+				continue;
+			}
+			if (i == segmentPoints.Count - 1)
+			{
+				Vector2 val3 = segmentPoints[i - 1];
+				Vector2 val4 = segmentPoints[i];
+				Vector2 val5 = val4 - val3;
+				Vector2 item2 = val4 - scale * val5;
+				controlPoints.Add(item2);
+				controlPoints.Add(val4);
+				continue;
+			}
+			Vector2 val6 = segmentPoints[i - 1];
+			Vector2 val7 = segmentPoints[i];
+			Vector2 val8 = segmentPoints[i + 1];
+			Vector2 val9 = val8 - val6;
+			Vector2 normalized = ((Vector2)(ref val9)).normalized;
+			Vector2 val10 = scale * normalized;
+			val9 = val7 - val6;
+			Vector2 item3 = val7 - val10 * ((Vector2)(ref val9)).magnitude;
+			Vector2 val11 = scale * normalized;
+			val9 = val8 - val7;
+			Vector2 item4 = val7 + val11 * ((Vector2)(ref val9)).magnitude;
+			controlPoints.Add(item3);
+			controlPoints.Add(val7);
+			controlPoints.Add(item4);
+		}
+		curveCount = (controlPoints.Count - 1) / 3;
+	}
+
+	public void SamplePoints(List<Vector2> sourcePoints, float minSqrDistance, float maxSqrDistance, float scale)
+	{
+		//IL_0013: Unknown result type (might be due to invalid IL or missing references)
+		//IL_001f: Unknown result type (might be due to invalid IL or missing references)
+		//IL_0024: Unknown result type (might be due to invalid IL or missing references)
+		//IL_002b: Unknown result type (might be due to invalid IL or missing references)
+		//IL_002e: Unknown result type (might be due to invalid IL or missing references)
+		//IL_0033: Unknown result type (might be due to invalid IL or missing references)
+		//IL_0038: Unknown result type (might be due to invalid IL or missing references)
+		//IL_007f: Unknown result type (might be due to invalid IL or missing references)
+		//IL_0084: Unknown result type (might be due to invalid IL or missing references)
+		//IL_0086: Unknown result type (might be due to invalid IL or missing references)
+		//IL_008b: Unknown result type (might be due to invalid IL or missing references)
+		//IL_008d: Unknown result type (might be due to invalid IL or missing references)
+		//IL_008f: Unknown result type (might be due to invalid IL or missing references)
+		//IL_0090: Unknown result type (might be due to invalid IL or missing references)
+		//IL_0095: Unknown result type (might be due to invalid IL or missing references)
+		//IL_0099: Unknown result type (might be due to invalid IL or missing references)
+		//IL_009e: Unknown result type (might be due to invalid IL or missing references)
+		//IL_00a0: Unknown result type (might be due to invalid IL or missing references)
+		//IL_00a1: Unknown result type (might be due to invalid IL or missing references)
+		//IL_00a2: Unknown result type (might be due to invalid IL or missing references)
+		//IL_00a7: Unknown result type (might be due to invalid IL or missing references)
+		//IL_00b2: Unknown result type (might be due to invalid IL or missing references)
+		//IL_00b3: Unknown result type (might be due to invalid IL or missing references)
+		//IL_00b5: Unknown result type (might be due to invalid IL or missing references)
+		//IL_00ba: Unknown result type (might be due to invalid IL or missing references)
+		//IL_00c5: Unknown result type (might be due to invalid IL or missing references)
+		//IL_00c6: Unknown result type (might be due to invalid IL or missing references)
+		//IL_00d3: Unknown result type (might be due to invalid IL or missing references)
+		//IL_00d8: Unknown result type (might be due to invalid IL or missing references)
+		//IL_00dd: Unknown result type (might be due to invalid IL or missing references)
+		//IL_00df: Unknown result type (might be due to invalid IL or missing references)
+		//IL_00e6: Unknown result type (might be due to invalid IL or missing references)
+		//IL_006b: Unknown result type (might be due to invalid IL or missing references)
+		//IL_0070: Unknown result type (might be due to invalid IL or missing references)
+		//IL_0045: Unknown result type (might be due to invalid IL or missing references)
+		//IL_004c: Unknown result type (might be due to invalid IL or missing references)
+		//IL_0051: Unknown result type (might be due to invalid IL or missing references)
+		//IL_0056: Unknown result type (might be due to invalid IL or missing references)
+		//IL_0063: Unknown result type (might be due to invalid IL or missing references)
+		if (sourcePoints.Count < 2)
+		{
+			return;
+		}
+		Stack<Vector2> stack = new Stack<Vector2>();
+		stack.Push(sourcePoints[0]);
+		Vector2 val = sourcePoints[1];
+		int num = 2;
+		Vector2 val2;
+		for (num = 2; num < sourcePoints.Count; num++)
+		{
+			val2 = val - sourcePoints[num];
+			if (((Vector2)(ref val2)).sqrMagnitude > minSqrDistance)
+			{
+				val2 = stack.Peek() - sourcePoints[num];
+				if (((Vector2)(ref val2)).sqrMagnitude > maxSqrDistance)
+				{
+					stack.Push(val);
+				}
+			}
+			val = sourcePoints[num];
+		}
+		Vector2 val3 = stack.Pop();
+		Vector2 val4 = stack.Peek();
+		val2 = val4 - val;
+		Vector2 normalized = ((Vector2)(ref val2)).normalized;
+		val2 = val - val3;
+		float magnitude = ((Vector2)(ref val2)).magnitude;
+		val2 = val3 - val4;
+		float magnitude2 = ((Vector2)(ref val2)).magnitude;
+		val3 += normalized * ((magnitude2 - magnitude) / 2f);
+		stack.Push(val3);
+		stack.Push(val);
+		Interpolate(new List<Vector2>(stack), scale);
+	}
+
+	public Vector2 CalculateBezierPoint(int curveIndex, float t)
+	{
+		//IL_000b: Unknown result type (might be due to invalid IL or missing references)
+		//IL_0010: Unknown result type (might be due to invalid IL or missing references)
+		//IL_001a: Unknown result type (might be due to invalid IL or missing references)
+		//IL_001f: Unknown result type (might be due to invalid IL or missing references)
+		//IL_0029: Unknown result type (might be due to invalid IL or missing references)
+		//IL_002e: Unknown result type (might be due to invalid IL or missing references)
+		//IL_0038: Unknown result type (might be due to invalid IL or missing references)
+		//IL_003d: Unknown result type (might be due to invalid IL or missing references)
+		//IL_0041: Unknown result type (might be due to invalid IL or missing references)
+		//IL_0042: Unknown result type (might be due to invalid IL or missing references)
+		//IL_0043: Unknown result type (might be due to invalid IL or missing references)
+		//IL_0044: Unknown result type (might be due to invalid IL or missing references)
+		//IL_0046: Unknown result type (might be due to invalid IL or missing references)
+		int num = curveIndex * 3;
+		Vector2 p = controlPoints[num];
+		Vector2 p2 = controlPoints[num + 1];
+		Vector2 p3 = controlPoints[num + 2];
+		Vector2 p4 = controlPoints[num + 3];
+		return CalculateBezierPoint(t, p, p2, p3, p4);
+	}
+
+	public List<Vector2> GetDrawingPoints0()
+	{
+		//IL_0015: Unknown result type (might be due to invalid IL or missing references)
+		//IL_0032: Unknown result type (might be due to invalid IL or missing references)
+		List<Vector2> list = new List<Vector2>();
+		for (int i = 0; i < curveCount; i++)
+		{
+			if (i == 0)
+			{
+				list.Add(CalculateBezierPoint(i, 0f));
+			}
+			for (int j = 1; j <= SegmentsPerCurve; j++)
+			{
+				float t = (float)j / (float)SegmentsPerCurve;
+				list.Add(CalculateBezierPoint(i, t));
+			}
+		}
+		return list;
+	}
+
+	public List<Vector2> GetDrawingPoints1()
+	{
+		//IL_0014: Unknown result type (might be due to invalid IL or missing references)
+		//IL_0019: Unknown result type (might be due to invalid IL or missing references)
+		//IL_0023: Unknown result type (might be due to invalid IL or missing references)
+		//IL_0028: Unknown result type (might be due to invalid IL or missing references)
+		//IL_0032: Unknown result type (might be due to invalid IL or missing references)
+		//IL_0037: Unknown result type (might be due to invalid IL or missing references)
+		//IL_0042: Unknown result type (might be due to invalid IL or missing references)
+		//IL_0047: Unknown result type (might be due to invalid IL or missing references)
+		//IL_0053: Unknown result type (might be due to invalid IL or missing references)
+		//IL_0054: Unknown result type (might be due to invalid IL or missing references)
+		//IL_0055: Unknown result type (might be due to invalid IL or missing references)
+		//IL_0057: Unknown result type (might be due to invalid IL or missing references)
+		//IL_0059: Unknown result type (might be due to invalid IL or missing references)
+		//IL_0079: Unknown result type (might be due to invalid IL or missing references)
+		//IL_007a: Unknown result type (might be due to invalid IL or missing references)
+		//IL_007b: Unknown result type (might be due to invalid IL or missing references)
+		//IL_007d: Unknown result type (might be due to invalid IL or missing references)
+		//IL_007f: Unknown result type (might be due to invalid IL or missing references)
+		List<Vector2> list = new List<Vector2>();
+		for (int i = 0; i < controlPoints.Count - 3; i += 3)
+		{
+			Vector2 p = controlPoints[i];
+			Vector2 p2 = controlPoints[i + 1];
+			Vector2 p3 = controlPoints[i + 2];
+			Vector2 p4 = controlPoints[i + 3];
+			if (i == 0)
+			{
+				list.Add(CalculateBezierPoint(0f, p, p2, p3, p4));
+			}
+			for (int j = 1; j <= SegmentsPerCurve; j++)
+			{
+				float t = (float)j / (float)SegmentsPerCurve;
+				list.Add(CalculateBezierPoint(t, p, p2, p3, p4));
+			}
+		}
+		return list;
+	}
+
+	public List<Vector2> GetDrawingPoints2()
+	{
+		List<Vector2> list = new List<Vector2>();
+		for (int i = 0; i < curveCount; i++)
+		{
+			List<Vector2> list2 = FindDrawingPoints(i);
+			if (i != 0)
+			{
+				list2.RemoveAt(0);
+			}
+			list.AddRange(list2);
+		}
+		return list;
+	}
+
+	private List<Vector2> FindDrawingPoints(int curveIndex)
+	{
+		//IL_000d: Unknown result type (might be due to invalid IL or missing references)
+		//IL_0012: Unknown result type (might be due to invalid IL or missing references)
+		//IL_001a: Unknown result type (might be due to invalid IL or missing references)
+		//IL_001f: Unknown result type (might be due to invalid IL or missing references)
+		//IL_0021: Unknown result type (might be due to invalid IL or missing references)
+		//IL_0028: Unknown result type (might be due to invalid IL or missing references)
+		List<Vector2> list = new List<Vector2>();
+		Vector2 item = CalculateBezierPoint(curveIndex, 0f);
+		Vector2 item2 = CalculateBezierPoint(curveIndex, 1f);
+		list.Add(item);
+		list.Add(item2);
+		FindDrawingPoints(curveIndex, 0f, 1f, list, 1);
+		return list;
+	}
+
+	private int FindDrawingPoints(int curveIndex, float t0, float t1, List<Vector2> pointList, int insertionIndex)
+	{
+		//IL_0003: Unknown result type (might be due to invalid IL or missing references)
+		//IL_0008: Unknown result type (might be due to invalid IL or missing references)
+		//IL_000c: Unknown result type (might be due to invalid IL or missing references)
+		//IL_0011: Unknown result type (might be due to invalid IL or missing references)
+		//IL_0012: Unknown result type (might be due to invalid IL or missing references)
+		//IL_0013: Unknown result type (might be due to invalid IL or missing references)
+		//IL_0014: Unknown result type (might be due to invalid IL or missing references)
+		//IL_0019: Unknown result type (might be due to invalid IL or missing references)
+		//IL_0039: Unknown result type (might be due to invalid IL or missing references)
+		//IL_003e: Unknown result type (might be due to invalid IL or missing references)
+		//IL_003f: Unknown result type (might be due to invalid IL or missing references)
+		//IL_0040: Unknown result type (might be due to invalid IL or missing references)
+		//IL_0041: Unknown result type (might be due to invalid IL or missing references)
+		//IL_0046: Unknown result type (might be due to invalid IL or missing references)
+		//IL_004a: Unknown result type (might be due to invalid IL or missing references)
+		//IL_004f: Unknown result type (might be due to invalid IL or missing references)
+		//IL_0050: Unknown result type (might be due to invalid IL or missing references)
+		//IL_0051: Unknown result type (might be due to invalid IL or missing references)
+		//IL_0056: Unknown result type (might be due to invalid IL or missing references)
+		//IL_005a: Unknown result type (might be due to invalid IL or missing references)
+		//IL_005f: Unknown result type (might be due to invalid IL or missing references)
+		//IL_0061: Unknown result type (might be due to invalid IL or missing references)
+		//IL_009f: Unknown result type (might be due to invalid IL or missing references)
+		Vector2 val = CalculateBezierPoint(curveIndex, t0);
+		Vector2 val2 = CalculateBezierPoint(curveIndex, t1);
+		Vector2 val3 = val - val2;
+		if (((Vector2)(ref val3)).sqrMagnitude < MINIMUM_SQR_DISTANCE)
+		{
+			return 0;
+		}
+		float num = (t0 + t1) / 2f;
+		Vector2 val4 = CalculateBezierPoint(curveIndex, num);
+		val3 = val - val4;
+		Vector2 normalized = ((Vector2)(ref val3)).normalized;
+		val3 = val2 - val4;
+		Vector2 normalized2 = ((Vector2)(ref val3)).normalized;
+		if (Vector2.Dot(normalized, normalized2) > DIVISION_THRESHOLD || Mathf.Abs(num - 0.5f) < 0.0001f)
+		{
+			int num2 = 0;
+			num2 += FindDrawingPoints(curveIndex, t0, num, pointList, insertionIndex);
+			pointList.Insert(insertionIndex + num2, val4);
+			num2++;
+			return num2 + FindDrawingPoints(curveIndex, num, t1, pointList, insertionIndex + num2);
+		}
+		return 0;
+	}
+
+	private Vector2 CalculateBezierPoint(float t, Vector2 p0, Vector2 p1, Vector2 p2, Vector2 p3)
+	{
+		//IL_0017: Unknown result type (might be due to invalid IL or missing references)
+		//IL_0018: Unknown result type (might be due to invalid IL or missing references)
+		//IL_0026: Unknown result type (might be due to invalid IL or missing references)
+		//IL_0027: Unknown result type (might be due to invalid IL or missing references)
+		//IL_002c: Unknown result type (might be due to invalid IL or missing references)
+		//IL_003a: Unknown result type (might be due to invalid IL or missing references)
+		//IL_003c: Unknown result type (might be due to invalid IL or missing references)
+		//IL_0041: Unknown result type (might be due to invalid IL or missing references)
+		//IL_0047: Unknown result type (might be due to invalid IL or missing references)
+		//IL_0049: Unknown result type (might be due to invalid IL or missing references)
+		//IL_004e: Unknown result type (might be due to invalid IL or missing references)
+		float num = 1f - t;
+		float num2 = t * t;
+		float num3 = num * num;
+		float num4 = num3 * num;
+		float num5 = num2 * t;
+		return num4 * p0 + 3f * num3 * t * p1 + 3f * num * num2 * p2 + num5 * p3;
+	}
+}
+
+
 using System;
 using System.Collections.Generic;
 using UnityEngine;
@@ -312,8 +724,8 @@ using UnityEngine.Scripting;
 [RequireComponent(typeof(Camera))]
 [AddComponentMenu("Rendering/Post-process Layer", 1000)]
 [ImageEffectAllowedInSceneView]
-[DisallowMultipleComponent]
 [ExecuteAlways]
+[DisallowMultipleComponent]
 public class PostProcessLayer : MonoBehaviour
 {
 	private enum ScalingMode
@@ -374,8 +786,8 @@ public class PostProcessLayer : MonoBehaviour
 	[SerializeField]
 	private bool m_ShowToolkit;
 
-	[SerializeField]
 	[Preserve]
+	[SerializeField]
 	private bool m_ShowCustomSorter;
 
 	public bool breakBeforeColorGrading;
@@ -2022,8 +2434,8 @@ public sealed class AmbientOcclusion : PostProcessEffectSettings
 		value = -12f
 	};
 
-	[Tooltip("This modifies the thickness of occluders. It increases the size of dark areas and also introduces a dark halo around objects.")]
 	[Range(1f, 10f)]
+	[Tooltip("This modifies the thickness of occluders. It increases the size of dark areas and also introduces a dark halo around objects.")]
 	public FloatParameter thicknessModifier = new FloatParameter
 	{
 		value = 1f
@@ -2085,6 +2497,7 @@ internal interface IAmbientOcclusionMethod
 
 	void CompositeAmbientOnly(PostProcessRenderContext context);
 
+	[UnityEvent]
 	void Release();
 }
 
@@ -2133,6 +2546,7 @@ internal sealed class AmbientOcclusionRenderer : PostProcessEffectRenderer<Ambie
 		return Get().GetCameraFlags();
 	}
 
+	[UnityEvent]
 	public override void Release()
 	{
 		IAmbientOcclusionMethod[] methods = m_Methods;
@@ -2182,9 +2596,9 @@ using UnityEngine.Rendering.PostProcessing;
 [PostProcess(typeof(AutoExposureRenderer), "Unity/Auto Exposure", true)]
 public sealed class AutoExposure : PostProcessEffectSettings
 {
-	[UnityEngine.Rendering.PostProcessing.MinMax(1f, 99f)]
 	[DisplayName("Filtering (%)")]
 	[Tooltip("Filters the bright and dark parts of the histogram when computing the average luminance. This is to avoid very dark pixels and very bright pixels from contributing to the auto exposure. Unit is in percent.")]
+	[UnityEngine.Rendering.PostProcessing.MinMax(1f, 99f)]
 	public Vector2Parameter filtering = new Vector2Parameter
 	{
 		value = new Vector2(50f, 95f)
@@ -2198,9 +2612,9 @@ public sealed class AutoExposure : PostProcessEffectSettings
 		value = 0f
 	};
 
-	[Tooltip("Maximum average luminance to consider for auto exposure. Unit is EV.")]
 	[Range(-9f, 9f)]
 	[DisplayName("Maximum (EV)")]
+	[Tooltip("Maximum average luminance to consider for auto exposure. Unit is EV.")]
 	public FloatParameter maxLuminance = new FloatParameter
 	{
 		value = 0f
@@ -2214,22 +2628,22 @@ public sealed class AutoExposure : PostProcessEffectSettings
 		value = 1f
 	};
 
-	[Tooltip("Use \"Progressive\" if you want auto exposure to be animated. Use \"Fixed\" otherwise.")]
 	[DisplayName("Type")]
+	[Tooltip("Use \"Progressive\" if you want auto exposure to be animated. Use \"Fixed\" otherwise.")]
 	public EyeAdaptationParameter eyeAdaptation = new EyeAdaptationParameter
 	{
 		value = EyeAdaptation.Progressive
 	};
 
-	[Tooltip("Adaptation speed from a dark to a light environment.")]
 	[Min(0f)]
+	[Tooltip("Adaptation speed from a dark to a light environment.")]
 	public FloatParameter speedUp = new FloatParameter
 	{
 		value = 2f
 	};
 
-	[Tooltip("Adaptation speed from a light to a dark environment.")]
 	[Min(0f)]
+	[Tooltip("Adaptation speed from a light to a dark environment.")]
 	public FloatParameter speedDown = new FloatParameter
 	{
 		value = 1f
@@ -2366,8 +2780,8 @@ using UnityEngine.Serialization;
 [PostProcess(typeof(BloomRenderer), "Unity/Bloom", true)]
 public sealed class Bloom : PostProcessEffectSettings
 {
-	[Tooltip("Strength of the bloom filter. Values higher than 1 will make bloom contribute more energy to the final render.")]
 	[Min(0f)]
+	[Tooltip("Strength of the bloom filter. Values higher than 1 will make bloom contribute more energy to the final render.")]
 	public FloatParameter intensity = new FloatParameter
 	{
 		value = 0f
@@ -2393,22 +2807,22 @@ public sealed class Bloom : PostProcessEffectSettings
 		value = 65472f
 	};
 
-	[Range(1f, 10f)]
 	[Tooltip("Changes the extent of veiling effects. For maximum quality, use integer values. Because this value changes the internal iteration count, You should not animating it as it may introduce issues with the perceived radius.")]
+	[Range(1f, 10f)]
 	public FloatParameter diffusion = new FloatParameter
 	{
 		value = 7f
 	};
 
-	[Tooltip("Distorts the bloom to give an anamorphic look. Negative values distort vertically, positive values distort horizontally.")]
 	[Range(-1f, 1f)]
+	[Tooltip("Distorts the bloom to give an anamorphic look. Negative values distort vertically, positive values distort horizontally.")]
 	public FloatParameter anamorphicRatio = new FloatParameter
 	{
 		value = 0f
 	};
 
-	[Tooltip("Global tint of the bloom filter.")]
 	[ColorUsage(false, true)]
+	[Tooltip("Global tint of the bloom filter.")]
 	public ColorParameter color = new ColorParameter
 	{
 		value = Color.white
@@ -2428,9 +2842,9 @@ public sealed class Bloom : PostProcessEffectSettings
 		value = null
 	};
 
-	[DisplayName("Intensity")]
 	[Min(0f)]
 	[Tooltip("The intensity of the lens dirtiness.")]
+	[DisplayName("Intensity")]
 	public FloatParameter dirtIntensity = new FloatParameter
 	{
 		value = 0f
@@ -2829,24 +3243,24 @@ public sealed class ColorGrading : PostProcessEffectSettings
 		value = null
 	};
 
-	[Tooltip("Select a tonemapping algorithm to use at the end of the color grading process.")]
 	[DisplayName("Mode")]
+	[Tooltip("Select a tonemapping algorithm to use at the end of the color grading process.")]
 	public TonemapperParameter tonemapper = new TonemapperParameter
 	{
 		value = Tonemapper.None
 	};
 
+	[DisplayName("Toe Strength")]
 	[Range(0f, 1f)]
 	[Tooltip("Affects the transition between the toe and the mid section of the curve. A value of 0 means no toe, a value of 1 means a very hard transition.")]
-	[DisplayName("Toe Strength")]
 	public FloatParameter toneCurveToeStrength = new FloatParameter
 	{
 		value = 0f
 	};
 
-	[DisplayName("Toe Length")]
-	[Range(0f, 1f)]
 	[Tooltip("Affects how much of the dynamic range is in the toe. With a small value, the toe will be very short and quickly transition into the linear section, with a larger value, the toe will be longer.")]
+	[Range(0f, 1f)]
+	[DisplayName("Toe Length")]
 	public FloatParameter toneCurveToeLength = new FloatParameter
 	{
 		value = 0.5f
@@ -2869,16 +3283,16 @@ public sealed class ColorGrading : PostProcessEffectSettings
 	};
 
 	[Range(0f, 1f)]
-	[DisplayName("Shoulder Angle")]
 	[Tooltip("Affects how much overshoot to add to the shoulder.")]
+	[DisplayName("Shoulder Angle")]
 	public FloatParameter toneCurveShoulderAngle = new FloatParameter
 	{
 		value = 0f
 	};
 
 	[Tooltip("Applies a gamma function to the curve.")]
-	[DisplayName("Gamma")]
 	[Min(0.001f)]
+	[DisplayName("Gamma")]
 	public FloatParameter toneCurveGamma = new FloatParameter
 	{
 		value = 1f
@@ -2900,56 +3314,56 @@ public sealed class ColorGrading : PostProcessEffectSettings
 		value = 1f
 	};
 
-	[Range(-100f, 100f)]
 	[Tooltip("Sets the white balance to a custom color temperature.")]
 	[DisplayName("Temperature")]
+	[Range(-100f, 100f)]
 	public FloatParameter temperature = new FloatParameter
 	{
 		value = 0f
 	};
 
+	[DisplayName("Tint")]
 	[Tooltip("Sets the white balance to compensate for a green or magenta tint.")]
 	[Range(-100f, 100f)]
-	[DisplayName("Tint")]
 	public FloatParameter tint = new FloatParameter
 	{
 		value = 0f
 	};
 
-	[ColorUsage(false, true)]
-	[DisplayName("Color Filter")]
 	[Tooltip("Tint the render by multiplying a color.")]
+	[DisplayName("Color Filter")]
+	[ColorUsage(false, true)]
 	public ColorParameter colorFilter = new ColorParameter
 	{
 		value = Color.white
 	};
 
-	[Range(-180f, 180f)]
 	[Tooltip("Shift the hue of all colors.")]
+	[Range(-180f, 180f)]
 	[DisplayName("Hue Shift")]
 	public FloatParameter hueShift = new FloatParameter
 	{
 		value = 0f
 	};
 
-	[Tooltip("Pushes the intensity of all colors.")]
 	[DisplayName("Saturation")]
 	[Range(-100f, 100f)]
+	[Tooltip("Pushes the intensity of all colors.")]
 	public FloatParameter saturation = new FloatParameter
 	{
 		value = 0f
 	};
 
 	[DisplayName("Brightness")]
-	[Tooltip("Makes the image brighter or darker.")]
 	[Range(-100f, 100f)]
+	[Tooltip("Makes the image brighter or darker.")]
 	public FloatParameter brightness = new FloatParameter
 	{
 		value = 0f
 	};
 
-	[Tooltip("Adjusts the overall exposure of the scene in EV units. This is applied after the HDR effect and right before tonemapping so it won't affect previous effects in the chain.")]
 	[DisplayName("Post-exposure (EV)")]
+	[Tooltip("Adjusts the overall exposure of the scene in EV units. This is applied after the HDR effect and right before tonemapping so it won't affect previous effects in the chain.")]
 	public FloatParameter postExposure = new FloatParameter
 	{
 		value = 0f
@@ -2970,48 +3384,48 @@ public sealed class ColorGrading : PostProcessEffectSettings
 		value = MaskingMode.None
 	};
 
-	[Range(0f, 10f)]
 	[DisplayName("Intensity")]
 	[Tooltip("Mask intensity.")]
+	[Range(0f, 10f)]
 	public FloatParameter maskIntensity = new FloatParameter
 	{
 		value = 1f
 	};
 
-	[DisplayName("Red")]
 	[Range(-200f, 200f)]
+	[DisplayName("Red")]
 	[Tooltip("Modify influence of the red channel in the overall mix.")]
 	public FloatParameter mixerRedOutRedIn = new FloatParameter
 	{
 		value = 100f
 	};
 
-	[DisplayName("Green")]
-	[Tooltip("Modify influence of the green channel in the overall mix.")]
 	[Range(-200f, 200f)]
+	[Tooltip("Modify influence of the green channel in the overall mix.")]
+	[DisplayName("Green")]
 	public FloatParameter mixerRedOutGreenIn = new FloatParameter
 	{
 		value = 0f
 	};
 
-	[Range(-200f, 200f)]
-	[Tooltip("Modify influence of the blue channel in the overall mix.")]
 	[DisplayName("Blue")]
+	[Tooltip("Modify influence of the blue channel in the overall mix.")]
+	[Range(-200f, 200f)]
 	public FloatParameter mixerRedOutBlueIn = new FloatParameter
 	{
 		value = 0f
 	};
 
-	[DisplayName("Red")]
 	[Tooltip("Modify influence of the red channel in the overall mix.")]
 	[Range(-200f, 200f)]
+	[DisplayName("Red")]
 	public FloatParameter mixerGreenOutRedIn = new FloatParameter
 	{
 		value = 0f
 	};
 
-	[DisplayName("Green")]
 	[Range(-200f, 200f)]
+	[DisplayName("Green")]
 	[Tooltip("Modify influence of the green channel in the overall mix.")]
 	public FloatParameter mixerGreenOutGreenIn = new FloatParameter
 	{
@@ -3019,8 +3433,8 @@ public sealed class ColorGrading : PostProcessEffectSettings
 	};
 
 	[DisplayName("Blue")]
-	[Range(-200f, 200f)]
 	[Tooltip("Modify influence of the blue channel in the overall mix.")]
+	[Range(-200f, 200f)]
 	public FloatParameter mixerGreenOutBlueIn = new FloatParameter
 	{
 		value = 0f
@@ -3034,41 +3448,41 @@ public sealed class ColorGrading : PostProcessEffectSettings
 		value = 0f
 	};
 
+	[DisplayName("Green")]
 	[Tooltip("Modify influence of the green channel in the overall mix.")]
 	[Range(-200f, 200f)]
-	[DisplayName("Green")]
 	public FloatParameter mixerBlueOutGreenIn = new FloatParameter
 	{
 		value = 0f
 	};
 
 	[DisplayName("Blue")]
-	[Tooltip("Modify influence of the blue channel in the overall mix.")]
 	[Range(-200f, 200f)]
+	[Tooltip("Modify influence of the blue channel in the overall mix.")]
 	public FloatParameter mixerBlueOutBlueIn = new FloatParameter
 	{
 		value = 100f
 	};
 
-	[Tooltip("Controls the darkest portions of the render.")]
 	[DisplayName("Lift")]
 	[Trackball(TrackballAttribute.Mode.Lift)]
+	[Tooltip("Controls the darkest portions of the render.")]
 	public Vector4Parameter lift = new Vector4Parameter
 	{
 		value = new Vector4(1f, 1f, 1f, 0f)
 	};
 
-	[DisplayName("Gamma")]
 	[Tooltip("Power function that controls mid-range tones.")]
 	[Trackball(TrackballAttribute.Mode.Gamma)]
+	[DisplayName("Gamma")]
 	public Vector4Parameter gamma = new Vector4Parameter
 	{
 		value = new Vector4(1f, 1f, 1f, 0f)
 	};
 
-	[Trackball(TrackballAttribute.Mode.Gain)]
 	[DisplayName("Gain")]
 	[Tooltip("Controls the lightest portions of the render.")]
+	[Trackball(TrackballAttribute.Mode.Gain)]
 	public Vector4Parameter gain = new Vector4Parameter
 	{
 		value = new Vector4(1f, 1f, 1f, 0f)
@@ -3772,8 +4186,8 @@ public sealed class DepthOfField : PostProcessEffectSettings
 		value = 50f
 	};
 
-	[DisplayName("Max Blur Size")]
 	[Tooltip("Convolution kernel size of the bokeh filter, which determines the maximum radius of bokeh. It also affects performances (the larger the kernel is, the longer the GPU time is required).")]
+	[DisplayName("Max Blur Size")]
 	public KernelSizeParameter kernelSize = new KernelSizeParameter
 	{
 		value = KernelSize.Medium
@@ -4131,9 +4545,9 @@ public sealed class Grain : PostProcessEffectSettings
 		value = 1f
 	};
 
-	[Tooltip("Controls the noise response curve based on scene luminance. Lower values mean less noise in dark areas.")]
-	[Range(0f, 1f)]
 	[DisplayName("Luminance Contribution")]
+	[Range(0f, 1f)]
+	[Tooltip("Controls the noise response curve based on scene luminance. Lower values mean less noise in dark areas.")]
 	public FloatParameter lumContrib = new FloatParameter
 	{
 		value = 0.8f
@@ -4239,16 +4653,16 @@ using UnityEngine.Rendering.PostProcessing;
 [PostProcess(typeof(LensDistortionRenderer), "Unity/Lens Distortion", true)]
 public sealed class LensDistortion : PostProcessEffectSettings
 {
-	[Range(-100f, 100f)]
 	[Tooltip("Total distortion amount.")]
+	[Range(-100f, 100f)]
 	public FloatParameter intensity = new FloatParameter
 	{
 		value = 0f
 	};
 
-	[Range(0f, 1f)]
-	[DisplayName("X Multiplier")]
 	[Tooltip("Intensity multiplier on the x-axis. Set it to 0 to disable distortion on this axis.")]
+	[DisplayName("X Multiplier")]
+	[Range(0f, 1f)]
 	public FloatParameter intensityX = new FloatParameter
 	{
 		value = 1f
@@ -4262,23 +4676,23 @@ public sealed class LensDistortion : PostProcessEffectSettings
 		value = 1f
 	};
 
-	[Tooltip("Distortion center point (x-axis).")]
-	[Range(-1f, 1f)]
 	[Space]
+	[Range(-1f, 1f)]
+	[Tooltip("Distortion center point (x-axis).")]
 	public FloatParameter centerX = new FloatParameter
 	{
 		value = 0f
 	};
 
-	[Tooltip("Distortion center point (y-axis).")]
 	[Range(-1f, 1f)]
+	[Tooltip("Distortion center point (y-axis).")]
 	public FloatParameter centerY = new FloatParameter
 	{
 		value = 0f
 	};
 
-	[Space]
 	[Range(0.01f, 5f)]
+	[Space]
 	[Tooltip("Global screen scaling.")]
 	public FloatParameter scale = new FloatParameter
 	{
@@ -4331,8 +4745,8 @@ using UnityEngine.Rendering.PostProcessing;
 [PostProcess(typeof(MotionBlurRenderer), "Unity/Motion Blur", false)]
 public sealed class MotionBlur : PostProcessEffectSettings
 {
-	[Tooltip("The angle of rotary shutter. Larger values give longer exposure.")]
 	[Range(0f, 360f)]
+	[Tooltip("The angle of rotary shutter. Larger values give longer exposure.")]
 	public FloatParameter shutterAngle = new FloatParameter
 	{
 		value = 270f
@@ -5005,6 +5419,7 @@ internal sealed class MultiScaleVO : IAmbientOcclusionMethod
 		command.EndSample("Ambient Occlusion Composite");
 	}
 
+	[UnityEvent]
 	public void Release()
 	{
 		RuntimeUtilities.Destroy((Object)(object)m_AmbientOnlyAO);
@@ -5193,6 +5608,7 @@ internal sealed class ScalableAO : IAmbientOcclusionMethod
 		command.EndSample("Ambient Occlusion Composite");
 	}
 
+	[UnityEvent]
 	public void Release()
 	{
 		RuntimeUtilities.Destroy((Object)(object)m_Result);
@@ -5267,8 +5683,8 @@ public sealed class ScreenSpaceReflections : PostProcessEffectSettings
 		value = ScreenSpaceReflectionPreset.Medium
 	};
 
-	[Range(0f, 256f)]
 	[Tooltip("Maximum number of steps in the raymarching pass. Higher values mean more reflections.")]
+	[Range(0f, 256f)]
 	public IntParameter maximumIterationCount = new IntParameter
 	{
 		value = 16
@@ -5280,8 +5696,8 @@ public sealed class ScreenSpaceReflections : PostProcessEffectSettings
 		value = ScreenSpaceReflectionResolution.Downsampled
 	};
 
-	[Range(1f, 64f)]
 	[Tooltip("Ray thickness. Lower values are more expensive but allow the effect to detect smaller details.")]
+	[Range(1f, 64f)]
 	public FloatParameter thickness = new FloatParameter
 	{
 		value = 8f
@@ -5697,20 +6113,20 @@ public sealed class TemporalAntialiasing
 		SolverNoDilate
 	}
 
-	[Tooltip("The diameter (in texels) inside which jitter samples are spread. Smaller values result in crisper but more aliased output, while larger values result in more stable, but blurrier, output.")]
 	[Range(0.1f, 1f)]
+	[Tooltip("The diameter (in texels) inside which jitter samples are spread. Smaller values result in crisper but more aliased output, while larger values result in more stable, but blurrier, output.")]
 	public float jitterSpread = 0.75f;
 
-	[Tooltip("Controls the amount of sharpening applied to the color buffer. High values may introduce dark-border artifacts.")]
 	[Range(0f, 3f)]
+	[Tooltip("Controls the amount of sharpening applied to the color buffer. High values may introduce dark-border artifacts.")]
 	public float sharpness = 0.25f;
 
-	[Tooltip("The blend coefficient for a stationary fragment. Controls the percentage of history sample blended into the final color.")]
 	[Range(0f, 0.99f)]
+	[Tooltip("The blend coefficient for a stationary fragment. Controls the percentage of history sample blended into the final color.")]
 	public float stationaryBlending = 0.95f;
 
-	[Range(0f, 0.99f)]
 	[Tooltip("The blend coefficient for a fragment with significant motion. Controls the percentage of history sample blended into the final color.")]
+	[Range(0f, 0.99f)]
 	public float motionBlending = 0.85f;
 
 	public Func<Camera, Vector2, Matrix4x4> jitteredMatrixFunc;
@@ -5990,8 +6406,8 @@ public sealed class Vignette : PostProcessEffectSettings
 		value = 0f
 	};
 
-	[Range(0.01f, 1f)]
 	[Tooltip("Smoothness of the vignette borders.")]
+	[Range(0.01f, 1f)]
 	public FloatParameter smoothness = new FloatParameter
 	{
 		value = 0.2f
@@ -6016,8 +6432,8 @@ public sealed class Vignette : PostProcessEffectSettings
 		value = null
 	};
 
-	[Tooltip("Mask opacity.")]
 	[Range(0f, 1f)]
+	[Tooltip("Mask opacity.")]
 	public FloatParameter opacity = new FloatParameter
 	{
 		value = 1f
@@ -8231,8 +8647,8 @@ public sealed class SMAALuts
 using UnityEngine;
 using UnityEngine.Rendering.PostProcessing;
 
-[ExecuteAlways]
 [AddComponentMenu("Rendering/Post-process Volume", 1001)]
+[ExecuteAlways]
 public sealed class PostProcessVolume : MonoBehaviour
 {
 	public PostProcessProfile sharedProfile;
@@ -9476,7 +9892,7 @@ public static class RuntimeUtilities
 		}
 	}
 
-	public static bool scriptableRenderPipelineActive => (Object)(object)GraphicsSettings.renderPipelineAsset != (Object)null;
+	public static bool scriptableRenderPipelineActive => (Object)(object)GraphicsSettings.defaultRenderPipeline != (Object)null;
 
 	public static bool supportsDeferredShading
 	{
@@ -10362,6 +10778,8 @@ internal static class ShaderIDs
 	internal static readonly int UVScaleOffset = Shader.PropertyToID("_UVScaleOffset");
 
 	internal static readonly int PosScaleOffset = Shader.PropertyToID("_PosScaleOffset");
+
+	internal static readonly int AntiAliasing = Shader.PropertyToID("_AntiAliasing");
 }
 
 
@@ -11035,53 +11453,41 @@ internal struct TraceAllJob : IJobFor
 	[MethodImpl(MethodImplOptions.AggressiveInlining)]
 	private static bool Trace(in HitboxSystem.HitboxShape.JobStruct shape, Ray ray, out RaycastHit hit, float forgivness = 0f, float maxDistance = float.PositiveInfinity)
 	{
-		//IL_0003: Unknown result type (might be due to invalid IL or missing references)
-		//IL_0008: Unknown result type (might be due to invalid IL or missing references)
-		//IL_000d: Unknown result type (might be due to invalid IL or missing references)
-		//IL_0012: Unknown result type (might be due to invalid IL or missing references)
-		//IL_001f: Unknown result type (might be due to invalid IL or missing references)
-		//IL_0024: Unknown result type (might be due to invalid IL or missing references)
-		//IL_0029: Unknown result type (might be due to invalid IL or missing references)
-		//IL_002e: Unknown result type (might be due to invalid IL or missing references)
-		//IL_0064: Unknown result type (might be due to invalid IL or missing references)
-		//IL_008c: Unknown result type (might be due to invalid IL or missing references)
+		//IL_000a: Unknown result type (might be due to invalid IL or missing references)
+		//IL_000f: Unknown result type (might be due to invalid IL or missing references)
+		//IL_0023: Unknown result type (might be due to invalid IL or missing references)
+		//IL_0028: Unknown result type (might be due to invalid IL or missing references)
+		//IL_005e: Unknown result type (might be due to invalid IL or missing references)
+		//IL_0086: Unknown result type (might be due to invalid IL or missing references)
+		//IL_003c: Unknown result type (might be due to invalid IL or missing references)
 		//IL_0042: Unknown result type (might be due to invalid IL or missing references)
-		//IL_0048: Unknown result type (might be due to invalid IL or missing references)
-		//IL_0054: Unknown result type (might be due to invalid IL or missing references)
+		//IL_004e: Unknown result type (might be due to invalid IL or missing references)
 		//IL_009c: Unknown result type (might be due to invalid IL or missing references)
 		//IL_00a1: Unknown result type (might be due to invalid IL or missing references)
-		//IL_00a5: Unknown result type (might be due to invalid IL or missing references)
-		//IL_00aa: Unknown result type (might be due to invalid IL or missing references)
-		//IL_00b6: Unknown result type (might be due to invalid IL or missing references)
-		//IL_00bb: Unknown result type (might be due to invalid IL or missing references)
-		//IL_00bf: Unknown result type (might be due to invalid IL or missing references)
-		//IL_00c4: Unknown result type (might be due to invalid IL or missing references)
-		Matrix4x4 val = shape.inverseTransform;
-		((Ray)(ref ray)).origin = ((Matrix4x4)(ref val)).MultiplyPoint3x4(((Ray)(ref ray)).origin);
-		val = shape.inverseTransform;
-		((Ray)(ref ray)).direction = ((Matrix4x4)(ref val)).MultiplyVector(((Ray)(ref ray)).direction);
+		//IL_00b3: Unknown result type (might be due to invalid IL or missing references)
+		//IL_00b8: Unknown result type (might be due to invalid IL or missing references)
+		((Ray)(ref ray)).origin = ((Matrix4x4)(ref shape.inverseTransform)).MultiplyPoint3x4(((Ray)(ref ray)).origin);
+		((Ray)(ref ray)).direction = ((Matrix4x4)(ref shape.inverseTransform)).MultiplyVector(((Ray)(ref ray)).direction);
 		if (shape.type == HitboxDefinition.Type.BOX)
 		{
-			AABB val2 = default(AABB);
-			((AABB)(ref val2))..ctor(Vector3.zero, shape.size);
-			if (!((AABB)(ref val2)).Trace(ray, ref hit, forgivness, maxDistance))
+			AABB val = default(AABB);
+			((AABB)(ref val))..ctor(Vector3.zero, shape.size);
+			if (!((AABB)(ref val)).Trace(ray, ref hit, forgivness, maxDistance))
 			{
 				return false;
 			}
 		}
 		else
 		{
-			Capsule val3 = default(Capsule);
-			((Capsule)(ref val3))..ctor(Vector3.zero, shape.size.x, shape.size.y * 0.5f);
-			if (!((Capsule)(ref val3)).Trace(ray, ref hit, forgivness, maxDistance))
+			Capsule val2 = default(Capsule);
+			((Capsule)(ref val2))..ctor(Vector3.zero, shape.size.x, shape.size.y * 0.5f);
+			if (!((Capsule)(ref val2)).Trace(ray, ref hit, forgivness, maxDistance))
 			{
 				return false;
 			}
 		}
-		val = shape.transform;
-		((RaycastHit)(ref hit)).point = ((Matrix4x4)(ref val)).MultiplyPoint3x4(((RaycastHit)(ref hit)).point);
-		val = shape.transform;
-		((RaycastHit)(ref hit)).normal = ((Matrix4x4)(ref val)).MultiplyVector(((RaycastHit)(ref hit)).normal);
+		((RaycastHit)(ref hit)).point = ((Matrix4x4)(ref shape.transform)).MultiplyPoint3x4(((RaycastHit)(ref hit)).point);
+		((RaycastHit)(ref hit)).normal = ((Matrix4x4)(ref shape.transform)).MultiplyVector(((RaycastHit)(ref hit)).normal);
 		return true;
 	}
 }
@@ -11628,6 +12034,8 @@ public struct RaycastHitComparer : IComparer<RaycastHit>
 
 using System;
 using System.Runtime.CompilerServices;
+using System.Runtime.InteropServices;
+using AOT;
 using GamePhysicsJobs;
 using Unity.Burst;
 using Unity.Collections;
@@ -11636,20 +12044,21 @@ using UnityEngine;
 [BurstCompile]
 internal static class Util
 {
-	internal delegate int FindFreeSlot_00007EF7$PostfixBurstDelegate(int rayInd, in NativeArray<RaycastHit> hits, int maxHitsPerRay, out int endInd);
+	[UnmanagedFunctionPointer(CallingConvention.Cdecl)]
+	internal delegate int FindFreeSlot_00008250$PostfixBurstDelegate(int rayInd, in NativeArray<RaycastHit> hits, int maxHitsPerRay, out int endInd);
 
-	internal static class FindFreeSlot_00007EF7$BurstDirectCall
+	internal static class FindFreeSlot_00008250$BurstDirectCall
 	{
 		private static IntPtr Pointer;
 
-		private static IntPtr DeferredCompilation;
-
 		[BurstDiscard]
-		private unsafe static void GetFunctionPointerDiscard(ref IntPtr P_0)
+		private static void GetFunctionPointerDiscard(ref IntPtr P_0)
 		{
+			//IL_0016: Unknown result type (might be due to invalid IL or missing references)
+			//IL_001b: Unknown result type (might be due to invalid IL or missing references)
 			if (Pointer == (IntPtr)0)
 			{
-				Pointer = (nint)BurstCompiler.GetILPPMethodFunctionPointer2(DeferredCompilation, (RuntimeMethodHandle)/*OpCode not supported: LdMemberToken*/, typeof(FindFreeSlot_00007EF7$PostfixBurstDelegate).TypeHandle);
+				Pointer = BurstCompiler.CompileFunctionPointer<FindFreeSlot_00008250$PostfixBurstDelegate>((FindFreeSlot_00008250$PostfixBurstDelegate)FindFreeSlot).Value;
 			}
 			P_0 = Pointer;
 		}
@@ -11659,20 +12068,6 @@ internal static class Util
 			nint result = 0;
 			GetFunctionPointerDiscard(ref result);
 			return result;
-		}
-
-		public static void Constructor()
-		{
-			DeferredCompilation = BurstCompiler.CompileILPPMethod2((RuntimeMethodHandle)/*OpCode not supported: LdMemberToken*/);
-		}
-
-		public static void Initialize()
-		{
-		}
-
-		static FindFreeSlot_00007EF7$BurstDirectCall()
-		{
-			Constructor();
 		}
 
 		public unsafe static int Invoke(int rayInd, in NativeArray<RaycastHit> hits, int maxHitsPerRay, out int endInd)
@@ -11689,20 +12084,21 @@ internal static class Util
 		}
 	}
 
-	internal delegate int FindFreeSlot_00007EF8$PostfixBurstDelegate(int rayInd, in ReadOnly<RaycastHit> hits, int maxHitsPerRay, out int endInd);
+	[UnmanagedFunctionPointer(CallingConvention.Cdecl)]
+	internal delegate int FindFreeSlot_00008251$PostfixBurstDelegate(int rayInd, in ReadOnly<RaycastHit> hits, int maxHitsPerRay, out int endInd);
 
-	internal static class FindFreeSlot_00007EF8$BurstDirectCall
+	internal static class FindFreeSlot_00008251$BurstDirectCall
 	{
 		private static IntPtr Pointer;
 
-		private static IntPtr DeferredCompilation;
-
 		[BurstDiscard]
-		private unsafe static void GetFunctionPointerDiscard(ref IntPtr P_0)
+		private static void GetFunctionPointerDiscard(ref IntPtr P_0)
 		{
+			//IL_0016: Unknown result type (might be due to invalid IL or missing references)
+			//IL_001b: Unknown result type (might be due to invalid IL or missing references)
 			if (Pointer == (IntPtr)0)
 			{
-				Pointer = (nint)BurstCompiler.GetILPPMethodFunctionPointer2(DeferredCompilation, (RuntimeMethodHandle)/*OpCode not supported: LdMemberToken*/, typeof(FindFreeSlot_00007EF8$PostfixBurstDelegate).TypeHandle);
+				Pointer = BurstCompiler.CompileFunctionPointer<FindFreeSlot_00008251$PostfixBurstDelegate>((FindFreeSlot_00008251$PostfixBurstDelegate)Util.FindFreeSlot).Value;
 			}
 			P_0 = Pointer;
 		}
@@ -11712,20 +12108,6 @@ internal static class Util
 			nint result = 0;
 			GetFunctionPointerDiscard(ref result);
 			return result;
-		}
-
-		public static void Constructor()
-		{
-			DeferredCompilation = BurstCompiler.CompileILPPMethod2((RuntimeMethodHandle)/*OpCode not supported: LdMemberToken*/);
-		}
-
-		public static void Initialize()
-		{
-		}
-
-		static FindFreeSlot_00007EF8$BurstDirectCall()
-		{
-			Constructor();
 		}
 
 		public unsafe static int Invoke(int rayInd, in ReadOnly<RaycastHit> hits, int maxHitsPerRay, out int endInd)
@@ -11742,16 +12124,18 @@ internal static class Util
 		}
 	}
 
+	[MonoPInvokeCallback(typeof(GamePhysicsJobs.FindFreeSlot_00008250$PostfixBurstDelegate))]
 	[BurstCompile]
 	public static int FindFreeSlot(int rayInd, in NativeArray<RaycastHit> hits, int maxHitsPerRay, out int endInd)
 	{
-		return FindFreeSlot_00007EF7$BurstDirectCall.Invoke(rayInd, in hits, maxHitsPerRay, out endInd);
+		return FindFreeSlot_00008250$BurstDirectCall.Invoke(rayInd, in hits, maxHitsPerRay, out endInd);
 	}
 
 	[BurstCompile]
+	[MonoPInvokeCallback(typeof(GamePhysicsJobs.FindFreeSlot_00008251$PostfixBurstDelegate))]
 	public static int FindFreeSlot(int rayInd, in ReadOnly<RaycastHit> hits, int maxHitsPerRay, out int endInd)
 	{
-		return FindFreeSlot_00007EF8$BurstDirectCall.Invoke(rayInd, in hits, maxHitsPerRay, out endInd);
+		return FindFreeSlot_00008251$BurstDirectCall.Invoke(rayInd, in hits, maxHitsPerRay, out endInd);
 	}
 
 	[MethodImpl(MethodImplOptions.AggressiveInlining)]
@@ -11796,10 +12180,12 @@ internal static class Util
 }
 
 
+using System.Runtime.InteropServices;
 using Unity.Collections;
 using UnityEngine;
 
-internal delegate int FindFreeSlot_00007EF7$PostfixBurstDelegate(int rayInd, in NativeArray<RaycastHit> hits, int maxHitsPerRay, out int endInd);
+[UnmanagedFunctionPointer(CallingConvention.Cdecl)]
+internal delegate int FindFreeSlot_00008250$PostfixBurstDelegate(int rayInd, in NativeArray<RaycastHit> hits, int maxHitsPerRay, out int endInd);
 
 
 using System;
@@ -11807,18 +12193,18 @@ using Unity.Burst;
 using Unity.Collections;
 using UnityEngine;
 
-internal static class FindFreeSlot_00007EF7$BurstDirectCall
+internal static class FindFreeSlot_00008250$BurstDirectCall
 {
 	private static IntPtr Pointer;
 
-	private static IntPtr DeferredCompilation;
-
 	[BurstDiscard]
-	private unsafe static void GetFunctionPointerDiscard(ref IntPtr P_0)
+	private static void GetFunctionPointerDiscard(ref IntPtr P_0)
 	{
+		//IL_0016: Unknown result type (might be due to invalid IL or missing references)
+		//IL_001b: Unknown result type (might be due to invalid IL or missing references)
 		if (Pointer == (IntPtr)0)
 		{
-			Pointer = (nint)BurstCompiler.GetILPPMethodFunctionPointer2(DeferredCompilation, (RuntimeMethodHandle)/*OpCode not supported: LdMemberToken*/, typeof(FindFreeSlot_00007EF7$PostfixBurstDelegate).TypeHandle);
+			Pointer = BurstCompiler.CompileFunctionPointer<FindFreeSlot_00008250$PostfixBurstDelegate>((FindFreeSlot_00008250$PostfixBurstDelegate)FindFreeSlot).Value;
 		}
 		P_0 = Pointer;
 	}
@@ -11828,20 +12214,6 @@ internal static class FindFreeSlot_00007EF7$BurstDirectCall
 		nint result = 0;
 		GetFunctionPointerDiscard(ref result);
 		return result;
-	}
-
-	public static void Constructor()
-	{
-		DeferredCompilation = BurstCompiler.CompileILPPMethod2((RuntimeMethodHandle)/*OpCode not supported: LdMemberToken*/);
-	}
-
-	public static void Initialize()
-	{
-	}
-
-	static FindFreeSlot_00007EF7$BurstDirectCall()
-	{
-		Constructor();
 	}
 
 	public unsafe static int Invoke(int rayInd, in NativeArray<RaycastHit> hits, int maxHitsPerRay, out int endInd)
@@ -11859,10 +12231,12 @@ internal static class FindFreeSlot_00007EF7$BurstDirectCall
 }
 
 
+using System.Runtime.InteropServices;
 using Unity.Collections;
 using UnityEngine;
 
-internal delegate int FindFreeSlot_00007EF8$PostfixBurstDelegate(int rayInd, in ReadOnly<RaycastHit> hits, int maxHitsPerRay, out int endInd);
+[UnmanagedFunctionPointer(CallingConvention.Cdecl)]
+internal delegate int FindFreeSlot_00008251$PostfixBurstDelegate(int rayInd, in ReadOnly<RaycastHit> hits, int maxHitsPerRay, out int endInd);
 
 
 using System;
@@ -11870,18 +12244,18 @@ using Unity.Burst;
 using Unity.Collections;
 using UnityEngine;
 
-internal static class FindFreeSlot_00007EF8$BurstDirectCall
+internal static class FindFreeSlot_00008251$BurstDirectCall
 {
 	private static IntPtr Pointer;
 
-	private static IntPtr DeferredCompilation;
-
 	[BurstDiscard]
-	private unsafe static void GetFunctionPointerDiscard(ref IntPtr P_0)
+	private static void GetFunctionPointerDiscard(ref IntPtr P_0)
 	{
+		//IL_0016: Unknown result type (might be due to invalid IL or missing references)
+		//IL_001b: Unknown result type (might be due to invalid IL or missing references)
 		if (Pointer == (IntPtr)0)
 		{
-			Pointer = (nint)BurstCompiler.GetILPPMethodFunctionPointer2(DeferredCompilation, (RuntimeMethodHandle)/*OpCode not supported: LdMemberToken*/, typeof(FindFreeSlot_00007EF8$PostfixBurstDelegate).TypeHandle);
+			Pointer = BurstCompiler.CompileFunctionPointer<FindFreeSlot_00008251$PostfixBurstDelegate>((FindFreeSlot_00008251$PostfixBurstDelegate)Util.FindFreeSlot).Value;
 		}
 		P_0 = Pointer;
 	}
@@ -11891,20 +12265,6 @@ internal static class FindFreeSlot_00007EF8$BurstDirectCall
 		nint result = 0;
 		GetFunctionPointerDiscard(ref result);
 		return result;
-	}
-
-	public static void Constructor()
-	{
-		DeferredCompilation = BurstCompiler.CompileILPPMethod2((RuntimeMethodHandle)/*OpCode not supported: LdMemberToken*/);
-	}
-
-	public static void Initialize()
-	{
-	}
-
-	static FindFreeSlot_00007EF8$BurstDirectCall()
-	{
-		Constructor();
 	}
 
 	public unsafe static int Invoke(int rayInd, in ReadOnly<RaycastHit> hits, int maxHitsPerRay, out int endInd)
@@ -12799,10 +13159,10 @@ public static class Output
 
 	public static void LogHandler(string log, string stacktrace, LogType type)
 	{
-		//IL_0235: Unknown result type (might be due to invalid IL or missing references)
-		//IL_0201: Unknown result type (might be due to invalid IL or missing references)
-		//IL_01e8: Unknown result type (might be due to invalid IL or missing references)
-		if ((Output.OnMessage == null && Output.OnPostMessage == null) || log.StartsWith("Kinematic body only supports Speculative Continuous collision detection") || log.StartsWith("Non-convex MeshCollider with non-kinematic Rigidbody is no longer supported") || log.StartsWith("Too many layers used to exclude objects from lighting") || log.StartsWith("Skipped frame because GfxDevice") || log.StartsWith("Your current multi-scene setup has inconsistent Lighting") || log.Contains("HandleD3DDeviceLost") || log.Contains("ResetD3DDevice") || log.Contains("dev->Reset") || log.Contains("D3Dwindow device not lost anymore") || log.Contains("D3D device reset") || log.Contains("group < 0xfff") || log.Contains("Mesh can not have more than 65000 vert") || log.Contains("Trying to add (Layout Rebuilder for)") || log.Contains("Coroutine continue failure") || log.Contains("No texture data available to upload") || log.Contains("Trying to reload asset from disk that is not") || log.Contains("Unable to find shaders used for the terrain engine.") || log.Contains("Canvas element contains more than 65535 vertices") || log.Contains("RectTransform.set_anchorMin") || log.Contains("FMOD failed to initialize the output device") || log.Contains("Cannot create FMOD::Sound") || log.Contains("invalid utf-16 sequence") || log.Contains("missing surrogate tail") || log.Contains("Failed to create agent because it is not close enough to the Nav") || log.Contains("user-provided triangle mesh descriptor is invalid") || log.Contains("Releasing render texture that is set as") || log.StartsWith("Missing shader") || log.StartsWith("ERROR: Shader") || log.StartsWith("Warning: Shader") || log.StartsWith("Shader '") || log.StartsWith("The shader Hidden") || log.StartsWith("HDR Render Texture not supported"))
+		//IL_0243: Unknown result type (might be due to invalid IL or missing references)
+		//IL_020f: Unknown result type (might be due to invalid IL or missing references)
+		//IL_01f6: Unknown result type (might be due to invalid IL or missing references)
+		if ((Output.OnMessage == null && Output.OnPostMessage == null) || log.StartsWith("Kinematic body only supports Speculative Continuous collision detection") || log.StartsWith("Non-convex MeshCollider with non-kinematic Rigidbody is no longer supported") || log.StartsWith("Too many layers used to exclude objects from lighting") || log.StartsWith("Skipped frame because GfxDevice") || log.StartsWith("Your current multi-scene setup has inconsistent Lighting") || log.Contains("HandleD3DDeviceLost") || log.Contains("ResetD3DDevice") || log.Contains("dev->Reset") || log.Contains("D3Dwindow device not lost anymore") || log.Contains("D3D device reset") || log.Contains("group < 0xfff") || log.Contains("Mesh can not have more than 65000 vert") || log.Contains("Trying to add (Layout Rebuilder for)") || log.Contains("Coroutine continue failure") || log.Contains("No texture data available to upload") || log.Contains("Trying to reload asset from disk that is not") || log.Contains("Unable to find shaders used for the terrain engine.") || log.Contains("Canvas element contains more than 65535 vertices") || log.Contains("RectTransform.set_anchorMin") || log.Contains("FMOD failed to initialize the output device") || log.Contains("Cannot create FMOD::Sound") || log.Contains("invalid utf-16 sequence") || log.Contains("missing surrogate tail") || log.Contains("Failed to create agent because it is not close enough to the Nav") || log.Contains("user-provided triangle mesh descriptor is invalid") || log.Contains("Releasing render texture that is set as") || log.Contains("AsyncResourceUpload failed.") || log.StartsWith("Missing shader") || log.StartsWith("ERROR: Shader") || log.StartsWith("Warning: Shader") || log.StartsWith("Shader '") || log.StartsWith("The shader Hidden") || log.StartsWith("HDR Render Texture not supported"))
 		{
 			return;
 		}
@@ -12895,8 +13255,7 @@ public class RCon
 		Warning,
 		Chat,
 		Report,
-		ClientPerf,
-		Subscription
+		ClientPerf
 	}
 
 	public struct Response
@@ -12916,13 +13275,6 @@ public class RCon
 		public IPAddress addr;
 
 		public float banTime;
-	}
-
-	public static class ReservedIdentifiers
-	{
-		public const int PlayerPostionsUpdate = -64001;
-
-		public const int FoundationsUpdate = -64002;
 	}
 
 	internal class RConClient
@@ -13234,8 +13586,6 @@ public class RCon
 	[ServerVar(Help = "Total number of allowed connections to RCON server, on a single IP. -1 to disable behaviour. Requires server restart after changes")]
 	public static int MaxConnectionsPerIP = 5;
 
-	private static bool _enableSubscriptions;
-
 	internal static RConListener listener = null;
 
 	public static Listener listenerNew = null;
@@ -13266,45 +13616,11 @@ public class RCon
 
 	internal static int SERVERDATA_SWITCH_UTF8 = 5;
 
-	public static bool HasSubscribers
-	{
-		get
-		{
-			if (EnableSubscriptions)
-			{
-				return listenerNew.HasSubscribers;
-			}
-			return false;
-		}
-	}
-
-	[ServerVar(Help = "If true, allow RCON connections to subscribe to server events. This could be a performance hit and should only be used if you need it.", Saved = true, ShowInAdminUI = true)]
-	public static bool EnableSubscriptions
-	{
-		get
-		{
-			return _enableSubscriptions;
-		}
-		set
-		{
-			if (_enableSubscriptions != value)
-			{
-				_enableSubscriptions = value;
-				if (value)
-				{
-					ServerSubscriptions.StartSubscribeFeed();
-				}
-				else
-				{
-					ServerSubscriptions.StopSubscribeFeed();
-				}
-			}
-		}
-	}
-
 	[ServerVar(Help = "Ban an IP address from RCON, preventing it from connecting and kick any clients from this IP, this is permanent and persistent")]
 	public static void ban_ip(Arg arg)
 	{
+		//IL_006c: Unknown result type (might be due to invalid IL or missing references)
+		//IL_004f: Unknown result type (might be due to invalid IL or missing references)
 		if (listenerNew == null)
 		{
 			arg.ReplyWith("No RCON server running");
@@ -13315,13 +13631,15 @@ public class RCon
 		}
 		else
 		{
-			arg.ReplyWith(listenerNew.BanIP(arg.Args[0]) ? ("Banned " + arg.Args[0]) : (arg.Args[0] + " is not a valid IP address or CIDR formatted network."));
+			arg.ReplyWith(listenerNew.BanIP(arg.GetString(0, "")) ? $"Banned {arg.Args[0]}" : $"{arg.Args[0]} is not a valid IP address or CIDR formatted network.");
 		}
 	}
 
 	[ServerVar(Help = "Unban an IP address from connecting to RCON, will also remove all attempt history")]
 	public static void unban_ip(Arg arg)
 	{
+		//IL_006f: Unknown result type (might be due to invalid IL or missing references)
+		//IL_0052: Unknown result type (might be due to invalid IL or missing references)
 		if (listenerNew == null)
 		{
 			arg.ReplyWith("No RCON server running");
@@ -13334,8 +13652,8 @@ public class RCon
 		}
 		try
 		{
-			bool flag = listenerNew.UnbanIP(arg.Args[0]);
-			arg.ReplyWith(flag ? ("Unbanned IP " + arg.Args[0]) : ("IP " + arg.Args[0] + " was not banned"));
+			bool flag = listenerNew.UnbanIP(arg.GetString(0, ""));
+			arg.ReplyWith(flag ? $"Unbanned IP {arg.Args[0]}" : $"IP {arg.Args[0]} was not banned");
 		}
 		catch
 		{
@@ -13433,10 +13751,10 @@ public class RCon
 	[ServerVar(Help = "Print a table of connected RCON clients. Use '--json' to return a JSON object")]
 	public static void print_rcon_clients(Arg arg)
 	{
-		//IL_0099: Unknown result type (might be due to invalid IL or missing references)
-		//IL_009e: Unknown result type (might be due to invalid IL or missing references)
-		//IL_00a9: Unknown result type (might be due to invalid IL or missing references)
-		//IL_00da: Unknown result type (might be due to invalid IL or missing references)
+		//IL_0090: Unknown result type (might be due to invalid IL or missing references)
+		//IL_0095: Unknown result type (might be due to invalid IL or missing references)
+		//IL_00a0: Unknown result type (might be due to invalid IL or missing references)
+		//IL_00d0: Unknown result type (might be due to invalid IL or missing references)
 		if (listenerNew == null)
 		{
 			arg.ReplyWith("No RCON server running");
@@ -13448,12 +13766,12 @@ public class RCon
 		try
 		{
 			val.ShouldPadColumns = !flag;
-			val.AddColumns(new string[9] { "index", "connection_id", "ip", "port", "connected_time", "inbound_messages", "outbound_messages", "broadcast_messages", "subscribed" });
+			val.AddColumns(new string[8] { "index", "connection_id", "ip", "port", "connected_time", "inbound_messages", "outbound_messages", "broadcast_messages" });
 			for (int i = 0; i < clientStats.Count; i++)
 			{
 				RconClientStats val2 = clientStats[i];
 				TimeSpan timeSpan = DateTime.UtcNow.Subtract(val2.ConnectedAt);
-				val.AddRow(new string[9]
+				val.AddRow(new string[8]
 				{
 					i.ToString(),
 					val2.ConnectionId.ToString(),
@@ -13462,8 +13780,7 @@ public class RCon
 					Math.Floor(timeSpan.TotalSeconds).ToString(),
 					val2.RecievedMessages.ToString(),
 					val2.SentMessages.ToString(),
-					val2.BroadcastedMessages.ToString(),
-					val2.IsSubscribed.ToString()
+					val2.BroadcastedMessages.ToString()
 				});
 			}
 			arg.ReplyWith(flag ? val.ToJson(true) : ((object)val).ToString());
@@ -13472,30 +13789,6 @@ public class RCon
 		{
 			((IDisposable)val)?.Dispose();
 		}
-	}
-
-	[ServerVar(Help = "Clears all subscribers from the server.")]
-	public static void clear_subscribers(Arg arg)
-	{
-		listenerNew.ClearSubscribers();
-		arg.ReplyWith("Cleared subscribers");
-	}
-
-	[ServerVar(Help = "Un/Subscribes the current RCON connection to changes in server state. This could be a performance hit and should only be used if you need it.")]
-	public static void subscribe(Arg arg)
-	{
-		if (!EnableSubscriptions)
-		{
-			arg.ReplyWith("Subscriptions are disabled. Enable them with enablesubscriptions");
-			return;
-		}
-		if (!arg.IsRcon || ((Option)(ref arg.Option)).RconConnectionId == 0)
-		{
-			arg.ReplyWith("Must be an RCON connection to subscribe to server state");
-			return;
-		}
-		bool flag = SetEventSubscriber(((Option)(ref arg.Option)).RconConnectionId);
-		arg.ReplyWith(flag ? "Subscribed" : "Unsubscribed");
 	}
 
 	public static void Initialize()
@@ -13572,19 +13865,6 @@ public class RCon
 		{
 			listener.Shutdown();
 			listener = null;
-		}
-	}
-
-	public static void SendMessageToSubscribers(string message, int identifier = -1)
-	{
-		if (listenerNew != null)
-		{
-			Response response = default(Response);
-			response.Identifier = identifier;
-			response.Message = message;
-			response.Type = LogType.Subscription;
-			string text = JsonConvert.SerializeObject((object)response, (Formatting)1);
-			listenerNew.SendMessageToSubscribers(text);
 		}
 	}
 
@@ -13730,11 +14010,6 @@ public class RCon
 			}
 		}
 	}
-
-	public static bool SetEventSubscriber(int optionRconConnectionId)
-	{
-		return listenerNew.AddOrRemoveEventListener(optionRconConnectionId);
-	}
 }
 
 
@@ -13761,8 +14036,7 @@ public enum LogType
 	Warning,
 	Chat,
 	Report,
-	ClientPerf,
-	Subscription
+	ClientPerf
 }
 
 
@@ -13789,14 +14063,6 @@ internal struct BannedAddresses
 	public IPAddress addr;
 
 	public float banTime;
-}
-
-
-public static class ReservedIdentifiers
-{
-	public const int PlayerPostionsUpdate = -64001;
-
-	public const int FoundationsUpdate = -64002;
 }
 
 
@@ -14165,6 +14431,7 @@ public class VirtualScroll : MonoBehaviour
 		((UnityEvent<Vector2>)(object)ScrollRect.onValueChanged).RemoveListener((UnityAction<Vector2>)OnScrollChanged);
 	}
 
+	[UnityEvent]
 	private void OnScrollChanged(Vector2 pos)
 	{
 		Rebuild();
@@ -14477,8 +14744,8 @@ using Facepunch.Flexbox;
 using UnityEngine;
 using UnityEngine.Serialization;
 
-[ExecuteAlways]
 [RequireComponent(typeof(RectTransform))]
+[ExecuteAlways]
 [DisallowMultipleComponent]
 public class FlexGridsElement : FlexElementBase
 {
@@ -14498,8 +14765,8 @@ public class FlexGridsElement : FlexElementBase
 	[Tooltip("Spacing to add from this elements borders to where children are laid out.")]
 	public FlexPadding Padding;
 
-	[Tooltip("Spacing to add between each child flex item.")]
 	[Min(0f)]
+	[Tooltip("Spacing to add between each child flex item.")]
 	public float Gap;
 
 	[Min(1f)]
@@ -17740,14 +18007,11 @@ public class BlackjackController : CardGameController
 			return;
 		}
 		int selectedMoveValue = 0;
-		if (AllBetsPlaced)
+		if (!((!AllBetsPlaced) ? DoBettingPhasePlayerInput(pdBlackjack, value, countAsAction, ref selectedMove, ref selectedMoveValue) : DoInRoundPlayerInput(pdBlackjack, ref selectedMove, ref selectedMoveValue)))
 		{
-			DoInRoundPlayerInput(pdBlackjack, ref selectedMove, ref selectedMoveValue);
+			return;
 		}
-		else
-		{
-			DoBettingPhasePlayerInput(pdBlackjack, value, countAsAction, ref selectedMove, ref selectedMoveValue);
-		}
+		pData.CancelTurnTimer();
 		LastActionTarget = pData.UserID;
 		LastAction = selectedMove;
 		LastActionValue = selectedMoveValue;
@@ -17761,15 +18025,18 @@ public class BlackjackController : CardGameController
 			EndCycle();
 			return;
 		}
-		StartTurnTimer(pData, MaxTurnTime);
+		if (pData.HasUserInCurrentRound && !pData.hasCompletedTurn)
+		{
+			StartTurnTimer(pData, MaxTurnTime);
+		}
 		base.Owner.SendNetworkUpdate();
 	}
 
-	private void DoInRoundPlayerInput(CardPlayerDataBlackjack pdBlackjack, ref BlackjackInputOption selectedMove, ref int selectedMoveValue)
+	private bool DoInRoundPlayerInput(CardPlayerDataBlackjack pdBlackjack, ref BlackjackInputOption selectedMove, ref int selectedMoveValue)
 	{
-		if (selectedMove != BlackjackInputOption.Abandon && ((uint)pdBlackjack.availableInputs & (uint)selectedMove) != (uint)selectedMove)
+		if (selectedMove != BlackjackInputOption.Abandon && (((uint)pdBlackjack.availableInputs & (uint)selectedMove) != (uint)selectedMove || selectedMove == BlackjackInputOption.None))
 		{
-			return;
+			return false;
 		}
 		switch (selectedMove)
 		{
@@ -17822,6 +18089,8 @@ public class BlackjackController : CardGameController
 		case BlackjackInputOption.Abandon:
 			pdBlackjack.LeaveGame();
 			break;
+		default:
+			return false;
 		}
 		if (HasBusted(pdBlackjack.Cards) && !pdBlackjack.TrySwitchToSplitHand())
 		{
@@ -17831,17 +18100,26 @@ public class BlackjackController : CardGameController
 		{
 			pdBlackjack.SetHasCompletedTurn(hasActed: true);
 		}
+		return true;
 	}
 
-	private void DoBettingPhasePlayerInput(CardPlayerDataBlackjack pdBlackjack, int value, bool countAsAction, ref BlackjackInputOption selectedMove, ref int selectedMoveValue)
+	private bool DoBettingPhasePlayerInput(CardPlayerDataBlackjack pdBlackjack, int value, bool countAsAction, ref BlackjackInputOption selectedMove, ref int selectedMoveValue)
 	{
-		if (selectedMove != BlackjackInputOption.Abandon && ((uint)pdBlackjack.availableInputs & (uint)selectedMove) != (uint)selectedMove)
+		if (selectedMove != BlackjackInputOption.Abandon && (((uint)pdBlackjack.availableInputs & (uint)selectedMove) != (uint)selectedMove || selectedMove == BlackjackInputOption.None))
 		{
-			return;
+			return false;
 		}
 		if (selectedMove == BlackjackInputOption.SubmitBet)
 		{
+			if (value < MinBuyIn || value > BlackjackMachine.maxbet)
+			{
+				return false;
+			}
 			selectedMoveValue = TryMakeBet(pdBlackjack, value, BetType.Main);
+			if (selectedMoveValue <= 0)
+			{
+				return false;
+			}
 			if (countAsAction)
 			{
 				pdBlackjack.SetHasCompletedTurn(hasActed: true);
@@ -17850,6 +18128,10 @@ public class BlackjackController : CardGameController
 		else if (selectedMove == BlackjackInputOption.MaxBet)
 		{
 			selectedMoveValue = TryMakeBet(pdBlackjack, BlackjackMachine.maxbet, BetType.Main);
+			if (selectedMoveValue <= 0)
+			{
+				return false;
+			}
 			if (countAsAction)
 			{
 				pdBlackjack.SetHasCompletedTurn(hasActed: true);
@@ -17859,6 +18141,7 @@ public class BlackjackController : CardGameController
 		{
 			pdBlackjack.LeaveGame();
 		}
+		return true;
 	}
 
 	private int TryMakeBet(CardPlayerDataBlackjack pdBlackjack, int maxAmount, BetType betType)
@@ -17965,9 +18248,10 @@ public class BlackjackController : CardGameController
 	protected override void EndCycle()
 	{
 		CardPlayerData[] playerData = base.PlayerData;
-		for (int i = 0; i < playerData.Length; i++)
+		foreach (CardPlayerData obj in playerData)
 		{
-			playerData[i].SetHasCompletedTurn(hasActed: false);
+			obj.CancelTurnTimer();
+			obj.SetHasCompletedTurn(hasActed: false);
 		}
 		if (dealerCards.Count == 0)
 		{
@@ -20641,7 +20925,7 @@ public static class RenderInfo
 
 	public static void GenerateReport()
 	{
-		Renderer[] array = Object.FindObjectsOfType<Renderer>();
+		Renderer[] array = Object.FindObjectsByType<Renderer>((FindObjectsSortMode)0);
 		List<RendererInstance> list = new List<RendererInstance>();
 		Renderer[] array2 = array;
 		for (int i = 0; i < array2.Length; i++)
@@ -20779,31 +21063,161 @@ public struct RendererInstance
 
 using System;
 using System.Collections;
-using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.IO;
 using System.Linq;
-using System.Net.Http;
-using System.Net.Http.Headers;
 using System.Security.Cryptography;
 using System.Text;
-using System.Threading.Tasks;
 using ConVar;
-using Cysharp.Text;
 using Epic.OnlineServices.Version;
 using Facepunch;
 using Facepunch.Rust;
 using Network;
 using ProtoBuf;
 using Rust;
-using Steamworks;
 using UnityEngine;
 
 public static class Analytics
 {
 	public static class Azure
 	{
+		[JsonModel]
+		private struct EntitySumItem
+		{
+			public uint PrefabId;
+
+			public int Count;
+
+			public int Grade;
+		}
+
+		private struct EntityKey : IEquatable<EntityKey>
+		{
+			public uint PrefabId;
+
+			public int Grade;
+
+			public bool Equals(EntityKey other)
+			{
+				if (PrefabId == other.PrefabId)
+				{
+					return Grade == other.Grade;
+				}
+				return false;
+			}
+
+			public override int GetHashCode()
+			{
+				return (17 * 23 + PrefabId.GetHashCode()) * 31 + Grade.GetHashCode();
+			}
+		}
+
+		private class PendingItemsData : IPooled
+		{
+			public PendingItemsKey Key;
+
+			public int amount;
+
+			public string category;
+
+			public void EnterPool()
+			{
+				Key = default(PendingItemsKey);
+				amount = 0;
+				category = null;
+			}
+
+			public void LeavePool()
+			{
+			}
+		}
+
+		private struct PendingItemsKey : IEquatable<PendingItemsKey>
+		{
+			public string Item;
+
+			public bool Consumed;
+
+			public string Entity;
+
+			public string Category;
+
+			public NetworkableId EntityId;
+
+			public bool Equals(PendingItemsKey other)
+			{
+				//IL_0027: Unknown result type (might be due to invalid IL or missing references)
+				//IL_002d: Unknown result type (might be due to invalid IL or missing references)
+				if (Item == other.Item && Entity == other.Entity && EntityId == other.EntityId && Consumed == other.Consumed)
+				{
+					return Category == other.Category;
+				}
+				return false;
+			}
+
+			public override int GetHashCode()
+			{
+				return ((((17 * 23 + Item.GetHashCode()) * 31 + Consumed.GetHashCode()) * 37 + Entity.GetHashCode()) * 47 + Category.GetHashCode()) * 53 + ((object)(NetworkableId)(ref EntityId)/*cast due to .constrained prefix*/).GetHashCode();
+			}
+		}
+
+		[JsonModel]
+		private class PlayerAggregate : IPooled
+		{
+			public string UserId;
+
+			public Vector3 Position;
+
+			public Vector3 Direction;
+
+			public List<string> Hotbar = new List<string>();
+
+			public List<string> Worn = new List<string>();
+
+			public string ActiveItem;
+
+			public string Biome;
+
+			public void EnterPool()
+			{
+				//IL_000d: Unknown result type (might be due to invalid IL or missing references)
+				//IL_0019: Unknown result type (might be due to invalid IL or missing references)
+				UserId = null;
+				Position = default(Vector3);
+				Direction = default(Vector3);
+				Hotbar.Clear();
+				Worn.Clear();
+				ActiveItem = null;
+				Biome = null;
+			}
+
+			public void LeavePool()
+			{
+			}
+		}
+
+		[JsonModel]
+		private class TeamInfo : IPooled
+		{
+			public List<string> online = new List<string>();
+
+			public List<string> offline = new List<string>();
+
+			public int member_count;
+
+			public void EnterPool()
+			{
+				online.Clear();
+				offline.Clear();
+				member_count = 0;
+			}
+
+			public void LeavePool()
+			{
+			}
+		}
+
 		public enum ResourceMode
 		{
 			Produced,
@@ -21042,156 +21456,490 @@ public static class Analytics
 			}
 		}
 
-		[JsonModel]
-		private struct EntitySumItem
-		{
-			public uint PrefabId;
-
-			public int Count;
-
-			public int Grade;
-		}
-
-		private struct EntityKey : IEquatable<EntityKey>
-		{
-			public uint PrefabId;
-
-			public int Grade;
-
-			public bool Equals(EntityKey other)
-			{
-				if (PrefabId == other.PrefabId)
-				{
-					return Grade == other.Grade;
-				}
-				return false;
-			}
-
-			public override int GetHashCode()
-			{
-				return (17 * 23 + PrefabId.GetHashCode()) * 31 + Grade.GetHashCode();
-			}
-		}
-
-		private class PendingItemsData : IPooled
-		{
-			public PendingItemsKey Key;
-
-			public int amount;
-
-			public string category;
-
-			public void EnterPool()
-			{
-				Key = default(PendingItemsKey);
-				amount = 0;
-				category = null;
-			}
-
-			public void LeavePool()
-			{
-			}
-		}
-
-		private struct PendingItemsKey : IEquatable<PendingItemsKey>
-		{
-			public string Item;
-
-			public bool Consumed;
-
-			public string Entity;
-
-			public string Category;
-
-			public NetworkableId EntityId;
-
-			public bool Equals(PendingItemsKey other)
-			{
-				//IL_0027: Unknown result type (might be due to invalid IL or missing references)
-				//IL_002d: Unknown result type (might be due to invalid IL or missing references)
-				if (Item == other.Item && Entity == other.Entity && EntityId == other.EntityId && Consumed == other.Consumed)
-				{
-					return Category == other.Category;
-				}
-				return false;
-			}
-
-			public override int GetHashCode()
-			{
-				return ((((17 * 23 + Item.GetHashCode()) * 31 + Consumed.GetHashCode()) * 37 + Entity.GetHashCode()) * 47 + Category.GetHashCode()) * 53 + ((object)(NetworkableId)(ref EntityId)/*cast due to .constrained prefix*/).GetHashCode();
-			}
-		}
-
-		[JsonModel]
-		private class PlayerAggregate : IPooled
-		{
-			public string UserId;
-
-			public Vector3 Position;
-
-			public Vector3 Direction;
-
-			public List<string> Hotbar = new List<string>();
-
-			public List<string> Worn = new List<string>();
-
-			public string ActiveItem;
-
-			public string Biome;
-
-			public void EnterPool()
-			{
-				//IL_000d: Unknown result type (might be due to invalid IL or missing references)
-				//IL_0019: Unknown result type (might be due to invalid IL or missing references)
-				UserId = null;
-				Position = default(Vector3);
-				Direction = default(Vector3);
-				Hotbar.Clear();
-				Worn.Clear();
-				ActiveItem = null;
-				Biome = null;
-			}
-
-			public void LeavePool()
-			{
-			}
-		}
-
-		[JsonModel]
-		private class TeamInfo : IPooled
-		{
-			public List<string> online = new List<string>();
-
-			public List<string> offline = new List<string>();
-
-			public int member_count;
-
-			public void EnterPool()
-			{
-				online.Clear();
-				offline.Clear();
-				member_count = 0;
-			}
-
-			public void LeavePool()
-			{
-			}
-		}
-
-		private static Dictionary<FiredProjectileKey, PendingFiredProjectile> trackedProjectiles = new Dictionary<FiredProjectileKey, PendingFiredProjectile>();
-
 		private static Dictionary<int, string> geneCache = new Dictionary<int, string>();
 
 		public static int MaxMSPerFrame = 5;
 
 		private static Dictionary<PendingItemsKey, PendingItemsData> pendingItems = new Dictionary<PendingItemsKey, PendingItemsData>();
 
+		private static Dictionary<FiredProjectileKey, PendingFiredProjectile> trackedProjectiles = new Dictionary<FiredProjectileKey, PendingFiredProjectile>();
+
 		public static bool GameplayAnalytics => GameplayAnalyticsConVar;
+
+		private static string GetGenesAsString(GrowableEntity plant)
+		{
+			int key = GrowableGeneEncoding.EncodeGenesToInt(plant.Genes);
+			if (!geneCache.TryGetValue(key, out var value))
+			{
+				return string.Join("", from x in plant.Genes.Genes
+					group x by x.GetDisplayCharacter() into x
+					orderby x.Key
+					select x.Count() + x.Key);
+			}
+			return value;
+		}
+
+		private static string GetMonument(BaseEntity entity)
+		{
+			//IL_0085: Unknown result type (might be due to invalid IL or missing references)
+			if ((Object)(object)entity == (Object)null)
+			{
+				return null;
+			}
+			SpawnGroup spawnGroup = null;
+			if (entity is BaseCorpse baseCorpse)
+			{
+				spawnGroup = baseCorpse.spawnGroup;
+			}
+			if ((Object)(object)spawnGroup == (Object)null)
+			{
+				SpawnPointInstance component = ((Component)entity).GetComponent<SpawnPointInstance>();
+				if ((Object)(object)component != (Object)null)
+				{
+					spawnGroup = component.parentSpawnPointUser as SpawnGroup;
+				}
+			}
+			if ((Object)(object)spawnGroup != (Object)null)
+			{
+				if (!string.IsNullOrEmpty(spawnGroup.category))
+				{
+					return spawnGroup.category;
+				}
+				if ((Object)(object)spawnGroup.Monument != (Object)null)
+				{
+					return ((Object)spawnGroup.Monument).name;
+				}
+			}
+			MonumentInfo monumentInfo = TerrainMeta.Path.FindMonumentWithBoundsOverlap(((Component)entity).transform.position);
+			if ((Object)(object)monumentInfo != (Object)null)
+			{
+				return ((Object)monumentInfo).name;
+			}
+			return null;
+		}
+
+		private static string GetBiome(Vector3 position)
+		{
+			//IL_0007: Unknown result type (might be due to invalid IL or missing references)
+			//IL_000e: Unknown result type (might be due to invalid IL or missing references)
+			//IL_000f: Unknown result type (might be due to invalid IL or missing references)
+			//IL_0011: Invalid comparison between Unknown and I4
+			//IL_0031: Unknown result type (might be due to invalid IL or missing references)
+			//IL_0034: Invalid comparison between Unknown and I4
+			//IL_0013: Unknown result type (might be due to invalid IL or missing references)
+			//IL_0015: Unknown result type (might be due to invalid IL or missing references)
+			//IL_002b: Expected I4, but got Unknown
+			//IL_0036: Unknown result type (might be due to invalid IL or missing references)
+			//IL_0039: Invalid comparison between Unknown and I4
+			//IL_002b: Unknown result type (might be due to invalid IL or missing references)
+			//IL_002d: Invalid comparison between Unknown and I4
+			string result = null;
+			Enum val = (Enum)TerrainMeta.BiomeMap.GetBiomeMaxType(position);
+			if ((int)val <= 8)
+			{
+				switch (val - 1)
+				{
+				default:
+					if ((int)val == 8)
+					{
+						result = "arctic";
+					}
+					break;
+				case 0:
+					result = "arid";
+					break;
+				case 1:
+					result = "grass";
+					break;
+				case 3:
+					result = "tundra";
+					break;
+				case 2:
+					break;
+				}
+			}
+			else if ((int)val != 16)
+			{
+				if ((int)val == 32)
+				{
+					result = "deepsea";
+				}
+			}
+			else
+			{
+				result = "jungle";
+			}
+			return result;
+		}
+
+		private static bool IsOcean(Vector3 position)
+		{
+			//IL_0005: Unknown result type (might be due to invalid IL or missing references)
+			return TerrainMeta.TopologyMap.GetTopology(position) == 128;
+		}
+
+		public static Dictionary<string, string> GetHardwareData()
+		{
+			string value;
+			using (SHA256 sHA = SHA256.Create())
+			{
+				value = Convert.ToBase64String(sHA.ComputeHash(Encoding.UTF8.GetBytes(SystemInfo.deviceUniqueIdentifier)));
+			}
+			return new Dictionary<string, string>
+			{
+				["device_name"] = SystemInfo.deviceName,
+				["device_hash"] = value,
+				["gpu_name"] = SystemInfo.graphicsDeviceName,
+				["gpu_ram"] = SystemInfo.graphicsMemorySize.ToString(),
+				["gpu_vendor"] = SystemInfo.graphicsDeviceVendor,
+				["gpu_version"] = SystemInfo.graphicsDeviceVersion,
+				["gpu_shader_level"] = SystemInfo.graphicsShaderLevel.ToString(),
+				["gpu_max_buffer_size"] = SystemInfo.maxGraphicsBufferSize.ToString(),
+				["gpu_device_version"] = SystemInfo.graphicsDeviceVersion.ToString(),
+				["cpu_cores"] = SystemInfo.processorCount.ToString(),
+				["max_compute_work_size"] = SystemInfo.maxComputeWorkGroupSize.ToString(),
+				["max_compute_work_size_x"] = SystemInfo.maxComputeWorkGroupSizeX.ToString(),
+				["max_compute_work_size_y"] = SystemInfo.maxComputeWorkGroupSizeY.ToString(),
+				["max_compute_work_size_z"] = SystemInfo.maxComputeWorkGroupSizeZ.ToString(),
+				["cpu_frequency"] = SystemInfo.processorFrequency.ToString(),
+				["gpu_max_texture_size"] = SystemInfo.maxTextureSize.ToString(),
+				["cpu_name"] = SystemInfo.processorType.Trim(),
+				["system_memory"] = SystemInfo.systemMemorySize.ToString(),
+				["os"] = SystemInfo.operatingSystem,
+				["supports_compute_shaders"] = SystemInfo.supportsComputeShaders.ToString(),
+				["supports_async_compute"] = SystemInfo.supportsAsyncCompute.ToString(),
+				["supports_async_gpu_readback"] = SystemInfo.supportsAsyncGPUReadback.ToString(),
+				["supports_3d_textures"] = SystemInfo.supports3DTextures.ToString(),
+				["supports_instancing"] = SystemInfo.supportsInstancing.ToString()
+			};
+		}
+
+		public static Dictionary<string, string> GetApplicationData()
+		{
+			Dictionary<string, string> obj = new Dictionary<string, string> { ["unity"] = Application.unityVersion ?? "editor" };
+			BuildInfo current = BuildInfo.Current;
+			obj["changeset"] = ((current != null) ? current.Scm.ChangeId : null) ?? "editor";
+			BuildInfo current2 = BuildInfo.Current;
+			obj["branch"] = ((current2 != null) ? current2.Scm.Branch : null) ?? "editor";
+			obj["network_version"] = 2631.ToString();
+			obj["eos_sdk"] = ((object)VersionInterface.GetVersion())?.ToString() ?? "disabled";
+			return obj;
+		}
+
+		private static IEnumerator AggregateLoop()
+		{
+			int loop = 0;
+			while (!Application.isQuitting)
+			{
+				yield return CoroutineEx.waitForSecondsRealtime(60f);
+				if (GameplayAnalytics)
+				{
+					yield return TryCatch(AggregatePlayers(blueprints: false, positions: true));
+					if (loop % 60 == 0)
+					{
+						PushServerInfo();
+						yield return TryCatch(AggregateEntitiesAndItems());
+						yield return TryCatch(AggregatePlayers(blueprints: true));
+						yield return TryCatch(AggregateTeams());
+						Dictionary<PendingItemsKey, PendingItemsData> dict = pendingItems;
+						pendingItems = new Dictionary<PendingItemsKey, PendingItemsData>();
+						yield return PushPendingItemsLoopAsync(dict);
+					}
+					loop++;
+				}
+			}
+		}
+
+		private static IEnumerator TryCatch(IEnumerator coroutine)
+		{
+			while (true)
+			{
+				try
+				{
+					if (!coroutine.MoveNext())
+					{
+						break;
+					}
+				}
+				catch (Exception ex)
+				{
+					Debug.LogException(ex);
+					break;
+				}
+				yield return coroutine.Current;
+			}
+		}
+
+		private static IEnumerator AggregateEntitiesAndItems()
+		{
+			List<BaseNetworkable> entityQueue = new List<BaseNetworkable>();
+			entityQueue.Clear();
+			int totalCount = BaseNetworkable.serverEntities.Count;
+			entityQueue.AddRange(BaseNetworkable.serverEntities);
+			Dictionary<string, int> itemDict = new Dictionary<string, int>();
+			Dictionary<EntityKey, int> entityDict = new Dictionary<EntityKey, int>();
+			yield return null;
+			Debug.Log((object)"Starting to aggregate entities & items...");
+			DateTime startTime = DateTime.UtcNow;
+			Stopwatch watch = Stopwatch.StartNew();
+			foreach (BaseNetworkable entity in entityQueue)
+			{
+				if (watch.ElapsedMilliseconds > MaxMSPerFrame)
+				{
+					yield return null;
+					watch.Restart();
+				}
+				if ((Object)(object)entity == (Object)null || entity.IsDestroyed)
+				{
+					continue;
+				}
+				EntityKey entityKey = default(EntityKey);
+				entityKey.PrefabId = entity.prefabID;
+				EntityKey key = entityKey;
+				if (entity is BuildingBlock buildingBlock)
+				{
+					key.Grade = (int)(buildingBlock.grade + 1);
+				}
+				entityDict.TryGetValue(key, out var value);
+				entityDict[key] = value + 1;
+				if (!(entity is LootContainer) && !(entity is BasePlayer { IsNpc: not false }) && !(entity is NPCPlayer))
+				{
+					if (entity is BasePlayer basePlayer2)
+					{
+						AddItemsToDict(basePlayer2.inventory.containerMain, itemDict);
+						AddItemsToDict(basePlayer2.inventory.containerBelt, itemDict);
+						AddItemsToDict(basePlayer2.inventory.containerWear, itemDict);
+					}
+					else if (entity is IItemContainerEntity itemContainerEntity)
+					{
+						AddItemsToDict(itemContainerEntity.inventory, itemDict);
+					}
+					else if (entity is DroppedItemContainer { inventory: not null } droppedItemContainer)
+					{
+						AddItemsToDict(droppedItemContainer.inventory, itemDict);
+					}
+				}
+			}
+			Debug.Log((object)$"Took {Math.Round(DateTime.UtcNow.Subtract(startTime).TotalSeconds, 1)}s to aggregate {totalCount} entities & items...");
+			_ = DateTime.UtcNow;
+			SubmitPoint(EventRecord.New("entity_sum").AddObject("counts", entityDict.Select(delegate(KeyValuePair<EntityKey, int> x)
+			{
+				EntitySumItem result = default(EntitySumItem);
+				result.PrefabId = x.Key.PrefabId;
+				result.Grade = x.Key.Grade;
+				result.Count = x.Value;
+				return result;
+			})));
+			yield return null;
+			SubmitPoint(EventRecord.New("item_sum").AddObject("counts", itemDict));
+			yield return null;
+		}
+
+		private static void AddItemsToDict(ItemContainer container, Dictionary<string, int> dict)
+		{
+			if (container == null || container.itemList == null)
+			{
+				return;
+			}
+			foreach (Item item in container.itemList)
+			{
+				string shortname = item.info.shortname;
+				dict.TryGetValue(shortname, out var value);
+				dict[shortname] = value + item.amount;
+				if (item.contents != null)
+				{
+					AddItemsToDict(item.contents, dict);
+				}
+			}
+		}
+
+		private static IEnumerator PushPendingItemsLoopAsync(Dictionary<PendingItemsKey, PendingItemsData> dict)
+		{
+			Stopwatch watch = Stopwatch.StartNew();
+			foreach (PendingItemsData value in dict.Values)
+			{
+				try
+				{
+					LogResource(value.Key.Consumed ? ResourceMode.Consumed : ResourceMode.Produced, value.category, value.Key.Item, value.amount, null, null, safezone: false, null, 0uL, value.Key.Entity, null, null, 0uL);
+				}
+				catch (Exception ex)
+				{
+					Debug.LogException(ex);
+				}
+				PendingItemsData pendingItemsData = value;
+				Pool.Free<PendingItemsData>(ref pendingItemsData);
+				if (watch.ElapsedMilliseconds > MaxMSPerFrame)
+				{
+					yield return null;
+					watch.Restart();
+				}
+			}
+			dict.Clear();
+		}
+
+		public static void AddPendingItems(BaseEntity entity, string itemName, int amount, string category, bool consumed = true, bool perEntity = false)
+		{
+			//IL_0045: Unknown result type (might be due to invalid IL or missing references)
+			//IL_0036: Unknown result type (might be due to invalid IL or missing references)
+			//IL_003c: Unknown result type (might be due to invalid IL or missing references)
+			//IL_004a: Unknown result type (might be due to invalid IL or missing references)
+			PendingItemsKey pendingItemsKey = default(PendingItemsKey);
+			pendingItemsKey.Entity = entity.ShortPrefabName;
+			pendingItemsKey.Category = category;
+			pendingItemsKey.Item = itemName;
+			pendingItemsKey.Consumed = consumed;
+			pendingItemsKey.EntityId = (NetworkableId)(perEntity ? entity.net.ID : default(NetworkableId));
+			PendingItemsKey key = pendingItemsKey;
+			if (!pendingItems.TryGetValue(key, out var value))
+			{
+				value = Pool.Get<PendingItemsData>();
+				value.Key = key;
+				value.category = category;
+				pendingItems[key] = value;
+			}
+			value.amount += amount;
+		}
+
+		private static IEnumerator AggregatePlayers(bool blueprints = false, bool positions = false)
+		{
+			Stopwatch watch = Stopwatch.StartNew();
+			Dictionary<int, int> playerBps = (blueprints ? new Dictionary<int, int>() : null);
+			List<PlayerAggregate> playerPositions = (positions ? Pool.Get<List<PlayerAggregate>>() : null);
+			Enumerator<BasePlayer> enumerator = BasePlayer.activePlayerList.GetEnumerator();
+			try
+			{
+				while (enumerator.MoveNext())
+				{
+					BasePlayer current = enumerator.Current;
+					if ((Object)(object)current == (Object)null || current.IsDestroyed)
+					{
+						continue;
+					}
+					if (blueprints)
+					{
+						foreach (int unlockedItem in current.PersistantPlayerInfo.unlockedItems)
+						{
+							playerBps.TryGetValue(unlockedItem, out var value);
+							playerBps[unlockedItem] = value + 1;
+						}
+					}
+					if (positions)
+					{
+						PlayerAggregate playerAggregate = Pool.Get<PlayerAggregate>();
+						playerAggregate.UserId = current.UserIDString;
+						playerAggregate.Position = ((Component)current).transform.position;
+						Quaternion bodyRotation = current.eyes.bodyRotation;
+						playerAggregate.Direction = ((Quaternion)(ref bodyRotation)).eulerAngles;
+						foreach (Item item in current.inventory.containerBelt.itemList)
+						{
+							playerAggregate.Hotbar.Add(item.info.shortname);
+						}
+						foreach (Item item2 in current.inventory.containerWear.itemList)
+						{
+							playerAggregate.Worn.Add(item2.info.shortname);
+						}
+						playerAggregate.ActiveItem = current.GetActiveItem()?.info.shortname;
+						playerAggregate.Biome = GetBiome(((Component)current).transform.position);
+						playerPositions.Add(playerAggregate);
+					}
+					if (watch.ElapsedMilliseconds > MaxMSPerFrame)
+					{
+						yield return null;
+						watch.Restart();
+					}
+				}
+			}
+			finally
+			{
+				((IDisposable)enumerator/*cast due to .constrained prefix*/).Dispose();
+			}
+			if (blueprints)
+			{
+				SubmitPoint(EventRecord.New("blueprint_aggregate_online").AddObject("blueprints", playerBps.Select((KeyValuePair<int, int> x) => new
+				{
+					Key = ItemManager.FindItemDefinition(x.Key).shortname,
+					value = x.Value
+				})));
+			}
+			if (positions)
+			{
+				SubmitPoint(EventRecord.New("player_positions").AddObject("positions", playerPositions).AddObject("player_count", playerPositions.Count));
+				Pool.Free<PlayerAggregate>(ref playerPositions, true);
+			}
+		}
+
+		private static IEnumerator AggregateTeams()
+		{
+			yield return null;
+			HashSet<ulong> teamIds = new HashSet<ulong>();
+			int inTeam = 0;
+			int notInTeam = 0;
+			Enumerator<BasePlayer> enumerator = BasePlayer.activePlayerList.GetEnumerator();
+			try
+			{
+				while (enumerator.MoveNext())
+				{
+					BasePlayer current = enumerator.Current;
+					if ((Object)(object)current != (Object)null && !current.IsDestroyed && current.currentTeam != 0L)
+					{
+						teamIds.Add(current.currentTeam);
+						inTeam++;
+					}
+					else
+					{
+						notInTeam++;
+					}
+				}
+			}
+			finally
+			{
+				((IDisposable)enumerator/*cast due to .constrained prefix*/).Dispose();
+			}
+			yield return null;
+			Stopwatch watch = Stopwatch.StartNew();
+			List<TeamInfo> teams = Pool.Get<List<TeamInfo>>();
+			foreach (ulong item in teamIds)
+			{
+				RelationshipManager.PlayerTeam playerTeam = RelationshipManager.ServerInstance.FindTeam(item);
+				if (playerTeam == null || !((playerTeam.members != null) & (playerTeam.members.Count > 0)))
+				{
+					continue;
+				}
+				TeamInfo teamInfo = Pool.Get<TeamInfo>();
+				teams.Add(teamInfo);
+				foreach (ulong member in playerTeam.members)
+				{
+					BasePlayer basePlayer = RelationshipManager.FindByID(member);
+					if ((Object)(object)basePlayer != (Object)null && !basePlayer.IsDestroyed && basePlayer.IsConnected && !basePlayer.IsSleeping())
+					{
+						teamInfo.online.Add(SingletonComponent<ServerMgr>.Instance.persistance.GetUserWipeId(member));
+					}
+					else
+					{
+						teamInfo.offline.Add(SingletonComponent<ServerMgr>.Instance.persistance.GetUserWipeId(member));
+					}
+				}
+				teamInfo.member_count = teamInfo.online.Count + teamInfo.offline.Count;
+				if (watch.ElapsedMilliseconds > MaxMSPerFrame)
+				{
+					yield return null;
+					watch.Restart();
+				}
+			}
+			SubmitPoint(EventRecord.New("online_teams").AddObject("teams", teams).AddField("users_in_team", inTeam)
+				.AddField("users_not_in_team", notInTeam));
+			foreach (TeamInfo item2 in teams)
+			{
+				TeamInfo current4 = item2;
+				Pool.Free<TeamInfo>(ref current4);
+			}
+			Pool.Free<TeamInfo>(ref teams, false);
+		}
 
 		public static void Initialize()
 		{
 			TickLogging.RegisterForAnalytics(Manager);
-			Manager.AddTable(AzureWebInterface.GameplayEventsTableServer, Manager.ServerUploader);
+			Manager.AddTable(AnalyticsManager.GameplayEventsTableServer, Manager.ServerUploader);
 			PushItemDefinitions();
 			PushEntityManifest();
 			((MonoBehaviour)SingletonComponent<ServerMgr>.Instance).StartCoroutine(AggregateLoop());
@@ -21210,8 +21958,8 @@ public static class Analytics
 					.AddField("ip_convar", Net.sv.ip)
 					.AddField("port_convar", Net.sv.port)
 					.AddField("net_protocol", Net.sv.ProtocolId)
-					.AddField("protocol_network", 2625)
-					.AddField("protocol_save", 284);
+					.AddField("protocol_network", 2631)
+					.AddField("protocol_save", 286);
 				BuildInfo current = BuildInfo.Current;
 				EventRecord eventRecord2 = eventRecord.AddField("changeset", ((current != null) ? current.Scm.ChangeId : null) ?? "0").AddField("unity_version", Application.unityVersion);
 				BuildInfo current2 = BuildInfo.Current;
@@ -21945,7 +22693,7 @@ public static class Analytics
 					.AddField("message", message);
 				if (BuildInfo.Current != null)
 				{
-					eventRecord.AddField("changeset", BuildInfo.Current.Scm.ChangeId).AddField("network", 2625);
+					eventRecord.AddField("changeset", BuildInfo.Current.Scm.ChangeId).AddField("network", 2631);
 				}
 				switch (type)
 				{
@@ -22618,15 +23366,16 @@ public static class Analytics
 
 		public static void LogResource(ResourceMode mode, string category, string itemName, int amount, BaseEntity sourceEntity = null, AttackEntity tool = null, bool safezone = false, BaseEntity workbench = null, ulong steamId = 0uL, string sourceEntityPrefab = null, Item sourceItem = null, string targetItem = null, ulong skinId = 0uL)
 		{
-			//IL_006c: Unknown result type (might be due to invalid IL or missing references)
-			//IL_008e: Unknown result type (might be due to invalid IL or missing references)
+			//IL_0070: Unknown result type (might be due to invalid IL or missing references)
+			//IL_0092: Unknown result type (might be due to invalid IL or missing references)
 			if (!GameplayAnalytics)
 			{
 				return;
 			}
 			try
 			{
-				EventRecord eventRecord = EventRecord.New("item_event").AddField("item_mode", mode.ToString()).AddField("category", category)
+				string value = ((mode == ResourceMode.Produced) ? "Produced" : "Consumed");
+				EventRecord eventRecord = EventRecord.New("item_event").AddField("item_mode", value).AddField("category", category)
 					.AddField("item_name", itemName)
 					.AddField("amount", amount);
 				if ((Object)(object)sourceEntity != (Object)null)
@@ -22959,7 +23708,7 @@ public static class Analytics
 			}
 		}
 
-		public static void OnBuildingBlockColorChanged(BasePlayer player, BuildingBlock block, uint oldColor, uint newColor)
+		public static void OnEntityColorChanged(BasePlayer player, BaseEntity entity, uint oldColor, uint newColor)
 		{
 			//IL_004b: Unknown result type (might be due to invalid IL or missing references)
 			if (!GameplayAnalytics)
@@ -22968,10 +23717,10 @@ public static class Analytics
 			}
 			try
 			{
-				SubmitPoint(EventRecord.New("player_pinged").AddField("player", (BaseNetworkable)player).AddField("entity", (BaseNetworkable)block)
+				SubmitPoint(EventRecord.New("player_pinged").AddField("player", (BaseNetworkable)player).AddField("entity", (BaseNetworkable)entity)
 					.AddField("color_old", oldColor)
 					.AddField("color_new", newColor)
-					.AddField("biome", GetBiome(((Component)block).transform.position)));
+					.AddField("biome", GetBiome(((Component)entity).transform.position)));
 			}
 			catch (Exception ex)
 			{
@@ -23115,7 +23864,7 @@ public static class Analytics
 			}
 		}
 
-		public static void OnPlayerTick(BasePlayer player, Vector3 pos, in BasePlayer.CachedState tickState)
+		public static void OnPlayerTick(BasePlayer player, Vector3 pos, in BasePlayer.CachedState tickState, bool isMounted)
 		{
 			//IL_0072: Unknown result type (might be due to invalid IL or missing references)
 			//IL_0087: Unknown result type (might be due to invalid IL or missing references)
@@ -23125,50 +23874,27 @@ public static class Analytics
 			//IL_010b: Unknown result type (might be due to invalid IL or missing references)
 			//IL_0120: Unknown result type (might be due to invalid IL or missing references)
 			//IL_0135: Unknown result type (might be due to invalid IL or missing references)
-			if (!GameplayTickAnalyticsConVar)
+			if (GameplayTickAnalyticsConVar)
 			{
-				return;
-			}
-			EventRecord record = EventRecord.New("player_tick").AddField("player_steamid", player.UserIDString).AddField("modelstate", (player.modelStateTick ?? player.modelState).flags)
-				.AddField("heldentity", ((Object)(object)player.GetHeldEntity() != (Object)null) ? player.GetHeldEntity().ShortPrefabName : "")
-				.AddField("pitch", player.tickViewAngles.x)
-				.AddField("yaw", player.tickViewAngles.y)
-				.AddField("pos_x", pos.x)
-				.AddField("pos_y", pos.y)
-				.AddField("pos_z", pos.z)
-				.AddField("eye_pos_x", tickState.EyePos.x)
-				.AddField("eye_pos_y", tickState.EyePos.y)
-				.AddField("eye_pos_z", tickState.EyePos.z)
-				.AddField("mouse_delta_x", player.tickMouseDelta.x)
-				.AddField("mouse_delta_y", player.tickMouseDelta.y)
-				.AddField("mouse_delta_z", player.tickMouseDelta.z)
-				.AddField("parented", player.HasParent())
-				.AddField("mounted", tickState.IsMounted)
-				.AddField("admin", player.IsAdmin || player.IsDeveloper)
-				.AddField("water_factor", tickState.WaterFactor)
-				.AddField("Timestamp", DateTime.UtcNow);
-			if (TickLogging.tickUploader.NeedsCreation())
-			{
-				if (UseV2)
-				{
-					TickLogging.tickUploader = null;
-				}
-				else
-				{
-					BuildInfo current = BuildInfo.Current;
-					bool num = (current.Scm.Branch != null && current.Scm.Branch == "experimental/release") || current.Scm.Branch == "release";
-					bool isEditor = Application.isEditor;
-					string text = ((num && !isEditor) ? "release" : (isEditor ? "editor" : "staging"));
-					TickLogging.tickUploader = AzureAnalyticsUploader.Create("player_ticks_" + text, TimeSpan.FromSeconds(TickLogging.tick_uploader_lifetime), AnalyticsDocumentMode.CSV);
-				}
-			}
-			if (UseV2)
-			{
+				EventRecord record = EventRecord.New("player_tick").AddField("player_steamid", player.UserIDString).AddField("modelstate", (player.modelStateTick ?? player.modelState).flags)
+					.AddField("heldentity", ((Object)(object)player.GetHeldEntity() != (Object)null) ? player.GetHeldEntity().ShortPrefabName : "")
+					.AddField("pitch", player.tickViewAngles.x)
+					.AddField("yaw", player.tickViewAngles.y)
+					.AddField("pos_x", pos.x)
+					.AddField("pos_y", pos.y)
+					.AddField("pos_z", pos.z)
+					.AddField("eye_pos_x", tickState.EyePos.x)
+					.AddField("eye_pos_y", tickState.EyePos.y)
+					.AddField("eye_pos_z", tickState.EyePos.z)
+					.AddField("mouse_delta_x", player.tickMouseDelta.x)
+					.AddField("mouse_delta_y", player.tickMouseDelta.y)
+					.AddField("mouse_delta_z", player.tickMouseDelta.z)
+					.AddField("parented", player.HasParent())
+					.AddField("mounted", isMounted)
+					.AddField("admin", player.IsAdmin || player.IsDeveloper)
+					.AddField("water_factor", tickState.WaterFactor)
+					.AddField("Timestamp", DateTime.UtcNow);
 				TickLogging.TickTable.Append(record);
-			}
-			else
-			{
-				TickLogging.tickUploader.Append(record);
 			}
 		}
 
@@ -23436,694 +24162,7 @@ public static class Analytics
 				Debug.LogException(ex);
 			}
 		}
-
-		private static string GetGenesAsString(GrowableEntity plant)
-		{
-			int key = GrowableGeneEncoding.EncodeGenesToInt(plant.Genes);
-			if (!geneCache.TryGetValue(key, out var value))
-			{
-				return string.Join("", from x in plant.Genes.Genes
-					group x by x.GetDisplayCharacter() into x
-					orderby x.Key
-					select x.Count() + x.Key);
-			}
-			return value;
-		}
-
-		private static string GetMonument(BaseEntity entity)
-		{
-			//IL_0085: Unknown result type (might be due to invalid IL or missing references)
-			if ((Object)(object)entity == (Object)null)
-			{
-				return null;
-			}
-			SpawnGroup spawnGroup = null;
-			if (entity is BaseCorpse baseCorpse)
-			{
-				spawnGroup = baseCorpse.spawnGroup;
-			}
-			if ((Object)(object)spawnGroup == (Object)null)
-			{
-				SpawnPointInstance component = ((Component)entity).GetComponent<SpawnPointInstance>();
-				if ((Object)(object)component != (Object)null)
-				{
-					spawnGroup = component.parentSpawnPointUser as SpawnGroup;
-				}
-			}
-			if ((Object)(object)spawnGroup != (Object)null)
-			{
-				if (!string.IsNullOrEmpty(spawnGroup.category))
-				{
-					return spawnGroup.category;
-				}
-				if ((Object)(object)spawnGroup.Monument != (Object)null)
-				{
-					return ((Object)spawnGroup.Monument).name;
-				}
-			}
-			MonumentInfo monumentInfo = TerrainMeta.Path.FindMonumentWithBoundsOverlap(((Component)entity).transform.position);
-			if ((Object)(object)monumentInfo != (Object)null)
-			{
-				return ((Object)monumentInfo).name;
-			}
-			return null;
-		}
-
-		private static string GetBiome(Vector3 position)
-		{
-			//IL_0007: Unknown result type (might be due to invalid IL or missing references)
-			//IL_000e: Unknown result type (might be due to invalid IL or missing references)
-			//IL_000f: Unknown result type (might be due to invalid IL or missing references)
-			//IL_0011: Invalid comparison between Unknown and I4
-			//IL_0031: Unknown result type (might be due to invalid IL or missing references)
-			//IL_0034: Invalid comparison between Unknown and I4
-			//IL_0013: Unknown result type (might be due to invalid IL or missing references)
-			//IL_0015: Unknown result type (might be due to invalid IL or missing references)
-			//IL_002b: Expected I4, but got Unknown
-			//IL_0036: Unknown result type (might be due to invalid IL or missing references)
-			//IL_0039: Invalid comparison between Unknown and I4
-			//IL_002b: Unknown result type (might be due to invalid IL or missing references)
-			//IL_002d: Invalid comparison between Unknown and I4
-			string result = null;
-			Enum val = (Enum)TerrainMeta.BiomeMap.GetBiomeMaxType(position);
-			if ((int)val <= 8)
-			{
-				switch (val - 1)
-				{
-				default:
-					if ((int)val == 8)
-					{
-						result = "arctic";
-					}
-					break;
-				case 0:
-					result = "arid";
-					break;
-				case 1:
-					result = "grass";
-					break;
-				case 3:
-					result = "tundra";
-					break;
-				case 2:
-					break;
-				}
-			}
-			else if ((int)val != 16)
-			{
-				if ((int)val == 32)
-				{
-					result = "deepsea";
-				}
-			}
-			else
-			{
-				result = "jungle";
-			}
-			return result;
-		}
-
-		private static bool IsOcean(Vector3 position)
-		{
-			//IL_0005: Unknown result type (might be due to invalid IL or missing references)
-			return TerrainMeta.TopologyMap.GetTopology(position) == 128;
-		}
-
-		public static Dictionary<string, string> GetHardwareData()
-		{
-			string value;
-			using (SHA256 sHA = SHA256.Create())
-			{
-				value = Convert.ToBase64String(sHA.ComputeHash(Encoding.UTF8.GetBytes(SystemInfo.deviceUniqueIdentifier)));
-			}
-			return new Dictionary<string, string>
-			{
-				["device_name"] = SystemInfo.deviceName,
-				["device_hash"] = value,
-				["gpu_name"] = SystemInfo.graphicsDeviceName,
-				["gpu_ram"] = SystemInfo.graphicsMemorySize.ToString(),
-				["gpu_vendor"] = SystemInfo.graphicsDeviceVendor,
-				["gpu_version"] = SystemInfo.graphicsDeviceVersion,
-				["gpu_shader_level"] = SystemInfo.graphicsShaderLevel.ToString(),
-				["gpu_max_buffer_size"] = SystemInfo.maxGraphicsBufferSize.ToString(),
-				["gpu_device_version"] = SystemInfo.graphicsDeviceVersion.ToString(),
-				["cpu_cores"] = SystemInfo.processorCount.ToString(),
-				["max_compute_work_size"] = SystemInfo.maxComputeWorkGroupSize.ToString(),
-				["max_compute_work_size_x"] = SystemInfo.maxComputeWorkGroupSizeX.ToString(),
-				["max_compute_work_size_y"] = SystemInfo.maxComputeWorkGroupSizeY.ToString(),
-				["max_compute_work_size_z"] = SystemInfo.maxComputeWorkGroupSizeZ.ToString(),
-				["cpu_frequency"] = SystemInfo.processorFrequency.ToString(),
-				["gpu_max_texture_size"] = SystemInfo.maxTextureSize.ToString(),
-				["cpu_name"] = SystemInfo.processorType.Trim(),
-				["system_memory"] = SystemInfo.systemMemorySize.ToString(),
-				["os"] = SystemInfo.operatingSystem,
-				["supports_compute_shaders"] = SystemInfo.supportsComputeShaders.ToString(),
-				["supports_async_compute"] = SystemInfo.supportsAsyncCompute.ToString(),
-				["supports_async_gpu_readback"] = SystemInfo.supportsAsyncGPUReadback.ToString(),
-				["supports_3d_textures"] = SystemInfo.supports3DTextures.ToString(),
-				["supports_instancing"] = SystemInfo.supportsInstancing.ToString()
-			};
-		}
-
-		public static Dictionary<string, string> GetApplicationData()
-		{
-			Dictionary<string, string> obj = new Dictionary<string, string> { ["unity"] = Application.unityVersion ?? "editor" };
-			BuildInfo current = BuildInfo.Current;
-			obj["changeset"] = ((current != null) ? current.Scm.ChangeId : null) ?? "editor";
-			BuildInfo current2 = BuildInfo.Current;
-			obj["branch"] = ((current2 != null) ? current2.Scm.Branch : null) ?? "editor";
-			obj["network_version"] = 2625.ToString();
-			obj["eos_sdk"] = ((object)VersionInterface.GetVersion())?.ToString() ?? "disabled";
-			return obj;
-		}
-
-		private static IEnumerator AggregateLoop()
-		{
-			int loop = 0;
-			while (!Application.isQuitting)
-			{
-				yield return CoroutineEx.waitForSecondsRealtime(60f);
-				if (GameplayAnalytics)
-				{
-					yield return TryCatch(AggregatePlayers(blueprints: false, positions: true));
-					if (loop % 60 == 0)
-					{
-						PushServerInfo();
-						yield return TryCatch(AggregateEntitiesAndItems());
-						yield return TryCatch(AggregatePlayers(blueprints: true));
-						yield return TryCatch(AggregateTeams());
-						Dictionary<PendingItemsKey, PendingItemsData> dict = pendingItems;
-						pendingItems = new Dictionary<PendingItemsKey, PendingItemsData>();
-						yield return PushPendingItemsLoopAsync(dict);
-					}
-					loop++;
-				}
-			}
-		}
-
-		private static IEnumerator TryCatch(IEnumerator coroutine)
-		{
-			while (true)
-			{
-				try
-				{
-					if (!coroutine.MoveNext())
-					{
-						break;
-					}
-				}
-				catch (Exception ex)
-				{
-					Debug.LogException(ex);
-					break;
-				}
-				yield return coroutine.Current;
-			}
-		}
-
-		private static IEnumerator AggregateEntitiesAndItems()
-		{
-			List<BaseNetworkable> entityQueue = new List<BaseNetworkable>();
-			entityQueue.Clear();
-			int totalCount = BaseNetworkable.serverEntities.Count;
-			entityQueue.AddRange(BaseNetworkable.serverEntities);
-			Dictionary<string, int> itemDict = new Dictionary<string, int>();
-			Dictionary<EntityKey, int> entityDict = new Dictionary<EntityKey, int>();
-			yield return null;
-			Debug.Log((object)"Starting to aggregate entities & items...");
-			DateTime startTime = DateTime.UtcNow;
-			Stopwatch watch = Stopwatch.StartNew();
-			foreach (BaseNetworkable entity in entityQueue)
-			{
-				if (watch.ElapsedMilliseconds > MaxMSPerFrame)
-				{
-					yield return null;
-					watch.Restart();
-				}
-				if ((Object)(object)entity == (Object)null || entity.IsDestroyed)
-				{
-					continue;
-				}
-				EntityKey entityKey = default(EntityKey);
-				entityKey.PrefabId = entity.prefabID;
-				EntityKey key = entityKey;
-				if (entity is BuildingBlock buildingBlock)
-				{
-					key.Grade = (int)(buildingBlock.grade + 1);
-				}
-				entityDict.TryGetValue(key, out var value);
-				entityDict[key] = value + 1;
-				if (!(entity is LootContainer) && !(entity is BasePlayer { IsNpc: not false }) && !(entity is NPCPlayer))
-				{
-					if (entity is BasePlayer basePlayer2)
-					{
-						AddItemsToDict(basePlayer2.inventory.containerMain, itemDict);
-						AddItemsToDict(basePlayer2.inventory.containerBelt, itemDict);
-						AddItemsToDict(basePlayer2.inventory.containerWear, itemDict);
-					}
-					else if (entity is IItemContainerEntity itemContainerEntity)
-					{
-						AddItemsToDict(itemContainerEntity.inventory, itemDict);
-					}
-					else if (entity is DroppedItemContainer { inventory: not null } droppedItemContainer)
-					{
-						AddItemsToDict(droppedItemContainer.inventory, itemDict);
-					}
-				}
-			}
-			Debug.Log((object)$"Took {Math.Round(DateTime.UtcNow.Subtract(startTime).TotalSeconds, 1)}s to aggregate {totalCount} entities & items...");
-			_ = DateTime.UtcNow;
-			SubmitPoint(EventRecord.New("entity_sum").AddObject("counts", entityDict.Select(delegate(KeyValuePair<EntityKey, int> x)
-			{
-				EntitySumItem result = default(EntitySumItem);
-				result.PrefabId = x.Key.PrefabId;
-				result.Grade = x.Key.Grade;
-				result.Count = x.Value;
-				return result;
-			})));
-			yield return null;
-			SubmitPoint(EventRecord.New("item_sum").AddObject("counts", itemDict));
-			yield return null;
-		}
-
-		private static void AddItemsToDict(ItemContainer container, Dictionary<string, int> dict)
-		{
-			if (container == null || container.itemList == null)
-			{
-				return;
-			}
-			foreach (Item item in container.itemList)
-			{
-				string shortname = item.info.shortname;
-				dict.TryGetValue(shortname, out var value);
-				dict[shortname] = value + item.amount;
-				if (item.contents != null)
-				{
-					AddItemsToDict(item.contents, dict);
-				}
-			}
-		}
-
-		private static IEnumerator PushPendingItemsLoopAsync(Dictionary<PendingItemsKey, PendingItemsData> dict)
-		{
-			Stopwatch watch = Stopwatch.StartNew();
-			foreach (PendingItemsData value in dict.Values)
-			{
-				try
-				{
-					LogResource(value.Key.Consumed ? ResourceMode.Consumed : ResourceMode.Produced, value.category, value.Key.Item, value.amount, null, null, safezone: false, null, 0uL, value.Key.Entity, null, null, 0uL);
-				}
-				catch (Exception ex)
-				{
-					Debug.LogException(ex);
-				}
-				PendingItemsData pendingItemsData = value;
-				Pool.Free<PendingItemsData>(ref pendingItemsData);
-				if (watch.ElapsedMilliseconds > MaxMSPerFrame)
-				{
-					yield return null;
-					watch.Restart();
-				}
-			}
-			dict.Clear();
-		}
-
-		public static void AddPendingItems(BaseEntity entity, string itemName, int amount, string category, bool consumed = true, bool perEntity = false)
-		{
-			//IL_0045: Unknown result type (might be due to invalid IL or missing references)
-			//IL_0036: Unknown result type (might be due to invalid IL or missing references)
-			//IL_003c: Unknown result type (might be due to invalid IL or missing references)
-			//IL_004a: Unknown result type (might be due to invalid IL or missing references)
-			PendingItemsKey pendingItemsKey = default(PendingItemsKey);
-			pendingItemsKey.Entity = entity.ShortPrefabName;
-			pendingItemsKey.Category = category;
-			pendingItemsKey.Item = itemName;
-			pendingItemsKey.Consumed = consumed;
-			pendingItemsKey.EntityId = (NetworkableId)(perEntity ? entity.net.ID : default(NetworkableId));
-			PendingItemsKey key = pendingItemsKey;
-			if (!pendingItems.TryGetValue(key, out var value))
-			{
-				value = Pool.Get<PendingItemsData>();
-				value.Key = key;
-				value.category = category;
-				pendingItems[key] = value;
-			}
-			value.amount += amount;
-		}
-
-		private static IEnumerator AggregatePlayers(bool blueprints = false, bool positions = false)
-		{
-			Stopwatch watch = Stopwatch.StartNew();
-			Dictionary<int, int> playerBps = (blueprints ? new Dictionary<int, int>() : null);
-			List<PlayerAggregate> playerPositions = (positions ? Pool.Get<List<PlayerAggregate>>() : null);
-			Enumerator<BasePlayer> enumerator = BasePlayer.activePlayerList.GetEnumerator();
-			try
-			{
-				while (enumerator.MoveNext())
-				{
-					BasePlayer current = enumerator.Current;
-					if ((Object)(object)current == (Object)null || current.IsDestroyed)
-					{
-						continue;
-					}
-					if (blueprints)
-					{
-						foreach (int unlockedItem in current.PersistantPlayerInfo.unlockedItems)
-						{
-							playerBps.TryGetValue(unlockedItem, out var value);
-							playerBps[unlockedItem] = value + 1;
-						}
-					}
-					if (positions)
-					{
-						PlayerAggregate playerAggregate = Pool.Get<PlayerAggregate>();
-						playerAggregate.UserId = current.UserIDString;
-						playerAggregate.Position = ((Component)current).transform.position;
-						Quaternion bodyRotation = current.eyes.bodyRotation;
-						playerAggregate.Direction = ((Quaternion)(ref bodyRotation)).eulerAngles;
-						foreach (Item item in current.inventory.containerBelt.itemList)
-						{
-							playerAggregate.Hotbar.Add(item.info.shortname);
-						}
-						foreach (Item item2 in current.inventory.containerWear.itemList)
-						{
-							playerAggregate.Worn.Add(item2.info.shortname);
-						}
-						playerAggregate.ActiveItem = current.GetActiveItem()?.info.shortname;
-						playerAggregate.Biome = GetBiome(((Component)current).transform.position);
-						playerPositions.Add(playerAggregate);
-					}
-					if (watch.ElapsedMilliseconds > MaxMSPerFrame)
-					{
-						yield return null;
-						watch.Restart();
-					}
-				}
-			}
-			finally
-			{
-				((IDisposable)enumerator/*cast due to .constrained prefix*/).Dispose();
-			}
-			if (blueprints)
-			{
-				SubmitPoint(EventRecord.New("blueprint_aggregate_online").AddObject("blueprints", playerBps.Select((KeyValuePair<int, int> x) => new
-				{
-					Key = ItemManager.FindItemDefinition(x.Key).shortname,
-					value = x.Value
-				})));
-			}
-			if (positions)
-			{
-				SubmitPoint(EventRecord.New("player_positions").AddObject("positions", playerPositions).AddObject("player_count", playerPositions.Count));
-				Pool.Free<PlayerAggregate>(ref playerPositions, true);
-			}
-		}
-
-		private static IEnumerator AggregateTeams()
-		{
-			yield return null;
-			HashSet<ulong> teamIds = new HashSet<ulong>();
-			int inTeam = 0;
-			int notInTeam = 0;
-			Enumerator<BasePlayer> enumerator = BasePlayer.activePlayerList.GetEnumerator();
-			try
-			{
-				while (enumerator.MoveNext())
-				{
-					BasePlayer current = enumerator.Current;
-					if ((Object)(object)current != (Object)null && !current.IsDestroyed && current.currentTeam != 0L)
-					{
-						teamIds.Add(current.currentTeam);
-						inTeam++;
-					}
-					else
-					{
-						notInTeam++;
-					}
-				}
-			}
-			finally
-			{
-				((IDisposable)enumerator/*cast due to .constrained prefix*/).Dispose();
-			}
-			yield return null;
-			Stopwatch watch = Stopwatch.StartNew();
-			List<TeamInfo> teams = Pool.Get<List<TeamInfo>>();
-			foreach (ulong item in teamIds)
-			{
-				RelationshipManager.PlayerTeam playerTeam = RelationshipManager.ServerInstance.FindTeam(item);
-				if (playerTeam == null || !((playerTeam.members != null) & (playerTeam.members.Count > 0)))
-				{
-					continue;
-				}
-				TeamInfo teamInfo = Pool.Get<TeamInfo>();
-				teams.Add(teamInfo);
-				foreach (ulong member in playerTeam.members)
-				{
-					BasePlayer basePlayer = RelationshipManager.FindByID(member);
-					if ((Object)(object)basePlayer != (Object)null && !basePlayer.IsDestroyed && basePlayer.IsConnected && !basePlayer.IsSleeping())
-					{
-						teamInfo.online.Add(SingletonComponent<ServerMgr>.Instance.persistance.GetUserWipeId(member));
-					}
-					else
-					{
-						teamInfo.offline.Add(SingletonComponent<ServerMgr>.Instance.persistance.GetUserWipeId(member));
-					}
-				}
-				teamInfo.member_count = teamInfo.online.Count + teamInfo.offline.Count;
-				if (watch.ElapsedMilliseconds > MaxMSPerFrame)
-				{
-					yield return null;
-					watch.Restart();
-				}
-			}
-			SubmitPoint(EventRecord.New("online_teams").AddObject("teams", teams).AddField("users_in_team", inTeam)
-				.AddField("users_not_in_team", notInTeam));
-			foreach (TeamInfo item2 in teams)
-			{
-				TeamInfo current4 = item2;
-				Pool.Free<TeamInfo>(ref current4);
-			}
-			Pool.Free<TeamInfo>(ref teams, false);
-		}
 	}
-
-	public class AzureWebInterface
-	{
-		public static readonly AzureWebInterface client = new AzureWebInterface(isClient: true);
-
-		public static readonly AzureWebInterface server = new AzureWebInterface(isClient: false);
-
-		public AzureAnalyticsUploader GameplayBulkUploader;
-
-		public static AnalyticsTable GameplayEventsTableServer = new AnalyticsTable("gameplay_events", TimeSpan.FromMinutes(5.0), AnalyticsDocumentMode.JSON, useJsonDataObject: true);
-
-		public bool IsClient;
-
-		public int MaxRetries = 1;
-
-		public int FlushSize = 1000;
-
-		public TimeSpan FlushDelay = TimeSpan.FromSeconds(30.0);
-
-		private DateTime nextFlush;
-
-		private ConcurrentQueue<EventRecord> uploadQueue = new ConcurrentQueue<EventRecord>();
-
-		private HttpClient HttpClient = new HttpClient();
-
-		private static readonly MediaTypeHeaderValue JsonContentType = new MediaTypeHeaderValue("application/json")
-		{
-			CharSet = Encoding.UTF8.WebName
-		};
-
-		public int PendingCount => uploadQueue.Count;
-
-		public AzureWebInterface(bool isClient)
-		{
-			//IL_0032: Unknown result type (might be due to invalid IL or missing references)
-			//IL_003c: Expected O, but got Unknown
-			IsClient = isClient;
-			Task.Run((Func<Task?>)UploadSchedulingThread);
-		}
-
-		public void EnqueueEvent(EventRecord point)
-		{
-			if (!IsClient && !string.IsNullOrEmpty(GetContainerUrl()))
-			{
-				if (GameplayBulkUploader.NeedsCreation())
-				{
-					GameplayBulkUploader = AzureAnalyticsUploader.Create("gameplay_events", TimeSpan.FromMinutes(5.0));
-					GameplayBulkUploader.UseJsonDataObject = true;
-				}
-				GameplayBulkUploader.Append(point);
-			}
-			else
-			{
-				point.MarkSubmitted();
-				uploadQueue.Enqueue(point);
-			}
-		}
-
-		private async Task UploadSchedulingThread()
-		{
-			while (!Application.isQuitting)
-			{
-				try
-				{
-					DateTime utcNow = DateTime.UtcNow;
-					if (uploadQueue.IsEmpty || (uploadQueue.Count < FlushSize && nextFlush > utcNow))
-					{
-						await Task.Delay(1000);
-						continue;
-					}
-					nextFlush = utcNow.Add(FlushDelay);
-					List<EventRecord> list = Pool.Get<List<EventRecord>>();
-					EventRecord result;
-					while (uploadQueue.TryDequeue(out result))
-					{
-						list.Add(result);
-					}
-					Task.Run(async delegate
-					{
-						await UploadAsync(list);
-					});
-				}
-				catch (Exception ex)
-				{
-					Debug.LogException(ex);
-					await Task.Delay(1000);
-				}
-			}
-		}
-
-		private void SerializeEvents(List<EventRecord> records, MemoryStream stream)
-		{
-			//IL_0002: Unknown result type (might be due to invalid IL or missing references)
-			//IL_0007: Unknown result type (might be due to invalid IL or missing references)
-			int num = 0;
-			Utf8ValueStringBuilder writer = ZString.CreateUtf8StringBuilder();
-			try
-			{
-				((Utf8ValueStringBuilder)(ref writer)).Append("[");
-				foreach (EventRecord record in records)
-				{
-					if (num > 0)
-					{
-						((Utf8ValueStringBuilder)(ref writer)).Append(',');
-					}
-					record.SerializeAsJson(ref writer);
-					num++;
-				}
-				((Utf8ValueStringBuilder)(ref writer)).Append("]");
-				((Utf8ValueStringBuilder)(ref writer)).WriteTo((Stream)stream);
-			}
-			finally
-			{
-				((Utf8ValueStringBuilder)(ref writer)).Dispose();
-			}
-		}
-
-		private async Task UploadAsync(List<EventRecord> records, bool useStoredAuthTicket = false)
-		{
-			if (!PlatformService.Instance.IsValid)
-			{
-				return;
-			}
-			if (!((!IsClient) ? (Application.Manifest?.Features?.ServerAnalytics == true) : (PlatformService.Instance.IsValid && Application.Manifest?.Features?.ClientAnalytics == true)))
-			{
-				Pool.Free<EventRecord>(ref records, true);
-				return;
-			}
-			if (records.Count == 0)
-			{
-				Pool.Free<EventRecord>(ref records, false);
-				return;
-			}
-			MemoryStream stream = Pool.Get<MemoryStream>();
-			stream.Position = 0L;
-			stream.SetLength(0L);
-			try
-			{
-				SerializeEvents(records, stream);
-				AuthTicket ticket = null;
-				for (int attempt = 0; attempt < MaxRetries; attempt++)
-				{
-					try
-					{
-						ByteArrayContent content = new ByteArrayContent(stream.GetBuffer(), 0, (int)stream.Length);
-						try
-						{
-							((HttpContent)content).Headers.ContentType = JsonContentType;
-							if (!string.IsNullOrEmpty(AnalyticsSecret))
-							{
-								((HttpHeaders)((HttpContent)content).Headers).Add(AnalyticsHeader, AnalyticsSecret);
-							}
-							else
-							{
-								((HttpHeaders)((HttpContent)content).Headers).Add(AnalyticsHeader, AnalyticsPublicKey);
-							}
-							if (!IsClient)
-							{
-								((HttpHeaders)((HttpContent)content).Headers).Add("X-SERVER-IP", Net.sv.ip);
-								((HttpHeaders)((HttpContent)content).Headers).Add("X-SERVER-PORT", Net.sv.port.ToString());
-							}
-							(await HttpClient.PostAsync(IsClient ? ClientAnalyticsUrl : ServerAnalyticsUrl, (HttpContent)(object)content)).EnsureSuccessStatusCode();
-						}
-						finally
-						{
-							((IDisposable)content)?.Dispose();
-						}
-					}
-					catch (Exception ex)
-					{
-						HttpRequestException val = (HttpRequestException)(object)((ex is HttpRequestException) ? ex : null);
-						if (val != null)
-						{
-							Debug.Log((object)("HTTP Error when uploading analytics: " + ((Exception)(object)val).Message));
-						}
-						else
-						{
-							Debug.LogException(ex);
-						}
-						goto IL_02ce;
-					}
-					break;
-					IL_02ce:
-					if (ticket != null)
-					{
-						try
-						{
-							ticket.Cancel();
-						}
-						catch (Exception ex2)
-						{
-							Debug.LogError((object)("Failed to cancel auth ticket in analytics: " + ex2.ToString()));
-						}
-					}
-				}
-			}
-			catch (Exception ex3)
-			{
-				if (IsClient)
-				{
-					Debug.LogWarning((object)ex3.ToString());
-				}
-				else
-				{
-					Debug.LogException(ex3);
-				}
-			}
-			finally
-			{
-				Pool.Free<EventRecord>(ref records, true);
-				Pool.FreeUnmanaged(ref stream);
-			}
-		}
-	}
-
-	[ConsoleVar(Clientside = true, Serverside = true, ServerAdmin = true)]
-	public static bool UseV2 = true;
 
 	private const int ShutdownTimeoutMs = 10000;
 
@@ -24179,37 +24218,6 @@ public static class Analytics
 	[RconVar(Name = "gameplay_rpc_analytics", Saved = true, Help = "Toggle whether gameplay rpc logging is collected")]
 	public static bool GameplayRpcAnalyticsConVar { get; set; } = false;
 
-	[RconVar(Name = "small_buffer_send_limit", Saved = true, Help = "Size of analytics events, in bytes, that we try to send off using the same task thread. To disable, set to -1")]
-	public static int SmallBufferSendLimit
-	{
-		get
-		{
-			return AzureAnalyticsUploader.SmallBufferSendLimit;
-		}
-		set
-		{
-			AzureAnalyticsUploader.SmallBufferSendLimit = value;
-		}
-	}
-
-	[RconVar(Name = "pending_analytics", Help = "Shows how many analytics events are pending upload")]
-	[ClientVar(Name = "pending_analytics", Help = "Shows how many analytics events are pending upload")]
-	public static void GetPendingAnalytics(Arg arg)
-	{
-		StringBuilder stringBuilder = new StringBuilder();
-		stringBuilder.AppendLine($"Server Pending: {AzureWebInterface.server.PendingCount}");
-		arg.ReplyWith(stringBuilder.ToString());
-	}
-
-	public static string GetContainerUrl()
-	{
-		if (string.IsNullOrEmpty(BulkUploadConnectionString))
-		{
-			return BulkContainerUrl;
-		}
-		return BulkUploadConnectionString;
-	}
-
 	public static void StartForServer()
 	{
 		if (!started)
@@ -24232,11 +24240,6 @@ public static class Analytics
 	[ConsoleVar(Clientside = true, Serverside = true, ServerAdmin = true)]
 	public static void Stats(Arg arg)
 	{
-		if (!UseV2)
-		{
-			arg.ReplyWith("Stats only available in V2 analytics");
-			return;
-		}
 		AnalyticsManager.TelemStats telemStats = Manager.GatherStats();
 		string empty = string.Empty;
 		empty += $"Total Events: {telemStats.SerializedCount}\n";
@@ -24250,11 +24253,6 @@ public static class Analytics
 	[ConsoleVar(Clientside = true, Serverside = true, ServerAdmin = true)]
 	public static void TableStats(Arg arg)
 	{
-		if (!UseV2)
-		{
-			arg.ReplyWith("Stats only available in V2 analytics");
-			return;
-		}
 		TextTable val = Pool.Get<TextTable>();
 		val.ResizeColumns(8);
 		val.AddColumn("Table Name");
@@ -24295,11 +24293,6 @@ public static class Analytics
 	[ConsoleVar(Clientside = true, Serverside = true, ServerAdmin = true)]
 	public static void UploaderStats(Arg arg)
 	{
-		if (!UseV2)
-		{
-			arg.ReplyWith("Stats only available in V2 analytics");
-			return;
-		}
 		TextTable val = Pool.Get<TextTable>();
 		val.ResizeColumns(7);
 		val.AddColumn("Uploader Name");
@@ -24333,14 +24326,7 @@ public static class Analytics
 	[ConsoleVar(Clientside = true, Serverside = true, ServerAdmin = true)]
 	public static void ResetStats(Arg arg)
 	{
-		if (!UseV2)
-		{
-			arg.ReplyWith("Stats only available in V2 analytics");
-		}
-		else
-		{
-			Manager.ResetStats();
-		}
+		Manager.ResetStats();
 	}
 }
 
@@ -24362,6 +24348,142 @@ using UnityEngine;
 
 public static class Azure
 {
+	[JsonModel]
+	private struct EntitySumItem
+	{
+		public uint PrefabId;
+
+		public int Count;
+
+		public int Grade;
+	}
+
+	private struct EntityKey : IEquatable<EntityKey>
+	{
+		public uint PrefabId;
+
+		public int Grade;
+
+		public bool Equals(EntityKey other)
+		{
+			if (PrefabId == other.PrefabId)
+			{
+				return Grade == other.Grade;
+			}
+			return false;
+		}
+
+		public override int GetHashCode()
+		{
+			return (17 * 23 + PrefabId.GetHashCode()) * 31 + Grade.GetHashCode();
+		}
+	}
+
+	private class PendingItemsData : IPooled
+	{
+		public PendingItemsKey Key;
+
+		public int amount;
+
+		public string category;
+
+		public void EnterPool()
+		{
+			Key = default(PendingItemsKey);
+			amount = 0;
+			category = null;
+		}
+
+		public void LeavePool()
+		{
+		}
+	}
+
+	private struct PendingItemsKey : IEquatable<PendingItemsKey>
+	{
+		public string Item;
+
+		public bool Consumed;
+
+		public string Entity;
+
+		public string Category;
+
+		public NetworkableId EntityId;
+
+		public bool Equals(PendingItemsKey other)
+		{
+			//IL_0027: Unknown result type (might be due to invalid IL or missing references)
+			//IL_002d: Unknown result type (might be due to invalid IL or missing references)
+			if (Item == other.Item && Entity == other.Entity && EntityId == other.EntityId && Consumed == other.Consumed)
+			{
+				return Category == other.Category;
+			}
+			return false;
+		}
+
+		public override int GetHashCode()
+		{
+			return ((((17 * 23 + Item.GetHashCode()) * 31 + Consumed.GetHashCode()) * 37 + Entity.GetHashCode()) * 47 + Category.GetHashCode()) * 53 + ((object)(NetworkableId)(ref EntityId)/*cast due to .constrained prefix*/).GetHashCode();
+		}
+	}
+
+	[JsonModel]
+	private class PlayerAggregate : IPooled
+	{
+		public string UserId;
+
+		public Vector3 Position;
+
+		public Vector3 Direction;
+
+		public List<string> Hotbar = new List<string>();
+
+		public List<string> Worn = new List<string>();
+
+		public string ActiveItem;
+
+		public string Biome;
+
+		public void EnterPool()
+		{
+			//IL_000d: Unknown result type (might be due to invalid IL or missing references)
+			//IL_0019: Unknown result type (might be due to invalid IL or missing references)
+			UserId = null;
+			Position = default(Vector3);
+			Direction = default(Vector3);
+			Hotbar.Clear();
+			Worn.Clear();
+			ActiveItem = null;
+			Biome = null;
+		}
+
+		public void LeavePool()
+		{
+		}
+	}
+
+	[JsonModel]
+	private class TeamInfo : IPooled
+	{
+		public List<string> online = new List<string>();
+
+		public List<string> offline = new List<string>();
+
+		public int member_count;
+
+		public void EnterPool()
+		{
+			online.Clear();
+			offline.Clear();
+			member_count = 0;
+		}
+
+		public void LeavePool()
+		{
+		}
+	}
+
 	public enum ResourceMode
 	{
 		Produced,
@@ -24600,156 +24722,490 @@ public static class Azure
 		}
 	}
 
-	[JsonModel]
-	private struct EntitySumItem
-	{
-		public uint PrefabId;
-
-		public int Count;
-
-		public int Grade;
-	}
-
-	private struct EntityKey : IEquatable<EntityKey>
-	{
-		public uint PrefabId;
-
-		public int Grade;
-
-		public bool Equals(EntityKey other)
-		{
-			if (PrefabId == other.PrefabId)
-			{
-				return Grade == other.Grade;
-			}
-			return false;
-		}
-
-		public override int GetHashCode()
-		{
-			return (17 * 23 + PrefabId.GetHashCode()) * 31 + Grade.GetHashCode();
-		}
-	}
-
-	private class PendingItemsData : IPooled
-	{
-		public PendingItemsKey Key;
-
-		public int amount;
-
-		public string category;
-
-		public void EnterPool()
-		{
-			Key = default(PendingItemsKey);
-			amount = 0;
-			category = null;
-		}
-
-		public void LeavePool()
-		{
-		}
-	}
-
-	private struct PendingItemsKey : IEquatable<PendingItemsKey>
-	{
-		public string Item;
-
-		public bool Consumed;
-
-		public string Entity;
-
-		public string Category;
-
-		public NetworkableId EntityId;
-
-		public bool Equals(PendingItemsKey other)
-		{
-			//IL_0027: Unknown result type (might be due to invalid IL or missing references)
-			//IL_002d: Unknown result type (might be due to invalid IL or missing references)
-			if (Item == other.Item && Entity == other.Entity && EntityId == other.EntityId && Consumed == other.Consumed)
-			{
-				return Category == other.Category;
-			}
-			return false;
-		}
-
-		public override int GetHashCode()
-		{
-			return ((((17 * 23 + Item.GetHashCode()) * 31 + Consumed.GetHashCode()) * 37 + Entity.GetHashCode()) * 47 + Category.GetHashCode()) * 53 + ((object)(NetworkableId)(ref EntityId)/*cast due to .constrained prefix*/).GetHashCode();
-		}
-	}
-
-	[JsonModel]
-	private class PlayerAggregate : IPooled
-	{
-		public string UserId;
-
-		public Vector3 Position;
-
-		public Vector3 Direction;
-
-		public List<string> Hotbar = new List<string>();
-
-		public List<string> Worn = new List<string>();
-
-		public string ActiveItem;
-
-		public string Biome;
-
-		public void EnterPool()
-		{
-			//IL_000d: Unknown result type (might be due to invalid IL or missing references)
-			//IL_0019: Unknown result type (might be due to invalid IL or missing references)
-			UserId = null;
-			Position = default(Vector3);
-			Direction = default(Vector3);
-			Hotbar.Clear();
-			Worn.Clear();
-			ActiveItem = null;
-			Biome = null;
-		}
-
-		public void LeavePool()
-		{
-		}
-	}
-
-	[JsonModel]
-	private class TeamInfo : IPooled
-	{
-		public List<string> online = new List<string>();
-
-		public List<string> offline = new List<string>();
-
-		public int member_count;
-
-		public void EnterPool()
-		{
-			online.Clear();
-			offline.Clear();
-			member_count = 0;
-		}
-
-		public void LeavePool()
-		{
-		}
-	}
-
-	private static Dictionary<FiredProjectileKey, PendingFiredProjectile> trackedProjectiles = new Dictionary<FiredProjectileKey, PendingFiredProjectile>();
-
 	private static Dictionary<int, string> geneCache = new Dictionary<int, string>();
 
 	public static int MaxMSPerFrame = 5;
 
 	private static Dictionary<PendingItemsKey, PendingItemsData> pendingItems = new Dictionary<PendingItemsKey, PendingItemsData>();
 
+	private static Dictionary<FiredProjectileKey, PendingFiredProjectile> trackedProjectiles = new Dictionary<FiredProjectileKey, PendingFiredProjectile>();
+
 	public static bool GameplayAnalytics => GameplayAnalyticsConVar;
+
+	private static string GetGenesAsString(GrowableEntity plant)
+	{
+		int key = GrowableGeneEncoding.EncodeGenesToInt(plant.Genes);
+		if (!geneCache.TryGetValue(key, out var value))
+		{
+			return string.Join("", from x in plant.Genes.Genes
+				group x by x.GetDisplayCharacter() into x
+				orderby x.Key
+				select x.Count() + x.Key);
+		}
+		return value;
+	}
+
+	private static string GetMonument(BaseEntity entity)
+	{
+		//IL_0085: Unknown result type (might be due to invalid IL or missing references)
+		if ((Object)(object)entity == (Object)null)
+		{
+			return null;
+		}
+		SpawnGroup spawnGroup = null;
+		if (entity is BaseCorpse baseCorpse)
+		{
+			spawnGroup = baseCorpse.spawnGroup;
+		}
+		if ((Object)(object)spawnGroup == (Object)null)
+		{
+			SpawnPointInstance component = ((Component)entity).GetComponent<SpawnPointInstance>();
+			if ((Object)(object)component != (Object)null)
+			{
+				spawnGroup = component.parentSpawnPointUser as SpawnGroup;
+			}
+		}
+		if ((Object)(object)spawnGroup != (Object)null)
+		{
+			if (!string.IsNullOrEmpty(spawnGroup.category))
+			{
+				return spawnGroup.category;
+			}
+			if ((Object)(object)spawnGroup.Monument != (Object)null)
+			{
+				return ((Object)spawnGroup.Monument).name;
+			}
+		}
+		MonumentInfo monumentInfo = TerrainMeta.Path.FindMonumentWithBoundsOverlap(((Component)entity).transform.position);
+		if ((Object)(object)monumentInfo != (Object)null)
+		{
+			return ((Object)monumentInfo).name;
+		}
+		return null;
+	}
+
+	private static string GetBiome(Vector3 position)
+	{
+		//IL_0007: Unknown result type (might be due to invalid IL or missing references)
+		//IL_000e: Unknown result type (might be due to invalid IL or missing references)
+		//IL_000f: Unknown result type (might be due to invalid IL or missing references)
+		//IL_0011: Invalid comparison between Unknown and I4
+		//IL_0031: Unknown result type (might be due to invalid IL or missing references)
+		//IL_0034: Invalid comparison between Unknown and I4
+		//IL_0013: Unknown result type (might be due to invalid IL or missing references)
+		//IL_0015: Unknown result type (might be due to invalid IL or missing references)
+		//IL_002b: Expected I4, but got Unknown
+		//IL_0036: Unknown result type (might be due to invalid IL or missing references)
+		//IL_0039: Invalid comparison between Unknown and I4
+		//IL_002b: Unknown result type (might be due to invalid IL or missing references)
+		//IL_002d: Invalid comparison between Unknown and I4
+		string result = null;
+		Enum val = (Enum)TerrainMeta.BiomeMap.GetBiomeMaxType(position);
+		if ((int)val <= 8)
+		{
+			switch (val - 1)
+			{
+			default:
+				if ((int)val == 8)
+				{
+					result = "arctic";
+				}
+				break;
+			case 0:
+				result = "arid";
+				break;
+			case 1:
+				result = "grass";
+				break;
+			case 3:
+				result = "tundra";
+				break;
+			case 2:
+				break;
+			}
+		}
+		else if ((int)val != 16)
+		{
+			if ((int)val == 32)
+			{
+				result = "deepsea";
+			}
+		}
+		else
+		{
+			result = "jungle";
+		}
+		return result;
+	}
+
+	private static bool IsOcean(Vector3 position)
+	{
+		//IL_0005: Unknown result type (might be due to invalid IL or missing references)
+		return TerrainMeta.TopologyMap.GetTopology(position) == 128;
+	}
+
+	public static Dictionary<string, string> GetHardwareData()
+	{
+		string value;
+		using (SHA256 sHA = SHA256.Create())
+		{
+			value = Convert.ToBase64String(sHA.ComputeHash(Encoding.UTF8.GetBytes(SystemInfo.deviceUniqueIdentifier)));
+		}
+		return new Dictionary<string, string>
+		{
+			["device_name"] = SystemInfo.deviceName,
+			["device_hash"] = value,
+			["gpu_name"] = SystemInfo.graphicsDeviceName,
+			["gpu_ram"] = SystemInfo.graphicsMemorySize.ToString(),
+			["gpu_vendor"] = SystemInfo.graphicsDeviceVendor,
+			["gpu_version"] = SystemInfo.graphicsDeviceVersion,
+			["gpu_shader_level"] = SystemInfo.graphicsShaderLevel.ToString(),
+			["gpu_max_buffer_size"] = SystemInfo.maxGraphicsBufferSize.ToString(),
+			["gpu_device_version"] = SystemInfo.graphicsDeviceVersion.ToString(),
+			["cpu_cores"] = SystemInfo.processorCount.ToString(),
+			["max_compute_work_size"] = SystemInfo.maxComputeWorkGroupSize.ToString(),
+			["max_compute_work_size_x"] = SystemInfo.maxComputeWorkGroupSizeX.ToString(),
+			["max_compute_work_size_y"] = SystemInfo.maxComputeWorkGroupSizeY.ToString(),
+			["max_compute_work_size_z"] = SystemInfo.maxComputeWorkGroupSizeZ.ToString(),
+			["cpu_frequency"] = SystemInfo.processorFrequency.ToString(),
+			["gpu_max_texture_size"] = SystemInfo.maxTextureSize.ToString(),
+			["cpu_name"] = SystemInfo.processorType.Trim(),
+			["system_memory"] = SystemInfo.systemMemorySize.ToString(),
+			["os"] = SystemInfo.operatingSystem,
+			["supports_compute_shaders"] = SystemInfo.supportsComputeShaders.ToString(),
+			["supports_async_compute"] = SystemInfo.supportsAsyncCompute.ToString(),
+			["supports_async_gpu_readback"] = SystemInfo.supportsAsyncGPUReadback.ToString(),
+			["supports_3d_textures"] = SystemInfo.supports3DTextures.ToString(),
+			["supports_instancing"] = SystemInfo.supportsInstancing.ToString()
+		};
+	}
+
+	public static Dictionary<string, string> GetApplicationData()
+	{
+		Dictionary<string, string> obj = new Dictionary<string, string> { ["unity"] = Application.unityVersion ?? "editor" };
+		BuildInfo current = BuildInfo.Current;
+		obj["changeset"] = ((current != null) ? current.Scm.ChangeId : null) ?? "editor";
+		BuildInfo current2 = BuildInfo.Current;
+		obj["branch"] = ((current2 != null) ? current2.Scm.Branch : null) ?? "editor";
+		obj["network_version"] = 2631.ToString();
+		obj["eos_sdk"] = ((object)VersionInterface.GetVersion())?.ToString() ?? "disabled";
+		return obj;
+	}
+
+	private static IEnumerator AggregateLoop()
+	{
+		int loop = 0;
+		while (!Application.isQuitting)
+		{
+			yield return CoroutineEx.waitForSecondsRealtime(60f);
+			if (GameplayAnalytics)
+			{
+				yield return TryCatch(AggregatePlayers(blueprints: false, positions: true));
+				if (loop % 60 == 0)
+				{
+					PushServerInfo();
+					yield return TryCatch(AggregateEntitiesAndItems());
+					yield return TryCatch(AggregatePlayers(blueprints: true));
+					yield return TryCatch(AggregateTeams());
+					Dictionary<PendingItemsKey, PendingItemsData> dict = pendingItems;
+					pendingItems = new Dictionary<PendingItemsKey, PendingItemsData>();
+					yield return PushPendingItemsLoopAsync(dict);
+				}
+				loop++;
+			}
+		}
+	}
+
+	private static IEnumerator TryCatch(IEnumerator coroutine)
+	{
+		while (true)
+		{
+			try
+			{
+				if (!coroutine.MoveNext())
+				{
+					break;
+				}
+			}
+			catch (Exception ex)
+			{
+				Debug.LogException(ex);
+				break;
+			}
+			yield return coroutine.Current;
+		}
+	}
+
+	private static IEnumerator AggregateEntitiesAndItems()
+	{
+		List<BaseNetworkable> entityQueue = new List<BaseNetworkable>();
+		entityQueue.Clear();
+		int totalCount = BaseNetworkable.serverEntities.Count;
+		entityQueue.AddRange(BaseNetworkable.serverEntities);
+		Dictionary<string, int> itemDict = new Dictionary<string, int>();
+		Dictionary<EntityKey, int> entityDict = new Dictionary<EntityKey, int>();
+		yield return null;
+		Debug.Log((object)"Starting to aggregate entities & items...");
+		DateTime startTime = DateTime.UtcNow;
+		Stopwatch watch = Stopwatch.StartNew();
+		foreach (BaseNetworkable entity in entityQueue)
+		{
+			if (watch.ElapsedMilliseconds > MaxMSPerFrame)
+			{
+				yield return null;
+				watch.Restart();
+			}
+			if ((Object)(object)entity == (Object)null || entity.IsDestroyed)
+			{
+				continue;
+			}
+			EntityKey entityKey = default(EntityKey);
+			entityKey.PrefabId = entity.prefabID;
+			EntityKey key = entityKey;
+			if (entity is BuildingBlock buildingBlock)
+			{
+				key.Grade = (int)(buildingBlock.grade + 1);
+			}
+			entityDict.TryGetValue(key, out var value);
+			entityDict[key] = value + 1;
+			if (!(entity is LootContainer) && !(entity is BasePlayer { IsNpc: not false }) && !(entity is NPCPlayer))
+			{
+				if (entity is BasePlayer basePlayer2)
+				{
+					AddItemsToDict(basePlayer2.inventory.containerMain, itemDict);
+					AddItemsToDict(basePlayer2.inventory.containerBelt, itemDict);
+					AddItemsToDict(basePlayer2.inventory.containerWear, itemDict);
+				}
+				else if (entity is IItemContainerEntity itemContainerEntity)
+				{
+					AddItemsToDict(itemContainerEntity.inventory, itemDict);
+				}
+				else if (entity is DroppedItemContainer { inventory: not null } droppedItemContainer)
+				{
+					AddItemsToDict(droppedItemContainer.inventory, itemDict);
+				}
+			}
+		}
+		Debug.Log((object)$"Took {Math.Round(DateTime.UtcNow.Subtract(startTime).TotalSeconds, 1)}s to aggregate {totalCount} entities & items...");
+		_ = DateTime.UtcNow;
+		SubmitPoint(EventRecord.New("entity_sum").AddObject("counts", entityDict.Select(delegate(KeyValuePair<EntityKey, int> x)
+		{
+			EntitySumItem result = default(EntitySumItem);
+			result.PrefabId = x.Key.PrefabId;
+			result.Grade = x.Key.Grade;
+			result.Count = x.Value;
+			return result;
+		})));
+		yield return null;
+		SubmitPoint(EventRecord.New("item_sum").AddObject("counts", itemDict));
+		yield return null;
+	}
+
+	private static void AddItemsToDict(ItemContainer container, Dictionary<string, int> dict)
+	{
+		if (container == null || container.itemList == null)
+		{
+			return;
+		}
+		foreach (Item item in container.itemList)
+		{
+			string shortname = item.info.shortname;
+			dict.TryGetValue(shortname, out var value);
+			dict[shortname] = value + item.amount;
+			if (item.contents != null)
+			{
+				AddItemsToDict(item.contents, dict);
+			}
+		}
+	}
+
+	private static IEnumerator PushPendingItemsLoopAsync(Dictionary<PendingItemsKey, PendingItemsData> dict)
+	{
+		Stopwatch watch = Stopwatch.StartNew();
+		foreach (PendingItemsData value in dict.Values)
+		{
+			try
+			{
+				LogResource(value.Key.Consumed ? ResourceMode.Consumed : ResourceMode.Produced, value.category, value.Key.Item, value.amount, null, null, safezone: false, null, 0uL, value.Key.Entity, null, null, 0uL);
+			}
+			catch (Exception ex)
+			{
+				Debug.LogException(ex);
+			}
+			PendingItemsData pendingItemsData = value;
+			Pool.Free<PendingItemsData>(ref pendingItemsData);
+			if (watch.ElapsedMilliseconds > MaxMSPerFrame)
+			{
+				yield return null;
+				watch.Restart();
+			}
+		}
+		dict.Clear();
+	}
+
+	public static void AddPendingItems(BaseEntity entity, string itemName, int amount, string category, bool consumed = true, bool perEntity = false)
+	{
+		//IL_0045: Unknown result type (might be due to invalid IL or missing references)
+		//IL_0036: Unknown result type (might be due to invalid IL or missing references)
+		//IL_003c: Unknown result type (might be due to invalid IL or missing references)
+		//IL_004a: Unknown result type (might be due to invalid IL or missing references)
+		PendingItemsKey pendingItemsKey = default(PendingItemsKey);
+		pendingItemsKey.Entity = entity.ShortPrefabName;
+		pendingItemsKey.Category = category;
+		pendingItemsKey.Item = itemName;
+		pendingItemsKey.Consumed = consumed;
+		pendingItemsKey.EntityId = (NetworkableId)(perEntity ? entity.net.ID : default(NetworkableId));
+		PendingItemsKey key = pendingItemsKey;
+		if (!pendingItems.TryGetValue(key, out var value))
+		{
+			value = Pool.Get<PendingItemsData>();
+			value.Key = key;
+			value.category = category;
+			pendingItems[key] = value;
+		}
+		value.amount += amount;
+	}
+
+	private static IEnumerator AggregatePlayers(bool blueprints = false, bool positions = false)
+	{
+		Stopwatch watch = Stopwatch.StartNew();
+		Dictionary<int, int> playerBps = (blueprints ? new Dictionary<int, int>() : null);
+		List<PlayerAggregate> playerPositions = (positions ? Pool.Get<List<PlayerAggregate>>() : null);
+		Enumerator<BasePlayer> enumerator = BasePlayer.activePlayerList.GetEnumerator();
+		try
+		{
+			while (enumerator.MoveNext())
+			{
+				BasePlayer current = enumerator.Current;
+				if ((Object)(object)current == (Object)null || current.IsDestroyed)
+				{
+					continue;
+				}
+				if (blueprints)
+				{
+					foreach (int unlockedItem in current.PersistantPlayerInfo.unlockedItems)
+					{
+						playerBps.TryGetValue(unlockedItem, out var value);
+						playerBps[unlockedItem] = value + 1;
+					}
+				}
+				if (positions)
+				{
+					PlayerAggregate playerAggregate = Pool.Get<PlayerAggregate>();
+					playerAggregate.UserId = current.UserIDString;
+					playerAggregate.Position = ((Component)current).transform.position;
+					Quaternion bodyRotation = current.eyes.bodyRotation;
+					playerAggregate.Direction = ((Quaternion)(ref bodyRotation)).eulerAngles;
+					foreach (Item item in current.inventory.containerBelt.itemList)
+					{
+						playerAggregate.Hotbar.Add(item.info.shortname);
+					}
+					foreach (Item item2 in current.inventory.containerWear.itemList)
+					{
+						playerAggregate.Worn.Add(item2.info.shortname);
+					}
+					playerAggregate.ActiveItem = current.GetActiveItem()?.info.shortname;
+					playerAggregate.Biome = GetBiome(((Component)current).transform.position);
+					playerPositions.Add(playerAggregate);
+				}
+				if (watch.ElapsedMilliseconds > MaxMSPerFrame)
+				{
+					yield return null;
+					watch.Restart();
+				}
+			}
+		}
+		finally
+		{
+			((IDisposable)enumerator/*cast due to .constrained prefix*/).Dispose();
+		}
+		if (blueprints)
+		{
+			SubmitPoint(EventRecord.New("blueprint_aggregate_online").AddObject("blueprints", playerBps.Select((KeyValuePair<int, int> x) => new
+			{
+				Key = ItemManager.FindItemDefinition(x.Key).shortname,
+				value = x.Value
+			})));
+		}
+		if (positions)
+		{
+			SubmitPoint(EventRecord.New("player_positions").AddObject("positions", playerPositions).AddObject("player_count", playerPositions.Count));
+			Pool.Free<PlayerAggregate>(ref playerPositions, true);
+		}
+	}
+
+	private static IEnumerator AggregateTeams()
+	{
+		yield return null;
+		HashSet<ulong> teamIds = new HashSet<ulong>();
+		int inTeam = 0;
+		int notInTeam = 0;
+		Enumerator<BasePlayer> enumerator = BasePlayer.activePlayerList.GetEnumerator();
+		try
+		{
+			while (enumerator.MoveNext())
+			{
+				BasePlayer current = enumerator.Current;
+				if ((Object)(object)current != (Object)null && !current.IsDestroyed && current.currentTeam != 0L)
+				{
+					teamIds.Add(current.currentTeam);
+					inTeam++;
+				}
+				else
+				{
+					notInTeam++;
+				}
+			}
+		}
+		finally
+		{
+			((IDisposable)enumerator/*cast due to .constrained prefix*/).Dispose();
+		}
+		yield return null;
+		Stopwatch watch = Stopwatch.StartNew();
+		List<TeamInfo> teams = Pool.Get<List<TeamInfo>>();
+		foreach (ulong item in teamIds)
+		{
+			RelationshipManager.PlayerTeam playerTeam = RelationshipManager.ServerInstance.FindTeam(item);
+			if (playerTeam == null || !((playerTeam.members != null) & (playerTeam.members.Count > 0)))
+			{
+				continue;
+			}
+			TeamInfo teamInfo = Pool.Get<TeamInfo>();
+			teams.Add(teamInfo);
+			foreach (ulong member in playerTeam.members)
+			{
+				BasePlayer basePlayer = RelationshipManager.FindByID(member);
+				if ((Object)(object)basePlayer != (Object)null && !basePlayer.IsDestroyed && basePlayer.IsConnected && !basePlayer.IsSleeping())
+				{
+					teamInfo.online.Add(SingletonComponent<ServerMgr>.Instance.persistance.GetUserWipeId(member));
+				}
+				else
+				{
+					teamInfo.offline.Add(SingletonComponent<ServerMgr>.Instance.persistance.GetUserWipeId(member));
+				}
+			}
+			teamInfo.member_count = teamInfo.online.Count + teamInfo.offline.Count;
+			if (watch.ElapsedMilliseconds > MaxMSPerFrame)
+			{
+				yield return null;
+				watch.Restart();
+			}
+		}
+		SubmitPoint(EventRecord.New("online_teams").AddObject("teams", teams).AddField("users_in_team", inTeam)
+			.AddField("users_not_in_team", notInTeam));
+		foreach (TeamInfo item2 in teams)
+		{
+			TeamInfo current4 = item2;
+			Pool.Free<TeamInfo>(ref current4);
+		}
+		Pool.Free<TeamInfo>(ref teams, false);
+	}
 
 	public static void Initialize()
 	{
 		TickLogging.RegisterForAnalytics(Manager);
-		Manager.AddTable(AzureWebInterface.GameplayEventsTableServer, Manager.ServerUploader);
+		Manager.AddTable(AnalyticsManager.GameplayEventsTableServer, Manager.ServerUploader);
 		PushItemDefinitions();
 		PushEntityManifest();
 		((MonoBehaviour)SingletonComponent<ServerMgr>.Instance).StartCoroutine(AggregateLoop());
@@ -24768,8 +25224,8 @@ public static class Azure
 				.AddField("ip_convar", Net.sv.ip)
 				.AddField("port_convar", Net.sv.port)
 				.AddField("net_protocol", Net.sv.ProtocolId)
-				.AddField("protocol_network", 2625)
-				.AddField("protocol_save", 284);
+				.AddField("protocol_network", 2631)
+				.AddField("protocol_save", 286);
 			BuildInfo current = BuildInfo.Current;
 			EventRecord eventRecord2 = eventRecord.AddField("changeset", ((current != null) ? current.Scm.ChangeId : null) ?? "0").AddField("unity_version", Application.unityVersion);
 			BuildInfo current2 = BuildInfo.Current;
@@ -25503,7 +25959,7 @@ public static class Azure
 				.AddField("message", message);
 			if (BuildInfo.Current != null)
 			{
-				eventRecord.AddField("changeset", BuildInfo.Current.Scm.ChangeId).AddField("network", 2625);
+				eventRecord.AddField("changeset", BuildInfo.Current.Scm.ChangeId).AddField("network", 2631);
 			}
 			switch (type)
 			{
@@ -26176,15 +26632,16 @@ public static class Azure
 
 	public static void LogResource(ResourceMode mode, string category, string itemName, int amount, BaseEntity sourceEntity = null, AttackEntity tool = null, bool safezone = false, BaseEntity workbench = null, ulong steamId = 0uL, string sourceEntityPrefab = null, Item sourceItem = null, string targetItem = null, ulong skinId = 0uL)
 	{
-		//IL_006c: Unknown result type (might be due to invalid IL or missing references)
-		//IL_008e: Unknown result type (might be due to invalid IL or missing references)
+		//IL_0070: Unknown result type (might be due to invalid IL or missing references)
+		//IL_0092: Unknown result type (might be due to invalid IL or missing references)
 		if (!GameplayAnalytics)
 		{
 			return;
 		}
 		try
 		{
-			EventRecord eventRecord = EventRecord.New("item_event").AddField("item_mode", mode.ToString()).AddField("category", category)
+			string value = ((mode == ResourceMode.Produced) ? "Produced" : "Consumed");
+			EventRecord eventRecord = EventRecord.New("item_event").AddField("item_mode", value).AddField("category", category)
 				.AddField("item_name", itemName)
 				.AddField("amount", amount);
 			if ((Object)(object)sourceEntity != (Object)null)
@@ -26517,7 +26974,7 @@ public static class Azure
 		}
 	}
 
-	public static void OnBuildingBlockColorChanged(BasePlayer player, BuildingBlock block, uint oldColor, uint newColor)
+	public static void OnEntityColorChanged(BasePlayer player, BaseEntity entity, uint oldColor, uint newColor)
 	{
 		//IL_004b: Unknown result type (might be due to invalid IL or missing references)
 		if (!GameplayAnalytics)
@@ -26526,10 +26983,10 @@ public static class Azure
 		}
 		try
 		{
-			SubmitPoint(EventRecord.New("player_pinged").AddField("player", (BaseNetworkable)player).AddField("entity", (BaseNetworkable)block)
+			SubmitPoint(EventRecord.New("player_pinged").AddField("player", (BaseNetworkable)player).AddField("entity", (BaseNetworkable)entity)
 				.AddField("color_old", oldColor)
 				.AddField("color_new", newColor)
-				.AddField("biome", GetBiome(((Component)block).transform.position)));
+				.AddField("biome", GetBiome(((Component)entity).transform.position)));
 		}
 		catch (Exception ex)
 		{
@@ -26673,7 +27130,7 @@ public static class Azure
 		}
 	}
 
-	public static void OnPlayerTick(BasePlayer player, Vector3 pos, in BasePlayer.CachedState tickState)
+	public static void OnPlayerTick(BasePlayer player, Vector3 pos, in BasePlayer.CachedState tickState, bool isMounted)
 	{
 		//IL_0072: Unknown result type (might be due to invalid IL or missing references)
 		//IL_0087: Unknown result type (might be due to invalid IL or missing references)
@@ -26683,50 +27140,27 @@ public static class Azure
 		//IL_010b: Unknown result type (might be due to invalid IL or missing references)
 		//IL_0120: Unknown result type (might be due to invalid IL or missing references)
 		//IL_0135: Unknown result type (might be due to invalid IL or missing references)
-		if (!GameplayTickAnalyticsConVar)
+		if (GameplayTickAnalyticsConVar)
 		{
-			return;
-		}
-		EventRecord record = EventRecord.New("player_tick").AddField("player_steamid", player.UserIDString).AddField("modelstate", (player.modelStateTick ?? player.modelState).flags)
-			.AddField("heldentity", ((Object)(object)player.GetHeldEntity() != (Object)null) ? player.GetHeldEntity().ShortPrefabName : "")
-			.AddField("pitch", player.tickViewAngles.x)
-			.AddField("yaw", player.tickViewAngles.y)
-			.AddField("pos_x", pos.x)
-			.AddField("pos_y", pos.y)
-			.AddField("pos_z", pos.z)
-			.AddField("eye_pos_x", tickState.EyePos.x)
-			.AddField("eye_pos_y", tickState.EyePos.y)
-			.AddField("eye_pos_z", tickState.EyePos.z)
-			.AddField("mouse_delta_x", player.tickMouseDelta.x)
-			.AddField("mouse_delta_y", player.tickMouseDelta.y)
-			.AddField("mouse_delta_z", player.tickMouseDelta.z)
-			.AddField("parented", player.HasParent())
-			.AddField("mounted", tickState.IsMounted)
-			.AddField("admin", player.IsAdmin || player.IsDeveloper)
-			.AddField("water_factor", tickState.WaterFactor)
-			.AddField("Timestamp", DateTime.UtcNow);
-		if (TickLogging.tickUploader.NeedsCreation())
-		{
-			if (UseV2)
-			{
-				TickLogging.tickUploader = null;
-			}
-			else
-			{
-				BuildInfo current = BuildInfo.Current;
-				bool num = (current.Scm.Branch != null && current.Scm.Branch == "experimental/release") || current.Scm.Branch == "release";
-				bool isEditor = Application.isEditor;
-				string text = ((num && !isEditor) ? "release" : (isEditor ? "editor" : "staging"));
-				TickLogging.tickUploader = AzureAnalyticsUploader.Create("player_ticks_" + text, TimeSpan.FromSeconds(TickLogging.tick_uploader_lifetime), AnalyticsDocumentMode.CSV);
-			}
-		}
-		if (UseV2)
-		{
+			EventRecord record = EventRecord.New("player_tick").AddField("player_steamid", player.UserIDString).AddField("modelstate", (player.modelStateTick ?? player.modelState).flags)
+				.AddField("heldentity", ((Object)(object)player.GetHeldEntity() != (Object)null) ? player.GetHeldEntity().ShortPrefabName : "")
+				.AddField("pitch", player.tickViewAngles.x)
+				.AddField("yaw", player.tickViewAngles.y)
+				.AddField("pos_x", pos.x)
+				.AddField("pos_y", pos.y)
+				.AddField("pos_z", pos.z)
+				.AddField("eye_pos_x", tickState.EyePos.x)
+				.AddField("eye_pos_y", tickState.EyePos.y)
+				.AddField("eye_pos_z", tickState.EyePos.z)
+				.AddField("mouse_delta_x", player.tickMouseDelta.x)
+				.AddField("mouse_delta_y", player.tickMouseDelta.y)
+				.AddField("mouse_delta_z", player.tickMouseDelta.z)
+				.AddField("parented", player.HasParent())
+				.AddField("mounted", isMounted)
+				.AddField("admin", player.IsAdmin || player.IsDeveloper)
+				.AddField("water_factor", tickState.WaterFactor)
+				.AddField("Timestamp", DateTime.UtcNow);
 			TickLogging.TickTable.Append(record);
-		}
-		else
-		{
-			TickLogging.tickUploader.Append(record);
 		}
 	}
 
@@ -26994,475 +27428,156 @@ public static class Azure
 			Debug.LogException(ex);
 		}
 	}
+}
 
-	private static string GetGenesAsString(GrowableEntity plant)
+
+[JsonModel]
+private struct EntitySumItem
+{
+	public uint PrefabId;
+
+	public int Count;
+
+	public int Grade;
+}
+
+
+using System;
+
+private struct EntityKey : IEquatable<EntityKey>
+{
+	public uint PrefabId;
+
+	public int Grade;
+
+	public bool Equals(EntityKey other)
 	{
-		int key = GrowableGeneEncoding.EncodeGenesToInt(plant.Genes);
-		if (!geneCache.TryGetValue(key, out var value))
+		if (PrefabId == other.PrefabId)
 		{
-			return string.Join("", from x in plant.Genes.Genes
-				group x by x.GetDisplayCharacter() into x
-				orderby x.Key
-				select x.Count() + x.Key);
+			return Grade == other.Grade;
 		}
-		return value;
+		return false;
 	}
 
-	private static string GetMonument(BaseEntity entity)
+	public override int GetHashCode()
 	{
-		//IL_0085: Unknown result type (might be due to invalid IL or missing references)
-		if ((Object)(object)entity == (Object)null)
-		{
-			return null;
-		}
-		SpawnGroup spawnGroup = null;
-		if (entity is BaseCorpse baseCorpse)
-		{
-			spawnGroup = baseCorpse.spawnGroup;
-		}
-		if ((Object)(object)spawnGroup == (Object)null)
-		{
-			SpawnPointInstance component = ((Component)entity).GetComponent<SpawnPointInstance>();
-			if ((Object)(object)component != (Object)null)
-			{
-				spawnGroup = component.parentSpawnPointUser as SpawnGroup;
-			}
-		}
-		if ((Object)(object)spawnGroup != (Object)null)
-		{
-			if (!string.IsNullOrEmpty(spawnGroup.category))
-			{
-				return spawnGroup.category;
-			}
-			if ((Object)(object)spawnGroup.Monument != (Object)null)
-			{
-				return ((Object)spawnGroup.Monument).name;
-			}
-		}
-		MonumentInfo monumentInfo = TerrainMeta.Path.FindMonumentWithBoundsOverlap(((Component)entity).transform.position);
-		if ((Object)(object)monumentInfo != (Object)null)
-		{
-			return ((Object)monumentInfo).name;
-		}
-		return null;
+		return (17 * 23 + PrefabId.GetHashCode()) * 31 + Grade.GetHashCode();
+	}
+}
+
+
+private class PendingItemsData : IPooled
+{
+	public PendingItemsKey Key;
+
+	public int amount;
+
+	public string category;
+
+	public void EnterPool()
+	{
+		Key = default(PendingItemsKey);
+		amount = 0;
+		category = null;
 	}
 
-	private static string GetBiome(Vector3 position)
+	public void LeavePool()
 	{
-		//IL_0007: Unknown result type (might be due to invalid IL or missing references)
-		//IL_000e: Unknown result type (might be due to invalid IL or missing references)
-		//IL_000f: Unknown result type (might be due to invalid IL or missing references)
-		//IL_0011: Invalid comparison between Unknown and I4
-		//IL_0031: Unknown result type (might be due to invalid IL or missing references)
-		//IL_0034: Invalid comparison between Unknown and I4
-		//IL_0013: Unknown result type (might be due to invalid IL or missing references)
-		//IL_0015: Unknown result type (might be due to invalid IL or missing references)
-		//IL_002b: Expected I4, but got Unknown
-		//IL_0036: Unknown result type (might be due to invalid IL or missing references)
-		//IL_0039: Invalid comparison between Unknown and I4
-		//IL_002b: Unknown result type (might be due to invalid IL or missing references)
-		//IL_002d: Invalid comparison between Unknown and I4
-		string result = null;
-		Enum val = (Enum)TerrainMeta.BiomeMap.GetBiomeMaxType(position);
-		if ((int)val <= 8)
+	}
+}
+
+
+using System;
+
+private struct PendingItemsKey : IEquatable<PendingItemsKey>
+{
+	public string Item;
+
+	public bool Consumed;
+
+	public string Entity;
+
+	public string Category;
+
+	public NetworkableId EntityId;
+
+	public bool Equals(PendingItemsKey other)
+	{
+		//IL_0027: Unknown result type (might be due to invalid IL or missing references)
+		//IL_002d: Unknown result type (might be due to invalid IL or missing references)
+		if (Item == other.Item && Entity == other.Entity && EntityId == other.EntityId && Consumed == other.Consumed)
 		{
-			switch (val - 1)
-			{
-			default:
-				if ((int)val == 8)
-				{
-					result = "arctic";
-				}
-				break;
-			case 0:
-				result = "arid";
-				break;
-			case 1:
-				result = "grass";
-				break;
-			case 3:
-				result = "tundra";
-				break;
-			case 2:
-				break;
-			}
+			return Category == other.Category;
 		}
-		else if ((int)val != 16)
-		{
-			if ((int)val == 32)
-			{
-				result = "deepsea";
-			}
-		}
-		else
-		{
-			result = "jungle";
-		}
-		return result;
+		return false;
 	}
 
-	private static bool IsOcean(Vector3 position)
+	public override int GetHashCode()
 	{
-		//IL_0005: Unknown result type (might be due to invalid IL or missing references)
-		return TerrainMeta.TopologyMap.GetTopology(position) == 128;
+		return ((((17 * 23 + Item.GetHashCode()) * 31 + Consumed.GetHashCode()) * 37 + Entity.GetHashCode()) * 47 + Category.GetHashCode()) * 53 + ((object)(NetworkableId)(ref EntityId)/*cast due to .constrained prefix*/).GetHashCode();
+	}
+}
+
+
+using System.Collections.Generic;
+using UnityEngine;
+
+[JsonModel]
+private class PlayerAggregate : IPooled
+{
+	public string UserId;
+
+	public Vector3 Position;
+
+	public Vector3 Direction;
+
+	public List<string> Hotbar = new List<string>();
+
+	public List<string> Worn = new List<string>();
+
+	public string ActiveItem;
+
+	public string Biome;
+
+	public void EnterPool()
+	{
+		//IL_000d: Unknown result type (might be due to invalid IL or missing references)
+		//IL_0019: Unknown result type (might be due to invalid IL or missing references)
+		UserId = null;
+		Position = default(Vector3);
+		Direction = default(Vector3);
+		Hotbar.Clear();
+		Worn.Clear();
+		ActiveItem = null;
+		Biome = null;
 	}
 
-	public static Dictionary<string, string> GetHardwareData()
+	public void LeavePool()
 	{
-		string value;
-		using (SHA256 sHA = SHA256.Create())
-		{
-			value = Convert.ToBase64String(sHA.ComputeHash(Encoding.UTF8.GetBytes(SystemInfo.deviceUniqueIdentifier)));
-		}
-		return new Dictionary<string, string>
-		{
-			["device_name"] = SystemInfo.deviceName,
-			["device_hash"] = value,
-			["gpu_name"] = SystemInfo.graphicsDeviceName,
-			["gpu_ram"] = SystemInfo.graphicsMemorySize.ToString(),
-			["gpu_vendor"] = SystemInfo.graphicsDeviceVendor,
-			["gpu_version"] = SystemInfo.graphicsDeviceVersion,
-			["gpu_shader_level"] = SystemInfo.graphicsShaderLevel.ToString(),
-			["gpu_max_buffer_size"] = SystemInfo.maxGraphicsBufferSize.ToString(),
-			["gpu_device_version"] = SystemInfo.graphicsDeviceVersion.ToString(),
-			["cpu_cores"] = SystemInfo.processorCount.ToString(),
-			["max_compute_work_size"] = SystemInfo.maxComputeWorkGroupSize.ToString(),
-			["max_compute_work_size_x"] = SystemInfo.maxComputeWorkGroupSizeX.ToString(),
-			["max_compute_work_size_y"] = SystemInfo.maxComputeWorkGroupSizeY.ToString(),
-			["max_compute_work_size_z"] = SystemInfo.maxComputeWorkGroupSizeZ.ToString(),
-			["cpu_frequency"] = SystemInfo.processorFrequency.ToString(),
-			["gpu_max_texture_size"] = SystemInfo.maxTextureSize.ToString(),
-			["cpu_name"] = SystemInfo.processorType.Trim(),
-			["system_memory"] = SystemInfo.systemMemorySize.ToString(),
-			["os"] = SystemInfo.operatingSystem,
-			["supports_compute_shaders"] = SystemInfo.supportsComputeShaders.ToString(),
-			["supports_async_compute"] = SystemInfo.supportsAsyncCompute.ToString(),
-			["supports_async_gpu_readback"] = SystemInfo.supportsAsyncGPUReadback.ToString(),
-			["supports_3d_textures"] = SystemInfo.supports3DTextures.ToString(),
-			["supports_instancing"] = SystemInfo.supportsInstancing.ToString()
-		};
+	}
+}
+
+
+using System.Collections.Generic;
+
+[JsonModel]
+private class TeamInfo : IPooled
+{
+	public List<string> online = new List<string>();
+
+	public List<string> offline = new List<string>();
+
+	public int member_count;
+
+	public void EnterPool()
+	{
+		online.Clear();
+		offline.Clear();
+		member_count = 0;
 	}
 
-	public static Dictionary<string, string> GetApplicationData()
+	public void LeavePool()
 	{
-		Dictionary<string, string> obj = new Dictionary<string, string> { ["unity"] = Application.unityVersion ?? "editor" };
-		BuildInfo current = BuildInfo.Current;
-		obj["changeset"] = ((current != null) ? current.Scm.ChangeId : null) ?? "editor";
-		BuildInfo current2 = BuildInfo.Current;
-		obj["branch"] = ((current2 != null) ? current2.Scm.Branch : null) ?? "editor";
-		obj["network_version"] = 2625.ToString();
-		obj["eos_sdk"] = ((object)VersionInterface.GetVersion())?.ToString() ?? "disabled";
-		return obj;
-	}
-
-	private static IEnumerator AggregateLoop()
-	{
-		int loop = 0;
-		while (!Application.isQuitting)
-		{
-			yield return CoroutineEx.waitForSecondsRealtime(60f);
-			if (GameplayAnalytics)
-			{
-				yield return TryCatch(AggregatePlayers(blueprints: false, positions: true));
-				if (loop % 60 == 0)
-				{
-					PushServerInfo();
-					yield return TryCatch(AggregateEntitiesAndItems());
-					yield return TryCatch(AggregatePlayers(blueprints: true));
-					yield return TryCatch(AggregateTeams());
-					Dictionary<PendingItemsKey, PendingItemsData> dict = pendingItems;
-					pendingItems = new Dictionary<PendingItemsKey, PendingItemsData>();
-					yield return PushPendingItemsLoopAsync(dict);
-				}
-				loop++;
-			}
-		}
-	}
-
-	private static IEnumerator TryCatch(IEnumerator coroutine)
-	{
-		while (true)
-		{
-			try
-			{
-				if (!coroutine.MoveNext())
-				{
-					break;
-				}
-			}
-			catch (Exception ex)
-			{
-				Debug.LogException(ex);
-				break;
-			}
-			yield return coroutine.Current;
-		}
-	}
-
-	private static IEnumerator AggregateEntitiesAndItems()
-	{
-		List<BaseNetworkable> entityQueue = new List<BaseNetworkable>();
-		entityQueue.Clear();
-		int totalCount = BaseNetworkable.serverEntities.Count;
-		entityQueue.AddRange(BaseNetworkable.serverEntities);
-		Dictionary<string, int> itemDict = new Dictionary<string, int>();
-		Dictionary<EntityKey, int> entityDict = new Dictionary<EntityKey, int>();
-		yield return null;
-		Debug.Log((object)"Starting to aggregate entities & items...");
-		DateTime startTime = DateTime.UtcNow;
-		Stopwatch watch = Stopwatch.StartNew();
-		foreach (BaseNetworkable entity in entityQueue)
-		{
-			if (watch.ElapsedMilliseconds > MaxMSPerFrame)
-			{
-				yield return null;
-				watch.Restart();
-			}
-			if ((Object)(object)entity == (Object)null || entity.IsDestroyed)
-			{
-				continue;
-			}
-			EntityKey entityKey = default(EntityKey);
-			entityKey.PrefabId = entity.prefabID;
-			EntityKey key = entityKey;
-			if (entity is BuildingBlock buildingBlock)
-			{
-				key.Grade = (int)(buildingBlock.grade + 1);
-			}
-			entityDict.TryGetValue(key, out var value);
-			entityDict[key] = value + 1;
-			if (!(entity is LootContainer) && !(entity is BasePlayer { IsNpc: not false }) && !(entity is NPCPlayer))
-			{
-				if (entity is BasePlayer basePlayer2)
-				{
-					AddItemsToDict(basePlayer2.inventory.containerMain, itemDict);
-					AddItemsToDict(basePlayer2.inventory.containerBelt, itemDict);
-					AddItemsToDict(basePlayer2.inventory.containerWear, itemDict);
-				}
-				else if (entity is IItemContainerEntity itemContainerEntity)
-				{
-					AddItemsToDict(itemContainerEntity.inventory, itemDict);
-				}
-				else if (entity is DroppedItemContainer { inventory: not null } droppedItemContainer)
-				{
-					AddItemsToDict(droppedItemContainer.inventory, itemDict);
-				}
-			}
-		}
-		Debug.Log((object)$"Took {Math.Round(DateTime.UtcNow.Subtract(startTime).TotalSeconds, 1)}s to aggregate {totalCount} entities & items...");
-		_ = DateTime.UtcNow;
-		SubmitPoint(EventRecord.New("entity_sum").AddObject("counts", entityDict.Select(delegate(KeyValuePair<EntityKey, int> x)
-		{
-			EntitySumItem result = default(EntitySumItem);
-			result.PrefabId = x.Key.PrefabId;
-			result.Grade = x.Key.Grade;
-			result.Count = x.Value;
-			return result;
-		})));
-		yield return null;
-		SubmitPoint(EventRecord.New("item_sum").AddObject("counts", itemDict));
-		yield return null;
-	}
-
-	private static void AddItemsToDict(ItemContainer container, Dictionary<string, int> dict)
-	{
-		if (container == null || container.itemList == null)
-		{
-			return;
-		}
-		foreach (Item item in container.itemList)
-		{
-			string shortname = item.info.shortname;
-			dict.TryGetValue(shortname, out var value);
-			dict[shortname] = value + item.amount;
-			if (item.contents != null)
-			{
-				AddItemsToDict(item.contents, dict);
-			}
-		}
-	}
-
-	private static IEnumerator PushPendingItemsLoopAsync(Dictionary<PendingItemsKey, PendingItemsData> dict)
-	{
-		Stopwatch watch = Stopwatch.StartNew();
-		foreach (PendingItemsData value in dict.Values)
-		{
-			try
-			{
-				LogResource(value.Key.Consumed ? ResourceMode.Consumed : ResourceMode.Produced, value.category, value.Key.Item, value.amount, null, null, safezone: false, null, 0uL, value.Key.Entity, null, null, 0uL);
-			}
-			catch (Exception ex)
-			{
-				Debug.LogException(ex);
-			}
-			PendingItemsData pendingItemsData = value;
-			Pool.Free<PendingItemsData>(ref pendingItemsData);
-			if (watch.ElapsedMilliseconds > MaxMSPerFrame)
-			{
-				yield return null;
-				watch.Restart();
-			}
-		}
-		dict.Clear();
-	}
-
-	public static void AddPendingItems(BaseEntity entity, string itemName, int amount, string category, bool consumed = true, bool perEntity = false)
-	{
-		//IL_0045: Unknown result type (might be due to invalid IL or missing references)
-		//IL_0036: Unknown result type (might be due to invalid IL or missing references)
-		//IL_003c: Unknown result type (might be due to invalid IL or missing references)
-		//IL_004a: Unknown result type (might be due to invalid IL or missing references)
-		PendingItemsKey pendingItemsKey = default(PendingItemsKey);
-		pendingItemsKey.Entity = entity.ShortPrefabName;
-		pendingItemsKey.Category = category;
-		pendingItemsKey.Item = itemName;
-		pendingItemsKey.Consumed = consumed;
-		pendingItemsKey.EntityId = (NetworkableId)(perEntity ? entity.net.ID : default(NetworkableId));
-		PendingItemsKey key = pendingItemsKey;
-		if (!pendingItems.TryGetValue(key, out var value))
-		{
-			value = Pool.Get<PendingItemsData>();
-			value.Key = key;
-			value.category = category;
-			pendingItems[key] = value;
-		}
-		value.amount += amount;
-	}
-
-	private static IEnumerator AggregatePlayers(bool blueprints = false, bool positions = false)
-	{
-		Stopwatch watch = Stopwatch.StartNew();
-		Dictionary<int, int> playerBps = (blueprints ? new Dictionary<int, int>() : null);
-		List<PlayerAggregate> playerPositions = (positions ? Pool.Get<List<PlayerAggregate>>() : null);
-		Enumerator<BasePlayer> enumerator = BasePlayer.activePlayerList.GetEnumerator();
-		try
-		{
-			while (enumerator.MoveNext())
-			{
-				BasePlayer current = enumerator.Current;
-				if ((Object)(object)current == (Object)null || current.IsDestroyed)
-				{
-					continue;
-				}
-				if (blueprints)
-				{
-					foreach (int unlockedItem in current.PersistantPlayerInfo.unlockedItems)
-					{
-						playerBps.TryGetValue(unlockedItem, out var value);
-						playerBps[unlockedItem] = value + 1;
-					}
-				}
-				if (positions)
-				{
-					PlayerAggregate playerAggregate = Pool.Get<PlayerAggregate>();
-					playerAggregate.UserId = current.UserIDString;
-					playerAggregate.Position = ((Component)current).transform.position;
-					Quaternion bodyRotation = current.eyes.bodyRotation;
-					playerAggregate.Direction = ((Quaternion)(ref bodyRotation)).eulerAngles;
-					foreach (Item item in current.inventory.containerBelt.itemList)
-					{
-						playerAggregate.Hotbar.Add(item.info.shortname);
-					}
-					foreach (Item item2 in current.inventory.containerWear.itemList)
-					{
-						playerAggregate.Worn.Add(item2.info.shortname);
-					}
-					playerAggregate.ActiveItem = current.GetActiveItem()?.info.shortname;
-					playerAggregate.Biome = GetBiome(((Component)current).transform.position);
-					playerPositions.Add(playerAggregate);
-				}
-				if (watch.ElapsedMilliseconds > MaxMSPerFrame)
-				{
-					yield return null;
-					watch.Restart();
-				}
-			}
-		}
-		finally
-		{
-			((IDisposable)enumerator/*cast due to .constrained prefix*/).Dispose();
-		}
-		if (blueprints)
-		{
-			SubmitPoint(EventRecord.New("blueprint_aggregate_online").AddObject("blueprints", playerBps.Select((KeyValuePair<int, int> x) => new
-			{
-				Key = ItemManager.FindItemDefinition(x.Key).shortname,
-				value = x.Value
-			})));
-		}
-		if (positions)
-		{
-			SubmitPoint(EventRecord.New("player_positions").AddObject("positions", playerPositions).AddObject("player_count", playerPositions.Count));
-			Pool.Free<PlayerAggregate>(ref playerPositions, true);
-		}
-	}
-
-	private static IEnumerator AggregateTeams()
-	{
-		yield return null;
-		HashSet<ulong> teamIds = new HashSet<ulong>();
-		int inTeam = 0;
-		int notInTeam = 0;
-		Enumerator<BasePlayer> enumerator = BasePlayer.activePlayerList.GetEnumerator();
-		try
-		{
-			while (enumerator.MoveNext())
-			{
-				BasePlayer current = enumerator.Current;
-				if ((Object)(object)current != (Object)null && !current.IsDestroyed && current.currentTeam != 0L)
-				{
-					teamIds.Add(current.currentTeam);
-					inTeam++;
-				}
-				else
-				{
-					notInTeam++;
-				}
-			}
-		}
-		finally
-		{
-			((IDisposable)enumerator/*cast due to .constrained prefix*/).Dispose();
-		}
-		yield return null;
-		Stopwatch watch = Stopwatch.StartNew();
-		List<TeamInfo> teams = Pool.Get<List<TeamInfo>>();
-		foreach (ulong item in teamIds)
-		{
-			RelationshipManager.PlayerTeam playerTeam = RelationshipManager.ServerInstance.FindTeam(item);
-			if (playerTeam == null || !((playerTeam.members != null) & (playerTeam.members.Count > 0)))
-			{
-				continue;
-			}
-			TeamInfo teamInfo = Pool.Get<TeamInfo>();
-			teams.Add(teamInfo);
-			foreach (ulong member in playerTeam.members)
-			{
-				BasePlayer basePlayer = RelationshipManager.FindByID(member);
-				if ((Object)(object)basePlayer != (Object)null && !basePlayer.IsDestroyed && basePlayer.IsConnected && !basePlayer.IsSleeping())
-				{
-					teamInfo.online.Add(SingletonComponent<ServerMgr>.Instance.persistance.GetUserWipeId(member));
-				}
-				else
-				{
-					teamInfo.offline.Add(SingletonComponent<ServerMgr>.Instance.persistance.GetUserWipeId(member));
-				}
-			}
-			teamInfo.member_count = teamInfo.online.Count + teamInfo.offline.Count;
-			if (watch.ElapsedMilliseconds > MaxMSPerFrame)
-			{
-				yield return null;
-				watch.Restart();
-			}
-		}
-		SubmitPoint(EventRecord.New("online_teams").AddObject("teams", teams).AddField("users_in_team", inTeam)
-			.AddField("users_not_in_team", notInTeam));
-		foreach (TeamInfo item2 in teams)
-		{
-			TeamInfo current4 = item2;
-			Pool.Free<TeamInfo>(ref current4);
-		}
-		Pool.Free<TeamInfo>(ref teams, false);
 	}
 }
 
@@ -27712,455 +27827,10 @@ private class PendingFiredProjectile : IPooled
 }
 
 
-[JsonModel]
-private struct EntitySumItem
+public enum AnalyticsDocumentMode
 {
-	public uint PrefabId;
-
-	public int Count;
-
-	public int Grade;
-}
-
-
-using System;
-
-private struct EntityKey : IEquatable<EntityKey>
-{
-	public uint PrefabId;
-
-	public int Grade;
-
-	public bool Equals(EntityKey other)
-	{
-		if (PrefabId == other.PrefabId)
-		{
-			return Grade == other.Grade;
-		}
-		return false;
-	}
-
-	public override int GetHashCode()
-	{
-		return (17 * 23 + PrefabId.GetHashCode()) * 31 + Grade.GetHashCode();
-	}
-}
-
-
-private class PendingItemsData : IPooled
-{
-	public PendingItemsKey Key;
-
-	public int amount;
-
-	public string category;
-
-	public void EnterPool()
-	{
-		Key = default(PendingItemsKey);
-		amount = 0;
-		category = null;
-	}
-
-	public void LeavePool()
-	{
-	}
-}
-
-
-using System;
-
-private struct PendingItemsKey : IEquatable<PendingItemsKey>
-{
-	public string Item;
-
-	public bool Consumed;
-
-	public string Entity;
-
-	public string Category;
-
-	public NetworkableId EntityId;
-
-	public bool Equals(PendingItemsKey other)
-	{
-		//IL_0027: Unknown result type (might be due to invalid IL or missing references)
-		//IL_002d: Unknown result type (might be due to invalid IL or missing references)
-		if (Item == other.Item && Entity == other.Entity && EntityId == other.EntityId && Consumed == other.Consumed)
-		{
-			return Category == other.Category;
-		}
-		return false;
-	}
-
-	public override int GetHashCode()
-	{
-		return ((((17 * 23 + Item.GetHashCode()) * 31 + Consumed.GetHashCode()) * 37 + Entity.GetHashCode()) * 47 + Category.GetHashCode()) * 53 + ((object)(NetworkableId)(ref EntityId)/*cast due to .constrained prefix*/).GetHashCode();
-	}
-}
-
-
-using System.Collections.Generic;
-using UnityEngine;
-
-[JsonModel]
-private class PlayerAggregate : IPooled
-{
-	public string UserId;
-
-	public Vector3 Position;
-
-	public Vector3 Direction;
-
-	public List<string> Hotbar = new List<string>();
-
-	public List<string> Worn = new List<string>();
-
-	public string ActiveItem;
-
-	public string Biome;
-
-	public void EnterPool()
-	{
-		//IL_000d: Unknown result type (might be due to invalid IL or missing references)
-		//IL_0019: Unknown result type (might be due to invalid IL or missing references)
-		UserId = null;
-		Position = default(Vector3);
-		Direction = default(Vector3);
-		Hotbar.Clear();
-		Worn.Clear();
-		ActiveItem = null;
-		Biome = null;
-	}
-
-	public void LeavePool()
-	{
-	}
-}
-
-
-using System.Collections.Generic;
-
-[JsonModel]
-private class TeamInfo : IPooled
-{
-	public List<string> online = new List<string>();
-
-	public List<string> offline = new List<string>();
-
-	public int member_count;
-
-	public void EnterPool()
-	{
-		online.Clear();
-		offline.Clear();
-		member_count = 0;
-	}
-
-	public void LeavePool()
-	{
-	}
-}
-
-
-using System;
-using System.Collections.Concurrent;
-using System.Collections.Generic;
-using System.IO;
-using System.Net.Http;
-using System.Net.Http.Headers;
-using System.Text;
-using System.Threading.Tasks;
-using Cysharp.Text;
-using Network;
-using Rust;
-using Steamworks;
-using UnityEngine;
-
-public class AzureWebInterface
-{
-	public static readonly AzureWebInterface client = new AzureWebInterface(isClient: true);
-
-	public static readonly AzureWebInterface server = new AzureWebInterface(isClient: false);
-
-	public AzureAnalyticsUploader GameplayBulkUploader;
-
-	public static AnalyticsTable GameplayEventsTableServer = new AnalyticsTable("gameplay_events", TimeSpan.FromMinutes(5.0), AnalyticsDocumentMode.JSON, useJsonDataObject: true);
-
-	public bool IsClient;
-
-	public int MaxRetries = 1;
-
-	public int FlushSize = 1000;
-
-	public TimeSpan FlushDelay = TimeSpan.FromSeconds(30.0);
-
-	private DateTime nextFlush;
-
-	private ConcurrentQueue<EventRecord> uploadQueue = new ConcurrentQueue<EventRecord>();
-
-	private HttpClient HttpClient = new HttpClient();
-
-	private static readonly MediaTypeHeaderValue JsonContentType = new MediaTypeHeaderValue("application/json")
-	{
-		CharSet = Encoding.UTF8.WebName
-	};
-
-	public int PendingCount => uploadQueue.Count;
-
-	public AzureWebInterface(bool isClient)
-	{
-		//IL_0032: Unknown result type (might be due to invalid IL or missing references)
-		//IL_003c: Expected O, but got Unknown
-		IsClient = isClient;
-		Task.Run((Func<Task?>)UploadSchedulingThread);
-	}
-
-	public void EnqueueEvent(EventRecord point)
-	{
-		if (!IsClient && !string.IsNullOrEmpty(GetContainerUrl()))
-		{
-			if (GameplayBulkUploader.NeedsCreation())
-			{
-				GameplayBulkUploader = AzureAnalyticsUploader.Create("gameplay_events", TimeSpan.FromMinutes(5.0));
-				GameplayBulkUploader.UseJsonDataObject = true;
-			}
-			GameplayBulkUploader.Append(point);
-		}
-		else
-		{
-			point.MarkSubmitted();
-			uploadQueue.Enqueue(point);
-		}
-	}
-
-	private async Task UploadSchedulingThread()
-	{
-		while (!Application.isQuitting)
-		{
-			try
-			{
-				DateTime utcNow = DateTime.UtcNow;
-				if (uploadQueue.IsEmpty || (uploadQueue.Count < FlushSize && nextFlush > utcNow))
-				{
-					await Task.Delay(1000);
-					continue;
-				}
-				nextFlush = utcNow.Add(FlushDelay);
-				List<EventRecord> list = Pool.Get<List<EventRecord>>();
-				EventRecord result;
-				while (uploadQueue.TryDequeue(out result))
-				{
-					list.Add(result);
-				}
-				Task.Run(async delegate
-				{
-					await UploadAsync(list);
-				});
-			}
-			catch (Exception ex)
-			{
-				Debug.LogException(ex);
-				await Task.Delay(1000);
-			}
-		}
-	}
-
-	private void SerializeEvents(List<EventRecord> records, MemoryStream stream)
-	{
-		//IL_0002: Unknown result type (might be due to invalid IL or missing references)
-		//IL_0007: Unknown result type (might be due to invalid IL or missing references)
-		int num = 0;
-		Utf8ValueStringBuilder writer = ZString.CreateUtf8StringBuilder();
-		try
-		{
-			((Utf8ValueStringBuilder)(ref writer)).Append("[");
-			foreach (EventRecord record in records)
-			{
-				if (num > 0)
-				{
-					((Utf8ValueStringBuilder)(ref writer)).Append(',');
-				}
-				record.SerializeAsJson(ref writer);
-				num++;
-			}
-			((Utf8ValueStringBuilder)(ref writer)).Append("]");
-			((Utf8ValueStringBuilder)(ref writer)).WriteTo((Stream)stream);
-		}
-		finally
-		{
-			((Utf8ValueStringBuilder)(ref writer)).Dispose();
-		}
-	}
-
-	private async Task UploadAsync(List<EventRecord> records, bool useStoredAuthTicket = false)
-	{
-		if (!PlatformService.Instance.IsValid)
-		{
-			return;
-		}
-		if (!((!IsClient) ? (Application.Manifest?.Features?.ServerAnalytics == true) : (PlatformService.Instance.IsValid && Application.Manifest?.Features?.ClientAnalytics == true)))
-		{
-			Pool.Free<EventRecord>(ref records, true);
-			return;
-		}
-		if (records.Count == 0)
-		{
-			Pool.Free<EventRecord>(ref records, false);
-			return;
-		}
-		MemoryStream stream = Pool.Get<MemoryStream>();
-		stream.Position = 0L;
-		stream.SetLength(0L);
-		try
-		{
-			SerializeEvents(records, stream);
-			AuthTicket ticket = null;
-			for (int attempt = 0; attempt < MaxRetries; attempt++)
-			{
-				try
-				{
-					ByteArrayContent content = new ByteArrayContent(stream.GetBuffer(), 0, (int)stream.Length);
-					try
-					{
-						((HttpContent)content).Headers.ContentType = JsonContentType;
-						if (!string.IsNullOrEmpty(AnalyticsSecret))
-						{
-							((HttpHeaders)((HttpContent)content).Headers).Add(AnalyticsHeader, AnalyticsSecret);
-						}
-						else
-						{
-							((HttpHeaders)((HttpContent)content).Headers).Add(AnalyticsHeader, AnalyticsPublicKey);
-						}
-						if (!IsClient)
-						{
-							((HttpHeaders)((HttpContent)content).Headers).Add("X-SERVER-IP", Net.sv.ip);
-							((HttpHeaders)((HttpContent)content).Headers).Add("X-SERVER-PORT", Net.sv.port.ToString());
-						}
-						(await HttpClient.PostAsync(IsClient ? ClientAnalyticsUrl : ServerAnalyticsUrl, (HttpContent)(object)content)).EnsureSuccessStatusCode();
-					}
-					finally
-					{
-						((IDisposable)content)?.Dispose();
-					}
-				}
-				catch (Exception ex)
-				{
-					HttpRequestException val = (HttpRequestException)(object)((ex is HttpRequestException) ? ex : null);
-					if (val != null)
-					{
-						Debug.Log((object)("HTTP Error when uploading analytics: " + ((Exception)(object)val).Message));
-					}
-					else
-					{
-						Debug.LogException(ex);
-					}
-					goto IL_02ce;
-				}
-				break;
-				IL_02ce:
-				if (ticket != null)
-				{
-					try
-					{
-						ticket.Cancel();
-					}
-					catch (Exception ex2)
-					{
-						Debug.LogError((object)("Failed to cancel auth ticket in analytics: " + ex2.ToString()));
-					}
-				}
-			}
-		}
-		catch (Exception ex3)
-		{
-			if (IsClient)
-			{
-				Debug.LogWarning((object)ex3.ToString());
-			}
-			else
-			{
-				Debug.LogException(ex3);
-			}
-		}
-		finally
-		{
-			Pool.Free<EventRecord>(ref records, true);
-			Pool.FreeUnmanaged(ref stream);
-		}
-	}
-}
-
-
-using System;
-using System.Diagnostics;
-using System.Runtime.CompilerServices;
-using System.Runtime.InteropServices;
-
-[StructLayout(LayoutKind.Auto)]
-private struct <<UploadSchedulingThread>b__0>d : IAsyncStateMachine
-{
-	public int <>1__state;
-
-	public AsyncTaskMethodBuilder <>t__builder;
-
-	public <>c__DisplayClass16_0 <>4__this;
-
-	private TaskAwaiter <>u__1;
-
-	private void MoveNext()
-	{
-		int num = <>1__state;
-		<>c__DisplayClass16_0 <>c__DisplayClass16_ = <>4__this;
-		try
-		{
-			TaskAwaiter awaiter;
-			if (num != 0)
-			{
-				awaiter = <>c__DisplayClass16_.<>4__this.UploadAsync(<>c__DisplayClass16_.list).GetAwaiter();
-				if (!awaiter.IsCompleted)
-				{
-					num = (<>1__state = 0);
-					<>u__1 = awaiter;
-					<>t__builder.AwaitUnsafeOnCompleted(ref awaiter, ref this);
-					return;
-				}
-			}
-			else
-			{
-				awaiter = <>u__1;
-				<>u__1 = default(TaskAwaiter);
-				num = (<>1__state = -1);
-			}
-			awaiter.GetResult();
-		}
-		catch (Exception exception)
-		{
-			<>1__state = -2;
-			<>t__builder.SetException(exception);
-			return;
-		}
-		<>1__state = -2;
-		<>t__builder.SetResult();
-	}
-
-	void IAsyncStateMachine.MoveNext()
-	{
-		//ILSpy generated this explicit interface implementation from .override directive in MoveNext
-		this.MoveNext();
-	}
-
-	[DebuggerHidden]
-	private void SetStateMachine(IAsyncStateMachine stateMachine)
-	{
-		<>t__builder.SetStateMachine(stateMachine);
-	}
-
-	void IAsyncStateMachine.SetStateMachine(IAsyncStateMachine stateMachine)
-	{
-		//ILSpy generated this explicit interface implementation from .override directive in SetStateMachine
-		this.SetStateMachine(stateMachine);
-	}
+	JSON,
+	CSV
 }
 
 
@@ -28997,6 +28667,8 @@ public class AnalyticsManager
 
 		public IUploader Uploader;
 	}
+
+	public static AnalyticsTable GameplayEventsTableServer = new AnalyticsTable("gameplay_events", TimeSpan.FromMinutes(5.0), AnalyticsDocumentMode.JSON, useJsonDataObject: true);
 
 	public IUploader NullUploader;
 
@@ -30164,322 +29836,15 @@ public class AnalyticsTable
 		nextUploadStamp = DateTime.Now + uploadInterval;
 	}
 
+	public void Flush()
+	{
+		nextUploadStamp = DateTime.Now;
+	}
+
 	public void ResetStats()
 	{
 		queueCount = 0;
 		maxQueueCount = 0;
-	}
-}
-
-
-using Facepunch.Rust;
-
-public static class AzureAnalyticsUploaderEx
-{
-	public static bool NeedsCreation(this AzureAnalyticsUploader uploader)
-	{
-		return uploader?.TryFlush() ?? true;
-	}
-}
-
-
-public enum AnalyticsDocumentMode
-{
-	JSON,
-	CSV
-}
-
-
-using System;
-using System.Collections.Concurrent;
-using System.IO;
-using System.IO.Compression;
-using System.Threading;
-using System.Threading.Tasks;
-using Azure;
-using Azure.Core;
-using Azure.Identity;
-using Azure.Storage.Blobs;
-using Azure.Storage.Blobs.Models;
-using Azure.Storage.Blobs.Specialized;
-using ConVar;
-using Cysharp.Text;
-using Facepunch;
-using Facepunch.Rust;
-using UnityEngine;
-
-public class AzureAnalyticsUploader : IPooled
-{
-	public static bool UsePooling = false;
-
-	public static int SmallBufferSendLimit = 16384;
-
-	public static ClientSecretCredential Credential;
-
-	private ConcurrentQueue<EventRecord> queue = new ConcurrentQueue<EventRecord>();
-
-	private BlobClient _blobClient;
-
-	private Stream Stream;
-
-	private GZipStream ZipStream;
-
-	private Utf8ValueStringBuilder Writer;
-
-	private bool disposed;
-
-	private BlobOpenWriteOptions blobWriteOptions = new BlobOpenWriteOptions
-	{
-		HttpHeaders = new BlobHttpHeaders
-		{
-			ContentEncoding = "gzip"
-		}
-	};
-
-	public TimeSpan LoopDelay { get; set; }
-
-	public DateTime Expiry { get; private set; }
-
-	public bool StrictMode { get; set; }
-
-	public AnalyticsDocumentMode DocumentMode { get; private set; }
-
-	public bool UseJsonDataObject { get; set; }
-
-	public AzureAnalyticsUploader()
-	{
-		//IL_000c: Unknown result type (might be due to invalid IL or missing references)
-		//IL_0011: Unknown result type (might be due to invalid IL or missing references)
-		//IL_0012: Unknown result type (might be due to invalid IL or missing references)
-		//IL_0017: Unknown result type (might be due to invalid IL or missing references)
-		//IL_0027: Expected O, but got Unknown
-		//IL_002c: Expected O, but got Unknown
-		//IL_0033: Unknown result type (might be due to invalid IL or missing references)
-		//IL_0038: Unknown result type (might be due to invalid IL or missing references)
-		Writer = ZString.CreateUtf8StringBuilder();
-	}
-
-	public void EnterPool()
-	{
-		disposed = true;
-	}
-
-	private void Initialize()
-	{
-		LoopDelay = TimeSpan.FromMilliseconds(250.0);
-		Expiry = DateTime.MinValue;
-		StrictMode = false;
-		UseJsonDataObject = false;
-		DocumentMode = AnalyticsDocumentMode.JSON;
-		EmptyUploadQueue();
-		_blobClient = null;
-		Stream = null;
-		ZipStream = null;
-		disposed = false;
-	}
-
-	public void LeavePool()
-	{
-		Initialize();
-	}
-
-	public bool TryFlush()
-	{
-		if (Expiry >= DateTime.UtcNow)
-		{
-			return false;
-		}
-		disposed = true;
-		return true;
-	}
-
-	public static AzureAnalyticsUploader Create(string table, TimeSpan timeout, AnalyticsDocumentMode mode = AnalyticsDocumentMode.JSON)
-	{
-		//IL_00a3: Unknown result type (might be due to invalid IL or missing references)
-		//IL_00a9: Expected O, but got Unknown
-		//IL_0112: Unknown result type (might be due to invalid IL or missing references)
-		//IL_0118: Expected O, but got Unknown
-		//IL_00f8: Unknown result type (might be due to invalid IL or missing references)
-		//IL_0102: Expected O, but got Unknown
-		AzureAnalyticsUploader azureAnalyticsUploader;
-		if (UsePooling)
-		{
-			azureAnalyticsUploader = Pool.Get<AzureAnalyticsUploader>();
-		}
-		else
-		{
-			azureAnalyticsUploader = new AzureAnalyticsUploader();
-			azureAnalyticsUploader.Initialize();
-		}
-		azureAnalyticsUploader.Expiry = DateTime.UtcNow + timeout;
-		azureAnalyticsUploader.DocumentMode = mode;
-		if (string.IsNullOrEmpty(Analytics.GetContainerUrl()))
-		{
-			Debug.Log((object)"No analytics_bulk_container_url or analytics_bulk_connection_string set, disabling bulk uploader.");
-			azureAnalyticsUploader.disposed = true;
-			return azureAnalyticsUploader;
-		}
-		string text = ((mode == AnalyticsDocumentMode.JSON) ? ".json" : ".csv");
-		string text2 = Path.Combine(table, Server.server_id, Guid.NewGuid().ToString("N") + text + ".gz");
-		BlobContainerClient val;
-		if (!string.IsNullOrEmpty(Analytics.BulkUploadConnectionString))
-		{
-			val = new BlobContainerClient(new Uri(Analytics.BulkUploadConnectionString), (BlobClientOptions)null);
-		}
-		else
-		{
-			if (string.IsNullOrEmpty(Analytics.AzureTenantId) || string.IsNullOrEmpty(Analytics.AzureClientId) || string.IsNullOrEmpty(Analytics.AzureClientSecret))
-			{
-				Debug.Log((object)"analytics_bulk_container_url set but missing Azure AD credentials, disabling bulk uploader.");
-				azureAnalyticsUploader.disposed = true;
-				return azureAnalyticsUploader;
-			}
-			if (Credential == null)
-			{
-				Credential = new ClientSecretCredential(Analytics.AzureTenantId, Analytics.AzureClientId, Analytics.AzureClientSecret);
-			}
-			val = new BlobContainerClient(new Uri(Analytics.BulkContainerUrl), (TokenCredential)(object)Credential, (BlobClientOptions)null);
-		}
-		azureAnalyticsUploader._blobClient = val.GetBlobClient(text2);
-		Task.Run((Func<Task?>)azureAnalyticsUploader.UploadThread);
-		return azureAnalyticsUploader;
-	}
-
-	public void Append(EventRecord record)
-	{
-		if (disposed)
-		{
-			if (StrictMode)
-			{
-				throw new Exception("Trying to append to a disposed uploader: make sure to dispose the uploader properly!");
-			}
-			record.MarkSubmitted();
-			Pool.Free<EventRecord>(ref record);
-		}
-		else
-		{
-			queue.Enqueue(record);
-		}
-	}
-
-	private async Task CreateBlobAsync()
-	{
-		CancellationTokenSource cancellationTokenSource = new CancellationTokenSource();
-		cancellationTokenSource.CancelAfter(TimeSpan.FromSeconds(10.0));
-		blobWriteOptions.HttpHeaders.ContentType = ((DocumentMode == AnalyticsDocumentMode.JSON) ? "application/json" : "text/csv");
-		try
-		{
-			Stream = await _blobClient.OpenWriteAsync(true, blobWriteOptions, cancellationTokenSource.Token);
-		}
-		catch (RequestFailedException val)
-		{
-			RequestFailedException val2 = val;
-			switch (val2.Status)
-			{
-			case 403:
-				Debug.Log((object)("Access denied to container " + ((BlobBaseClient)_blobClient).BlobContainerName + ", disabling bulk uploader."));
-				break;
-			case 404:
-				Debug.Log((object)("Container " + ((BlobBaseClient)_blobClient).BlobContainerName + " doesn't exist, disabling bulk uploader."));
-				break;
-			default:
-				Debug.Log((object)$"Unknown error when opening Azure container, status code: {val2.Status}, disabling bulk uploader.");
-				Debug.LogException((Exception)(object)val2);
-				break;
-			}
-			EmptyUploadQueue();
-			return;
-		}
-		ZipStream = new GZipStream(Stream, CompressionLevel.Fastest);
-		((Utf8ValueStringBuilder)(ref Writer)).Clear();
-	}
-
-	private async Task UploadThread()
-	{
-		try
-		{
-			_ = 2;
-			try
-			{
-				while (!disposed || !queue.IsEmpty)
-				{
-					EventRecord record;
-					while (queue.TryDequeue(out record))
-					{
-						if (Stream == null)
-						{
-							await CreateBlobAsync();
-							if (Stream == null)
-							{
-								record.MarkSubmitted();
-								Pool.Free<EventRecord>(ref record);
-								continue;
-							}
-						}
-						((Utf8ValueStringBuilder)(ref Writer)).Clear();
-						if (DocumentMode == AnalyticsDocumentMode.JSON)
-						{
-							record.SerializeAsJson(ref Writer, UseJsonDataObject);
-						}
-						else if (DocumentMode == AnalyticsDocumentMode.CSV)
-						{
-							record.SerializeAsCSV(ref Writer);
-						}
-						((Utf8ValueStringBuilder)(ref Writer)).AppendLine();
-						if (((Utf8ValueStringBuilder)(ref Writer)).Length > SmallBufferSendLimit)
-						{
-							await ((Utf8ValueStringBuilder)(ref Writer)).WriteToAsync((Stream)ZipStream);
-						}
-						else
-						{
-							((Utf8ValueStringBuilder)(ref Writer)).WriteTo((Stream)ZipStream);
-						}
-						record.MarkSubmitted();
-						Pool.Free<EventRecord>(ref record);
-					}
-					await Task.Delay(LoopDelay);
-				}
-			}
-			catch (Exception ex)
-			{
-				disposed = true;
-				Debug.LogException(ex);
-				EmptyUploadQueue();
-			}
-		}
-		finally
-		{
-			await DisposeStreamsAsync();
-			if (UsePooling)
-			{
-				AzureAnalyticsUploader azureAnalyticsUploader = this;
-				Pool.Free<AzureAnalyticsUploader>(ref azureAnalyticsUploader);
-			}
-		}
-	}
-
-	private void EmptyUploadQueue()
-	{
-		EventRecord result;
-		while (queue.TryDequeue(out result))
-		{
-			result.MarkSubmitted();
-			Pool.Free<EventRecord>(ref result);
-		}
-	}
-
-	private async Task DisposeStreamsAsync()
-	{
-		if (ZipStream != null)
-		{
-			await ZipStream.DisposeAsync();
-			ZipStream = null;
-		}
-		if (Stream != null)
-		{
-			await Stream.DisposeAsync();
-			Stream = null;
-		}
 	}
 }
 

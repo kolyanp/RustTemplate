@@ -26,6 +26,308 @@ public class EventRecord : IPooled
 
 	public string EventType { get; private set; }
 
+	public EventRecord AddField(byte value)
+	{
+		return AddField((long)value);
+	}
+
+	public EventRecord AddField(short value)
+	{
+		return AddField((long)value);
+	}
+
+	public EventRecord AddField(ushort value)
+	{
+		return AddField((long)value);
+	}
+
+	public EventRecord AddField(int value)
+	{
+		return AddField((long)value);
+	}
+
+	public EventRecord AddField(uint value)
+	{
+		return AddField((long)value);
+	}
+
+	public EventRecord AddField(ulong value)
+	{
+		return AddField((long)value);
+	}
+
+	public EventRecord AddField(float value)
+	{
+		return AddField((double)value);
+	}
+
+	[Obsolete("Char not supported, either cast to int or string")]
+	public EventRecord AddField(char value)
+	{
+		throw new NotImplementedException();
+	}
+
+	public EventRecord AddField(long value)
+	{
+		Data.Add(new EventRecordField
+		{
+			Value = new EventRecordField.ValueUnion
+			{
+				Number = value
+			},
+			Type = FieldType.Number
+		});
+		return this;
+	}
+
+	public EventRecord AddField(double value)
+	{
+		Data.Add(new EventRecordField
+		{
+			Value = new EventRecordField.ValueUnion
+			{
+				Float = value
+			},
+			Type = FieldType.Float
+		});
+		return this;
+	}
+
+	public EventRecord AddField(string value)
+	{
+		Data.Add(new EventRecordField
+		{
+			String = value,
+			Type = FieldType.String
+		});
+		return this;
+	}
+
+	public EventRecord AddField(bool value)
+	{
+		Data.Add(new EventRecordField
+		{
+			String = (value ? "true" : "false"),
+			Type = FieldType.String
+		});
+		return this;
+	}
+
+	public EventRecord AddField(DateTime value)
+	{
+		Data.Add(new EventRecordField
+		{
+			Value = new EventRecordField.ValueUnion
+			{
+				DateTime = value
+			},
+			Type = FieldType.DateTime
+		});
+		return this;
+	}
+
+	public EventRecord AddField(TimeSpan value)
+	{
+		Data.Add(new EventRecordField
+		{
+			Value = new EventRecordField.ValueUnion
+			{
+				Number = value.Ticks * NSPerTick
+			},
+			Type = FieldType.Number
+		});
+		return this;
+	}
+
+	public EventRecord AddField(Guid value)
+	{
+		Data.Add(new EventRecordField
+		{
+			Value = new EventRecordField.ValueUnion
+			{
+				Guid = value
+			},
+			Type = FieldType.Guid
+		});
+		return this;
+	}
+
+	public EventRecord AddField(Vector3 vector)
+	{
+		//IL_001a: Unknown result type (might be due to invalid IL or missing references)
+		//IL_001b: Unknown result type (might be due to invalid IL or missing references)
+		Data.Add(new EventRecordField
+		{
+			Value = new EventRecordField.ValueUnion
+			{
+				Vector = vector
+			},
+			Type = FieldType.Vector
+		});
+		return this;
+	}
+
+	public EventRecord AddField(byte[] bytes)
+	{
+		return AddField(null, null, bytes);
+	}
+
+	public EventRecord AddField(MemoryStream bytes)
+	{
+		return AddField(null, null, bytes);
+	}
+
+	public EventRecord AddField(string key1, string key2, byte value)
+	{
+		return AddField(key1, key2, (long)value);
+	}
+
+	public EventRecord AddField(string key1, string key2, short value)
+	{
+		return AddField(key1, key2, (long)value);
+	}
+
+	public EventRecord AddField(string key1, string key2, ushort value)
+	{
+		return AddField(key1, key2, (long)value);
+	}
+
+	public EventRecord AddField(string key1, string key2, int value)
+	{
+		return AddField(key1, key2, (long)value);
+	}
+
+	public EventRecord AddField(string key1, string key2, uint value)
+	{
+		return AddField(key1, key2, (long)value);
+	}
+
+	public EventRecord AddField(string key1, string key2, ulong value)
+	{
+		return AddField(key1, key2, (long)value);
+	}
+
+	public EventRecord AddField(string key1, string key2, float value)
+	{
+		return AddField(key1, key2, (double)value);
+	}
+
+	[Obsolete("Char not supported, either cast to int or string")]
+	public EventRecord AddField(string key1, string key2, char value)
+	{
+		throw new NotImplementedException();
+	}
+
+	public EventRecord AddField(string key1, string key2, long value)
+	{
+		Data.Add(new EventRecordField(key1, key2)
+		{
+			Value = new EventRecordField.ValueUnion
+			{
+				Number = value
+			},
+			Type = FieldType.Number
+		});
+		return this;
+	}
+
+	public EventRecord AddField(string key1, string key2, double value)
+	{
+		Data.Add(new EventRecordField(key1, key2)
+		{
+			Value = new EventRecordField.ValueUnion
+			{
+				Float = value
+			},
+			Type = FieldType.Float
+		});
+		return this;
+	}
+
+	public EventRecord AddField(string key1, string key2, string value)
+	{
+		Data.Add(new EventRecordField(key1, key2)
+		{
+			String = value,
+			Type = FieldType.String
+		});
+		return this;
+	}
+
+	public EventRecord AddField(string key1, string key2, bool value)
+	{
+		Data.Add(new EventRecordField(key1, key2)
+		{
+			String = (value ? "true" : "false"),
+			Type = FieldType.String
+		});
+		return this;
+	}
+
+	public EventRecord AddField(string key1, string key2, DateTime value)
+	{
+		Data.Add(new EventRecordField(key1, key2)
+		{
+			Value = new EventRecordField.ValueUnion
+			{
+				DateTime = value
+			},
+			Type = FieldType.DateTime
+		});
+		return this;
+	}
+
+	public EventRecord AddField(string key1, string key2, TimeSpan value)
+	{
+		Data.Add(new EventRecordField(key1, key2)
+		{
+			Value = new EventRecordField.ValueUnion
+			{
+				Number = value.Ticks * NSPerTick
+			},
+			Type = FieldType.Number
+		});
+		return this;
+	}
+
+	public EventRecord AddField(string key1, string key2, Guid value)
+	{
+		Data.Add(new EventRecordField(key1, key2)
+		{
+			Value = new EventRecordField.ValueUnion
+			{
+				Guid = value
+			},
+			Type = FieldType.Guid
+		});
+		return this;
+	}
+
+	public EventRecord AddField(string key1, string key2, Vector3 vector)
+	{
+		//IL_001b: Unknown result type (might be due to invalid IL or missing references)
+		//IL_001c: Unknown result type (might be due to invalid IL or missing references)
+		Data.Add(new EventRecordField(key1, key2)
+		{
+			Value = new EventRecordField.ValueUnion
+			{
+				Vector = vector
+			},
+			Type = FieldType.Vector
+		});
+		return this;
+	}
+
+	public EventRecord AddField(string key, byte[] bytes)
+	{
+		return AddField(key, null, bytes);
+	}
+
+	public EventRecord AddField(string key, MemoryStream bytes)
+	{
+		return AddField(key, null, bytes);
+	}
+
 	public void EnterPool()
 	{
 		Timestamp = default(DateTime);
@@ -408,20 +710,9 @@ public class EventRecord : IPooled
 
 	public void Submit()
 	{
-		if (Analytics.UseV2)
+		if (IsServer)
 		{
-			if (IsServer)
-			{
-				Analytics.AzureWebInterface.GameplayEventsTableServer.Append(this);
-				if (Analytics.AzureWebInterface.server.GameplayBulkUploader.NeedsCreation())
-				{
-					Analytics.AzureWebInterface.server.GameplayBulkUploader = null;
-				}
-			}
-		}
-		else if (IsServer)
-		{
-			Analytics.AzureWebInterface.server.EnqueueEvent(this);
+			AnalyticsManager.GameplayEventsTableServer.Append(this);
 		}
 	}
 
@@ -494,308 +785,6 @@ public class EventRecord : IPooled
 			((Utf8ValueStringBuilder)(ref writer)).Append('}');
 		}
 		((Utf8ValueStringBuilder)(ref writer)).Append('}');
-	}
-
-	public EventRecord AddField(byte value)
-	{
-		return AddField((long)value);
-	}
-
-	public EventRecord AddField(short value)
-	{
-		return AddField((long)value);
-	}
-
-	public EventRecord AddField(ushort value)
-	{
-		return AddField((long)value);
-	}
-
-	public EventRecord AddField(int value)
-	{
-		return AddField((long)value);
-	}
-
-	public EventRecord AddField(uint value)
-	{
-		return AddField((long)value);
-	}
-
-	public EventRecord AddField(ulong value)
-	{
-		return AddField((long)value);
-	}
-
-	public EventRecord AddField(float value)
-	{
-		return AddField((double)value);
-	}
-
-	[Obsolete("Char not supported, either cast to int or string")]
-	public EventRecord AddField(char value)
-	{
-		throw new NotImplementedException();
-	}
-
-	public EventRecord AddField(long value)
-	{
-		Data.Add(new EventRecordField
-		{
-			Value = new EventRecordField.ValueUnion
-			{
-				Number = value
-			},
-			Type = FieldType.Number
-		});
-		return this;
-	}
-
-	public EventRecord AddField(double value)
-	{
-		Data.Add(new EventRecordField
-		{
-			Value = new EventRecordField.ValueUnion
-			{
-				Float = value
-			},
-			Type = FieldType.Float
-		});
-		return this;
-	}
-
-	public EventRecord AddField(string value)
-	{
-		Data.Add(new EventRecordField
-		{
-			String = value,
-			Type = FieldType.String
-		});
-		return this;
-	}
-
-	public EventRecord AddField(bool value)
-	{
-		Data.Add(new EventRecordField
-		{
-			String = (value ? "true" : "false"),
-			Type = FieldType.String
-		});
-		return this;
-	}
-
-	public EventRecord AddField(DateTime value)
-	{
-		Data.Add(new EventRecordField
-		{
-			Value = new EventRecordField.ValueUnion
-			{
-				DateTime = value
-			},
-			Type = FieldType.DateTime
-		});
-		return this;
-	}
-
-	public EventRecord AddField(TimeSpan value)
-	{
-		Data.Add(new EventRecordField
-		{
-			Value = new EventRecordField.ValueUnion
-			{
-				Number = value.Ticks * NSPerTick
-			},
-			Type = FieldType.Number
-		});
-		return this;
-	}
-
-	public EventRecord AddField(Guid value)
-	{
-		Data.Add(new EventRecordField
-		{
-			Value = new EventRecordField.ValueUnion
-			{
-				Guid = value
-			},
-			Type = FieldType.Guid
-		});
-		return this;
-	}
-
-	public EventRecord AddField(Vector3 vector)
-	{
-		//IL_001a: Unknown result type (might be due to invalid IL or missing references)
-		//IL_001b: Unknown result type (might be due to invalid IL or missing references)
-		Data.Add(new EventRecordField
-		{
-			Value = new EventRecordField.ValueUnion
-			{
-				Vector = vector
-			},
-			Type = FieldType.Vector
-		});
-		return this;
-	}
-
-	public EventRecord AddField(byte[] bytes)
-	{
-		return AddField(null, null, bytes);
-	}
-
-	public EventRecord AddField(MemoryStream bytes)
-	{
-		return AddField(null, null, bytes);
-	}
-
-	public EventRecord AddField(string key1, string key2, byte value)
-	{
-		return AddField(key1, key2, (long)value);
-	}
-
-	public EventRecord AddField(string key1, string key2, short value)
-	{
-		return AddField(key1, key2, (long)value);
-	}
-
-	public EventRecord AddField(string key1, string key2, ushort value)
-	{
-		return AddField(key1, key2, (long)value);
-	}
-
-	public EventRecord AddField(string key1, string key2, int value)
-	{
-		return AddField(key1, key2, (long)value);
-	}
-
-	public EventRecord AddField(string key1, string key2, uint value)
-	{
-		return AddField(key1, key2, (long)value);
-	}
-
-	public EventRecord AddField(string key1, string key2, ulong value)
-	{
-		return AddField(key1, key2, (long)value);
-	}
-
-	public EventRecord AddField(string key1, string key2, float value)
-	{
-		return AddField(key1, key2, (double)value);
-	}
-
-	[Obsolete("Char not supported, either cast to int or string")]
-	public EventRecord AddField(string key1, string key2, char value)
-	{
-		throw new NotImplementedException();
-	}
-
-	public EventRecord AddField(string key1, string key2, long value)
-	{
-		Data.Add(new EventRecordField(key1, key2)
-		{
-			Value = new EventRecordField.ValueUnion
-			{
-				Number = value
-			},
-			Type = FieldType.Number
-		});
-		return this;
-	}
-
-	public EventRecord AddField(string key1, string key2, double value)
-	{
-		Data.Add(new EventRecordField(key1, key2)
-		{
-			Value = new EventRecordField.ValueUnion
-			{
-				Float = value
-			},
-			Type = FieldType.Float
-		});
-		return this;
-	}
-
-	public EventRecord AddField(string key1, string key2, string value)
-	{
-		Data.Add(new EventRecordField(key1, key2)
-		{
-			String = value,
-			Type = FieldType.String
-		});
-		return this;
-	}
-
-	public EventRecord AddField(string key1, string key2, bool value)
-	{
-		Data.Add(new EventRecordField(key1, key2)
-		{
-			String = (value ? "true" : "false"),
-			Type = FieldType.String
-		});
-		return this;
-	}
-
-	public EventRecord AddField(string key1, string key2, DateTime value)
-	{
-		Data.Add(new EventRecordField(key1, key2)
-		{
-			Value = new EventRecordField.ValueUnion
-			{
-				DateTime = value
-			},
-			Type = FieldType.DateTime
-		});
-		return this;
-	}
-
-	public EventRecord AddField(string key1, string key2, TimeSpan value)
-	{
-		Data.Add(new EventRecordField(key1, key2)
-		{
-			Value = new EventRecordField.ValueUnion
-			{
-				Number = value.Ticks * NSPerTick
-			},
-			Type = FieldType.Number
-		});
-		return this;
-	}
-
-	public EventRecord AddField(string key1, string key2, Guid value)
-	{
-		Data.Add(new EventRecordField(key1, key2)
-		{
-			Value = new EventRecordField.ValueUnion
-			{
-				Guid = value
-			},
-			Type = FieldType.Guid
-		});
-		return this;
-	}
-
-	public EventRecord AddField(string key1, string key2, Vector3 vector)
-	{
-		//IL_001b: Unknown result type (might be due to invalid IL or missing references)
-		//IL_001c: Unknown result type (might be due to invalid IL or missing references)
-		Data.Add(new EventRecordField(key1, key2)
-		{
-			Value = new EventRecordField.ValueUnion
-			{
-				Vector = vector
-			},
-			Type = FieldType.Vector
-		});
-		return this;
-	}
-
-	public EventRecord AddField(string key, byte[] bytes)
-	{
-		return AddField(key, null, bytes);
-	}
-
-	public EventRecord AddField(string key, MemoryStream bytes)
-	{
-		return AddField(key, null, bytes);
 	}
 }
 
@@ -1687,8 +1676,6 @@ public class TickLogging
 {
 	private static int tickUploaderInterval = 60;
 
-	public static AzureAnalyticsUploader tickUploader;
-
 	public static AnalyticsTable TickTable = new AnalyticsTable(GetTickTableName(), TimeSpan.FromSeconds(tick_uploader_lifetime), AnalyticsDocumentMode.CSV);
 
 	[ServerVar]
@@ -1829,7 +1816,7 @@ public static class EntityProfiler
 		list.Clear();
 	}
 
-	public static void TrySerializeEntityAggregates(int frameIndex, DateTime timestamp, AzureAnalyticsUploader uploader, AnalyticsTable table)
+	public static void TrySerializeEntityAggregates(int frameIndex, DateTime timestamp, AnalyticsTable table)
 	{
 		if (mode < 3 || Application.isLoadingSave || aggregateEntityCountCooldown > DateTime.UtcNow)
 		{
@@ -1839,21 +1826,14 @@ public static class EntityProfiler
 		foreach (EntityCounter value in counts.Values)
 		{
 			EventRecord eventRecord = EventRecord.CSV();
-			eventRecord.AddField("", timestamp).AddField("", ConVar.Server.server_id).AddField("", frameIndex)
-				.AddField("", value.Name)
-				.AddField("", value.count);
-			if (Analytics.UseV2)
-			{
-				table.Append(eventRecord);
-			}
-			else
-			{
-				uploader.Append(eventRecord);
-			}
+			eventRecord.AddField("Timestamp", timestamp).AddField("ServerId", ConVar.Server.server_id).AddField("FrameIndex", frameIndex)
+				.AddField("EntityName", value.Name)
+				.AddField("Count", value.count);
+			table.Append(eventRecord);
 		}
 	}
 
-	public static void Serialize(EventRecord record, int frameIndex, DateTime timestamp, AzureAnalyticsUploader uploader, AnalyticsTable table)
+	public static void Serialize(EventRecord record, int frameIndex, DateTime timestamp, AnalyticsTable table)
 	{
 		if (mode == 0)
 		{
@@ -1870,18 +1850,11 @@ public static class EntityProfiler
 			foreach (EntityCounter item in list)
 			{
 				EventRecord eventRecord = EventRecord.CSV();
-				eventRecord.AddField("", timestamp).AddField("", ConVar.Server.server_id).AddField("", frameIndex)
-					.AddField("", item.Name)
-					.AddField("", item.spawned)
-					.AddField("", item.killed);
-				if (Analytics.UseV2)
-				{
-					table.Append(eventRecord);
-				}
-				else
-				{
-					uploader.Append(eventRecord);
-				}
+				eventRecord.AddField("Timestamp", timestamp).AddField("ServerId", ConVar.Server.server_id).AddField("FrameIndex", frameIndex)
+					.AddField("EntityName", item.Name)
+					.AddField("Spawned", item.spawned)
+					.AddField("Killed", item.killed);
+				table.Append(eventRecord);
 			}
 		}
 		catch (Exception ex)
@@ -1936,7 +1909,7 @@ public static class LagSpikeProfiler
 
 	private static List<EventRecord> pendingEvents = new List<EventRecord>();
 
-	public static void Serialize(AzureAnalyticsUploader uploader, AnalyticsTable table, int frameIndex, DateTime timestamp)
+	public static void Serialize(AnalyticsTable table, int frameIndex, DateTime timestamp)
 	{
 		try
 		{
@@ -1948,14 +1921,7 @@ public static class LagSpikeProfiler
 			{
 				pendingEvent.Timestamp = timestamp;
 				pendingEvent.AddField("frame_index", frameIndex);
-				if (Analytics.UseV2)
-				{
-					table.Append(pendingEvent);
-				}
-				else
-				{
-					uploader.Append(pendingEvent);
-				}
+				table.Append(pendingEvent);
 			}
 		}
 		catch (Exception ex)
@@ -2047,29 +2013,7 @@ public static class RuntimeProfiler
 
 	private static Stopwatch serializationTimer = new Stopwatch();
 
-	private static AzureAnalyticsUploader frameProfilingUploader;
-
-	private static AzureAnalyticsUploader entityProfilingUploader;
-
-	private static AzureAnalyticsUploader entityAggregateUploader;
-
-	private static AzureAnalyticsUploader invokeDetailsUploader;
-
-	private static AzureAnalyticsUploader methodUploader;
-
-	private static AzureAnalyticsUploader objectWorkQueueUploader;
-
-	private static AzureAnalyticsUploader packetUploader;
-
-	private static AzureAnalyticsUploader lagSpikeUploader;
-
-	private static AzureAnalyticsUploader rconUploader;
-
-	private static AzureAnalyticsUploader raknetUploader;
-
-	private static AzureAnalyticsUploader poolUploader;
-
-	public static AnalyticsTable FrameProfilingTable = new AnalyticsTable("frame_profiling_2", TimeSpan.FromSeconds(runtime_profiling_interval));
+	public static AnalyticsTable FrameProfilingTable = new AnalyticsTable("profiling_frames", TimeSpan.FromSeconds(runtime_profiling_interval));
 
 	public static AnalyticsTable EntityProfilingTable = new AnalyticsTable("entity_profiling", TimeSpan.FromSeconds(runtime_profiling_interval), AnalyticsDocumentMode.CSV);
 
@@ -2081,7 +2025,7 @@ public static class RuntimeProfiler
 
 	public static AnalyticsTable ObjectWorkQueueTable = new AnalyticsTable("object_work_queue_2", TimeSpan.FromSeconds(runtime_profiling_interval), AnalyticsDocumentMode.CSV);
 
-	public static AnalyticsTable PacketTable = new AnalyticsTable("packets_per_type", TimeSpan.FromSeconds(runtime_profiling_interval), AnalyticsDocumentMode.CSV);
+	public static AnalyticsTable PacketTable = new AnalyticsTable("profiling_packets", TimeSpan.FromSeconds(runtime_profiling_interval), AnalyticsDocumentMode.CSV);
 
 	public static AnalyticsTable LagSpikeTable = new AnalyticsTable("lag_spikes", TimeSpan.FromSeconds(runtime_profiling_interval), AnalyticsDocumentMode.JSON, useJsonDataObject: true);
 
@@ -2348,19 +2292,6 @@ public static class RuntimeProfiler
 		}
 	}
 
-	[RconVar(Help = "Should analytics bulk uploaders use pooling")]
-	public static bool runtime_profiling_uploader_pooling
-	{
-		get
-		{
-			return AzureAnalyticsUploader.UsePooling;
-		}
-		set
-		{
-			AzureAnalyticsUploader.UsePooling = value;
-		}
-	}
-
 	[RconVar(Help = "Raknet statistics, 0 = off, 2 = per connection")]
 	public static int profiling_ping
 	{
@@ -2501,133 +2432,7 @@ public static class RuntimeProfiler
 				Start();
 				_init = true;
 			}
-			EnsureUploadersCreated();
 			CollectLastFrameStats();
-		}
-	}
-
-	private static void EnsureUploadersCreated()
-	{
-		if (frameProfilingUploader.NeedsCreation())
-		{
-			if (Analytics.UseV2)
-			{
-				frameProfilingUploader = null;
-			}
-			else
-			{
-				frameProfilingUploader = AzureAnalyticsUploader.Create("frame_profiling_2", TimeSpan.FromSeconds(runtime_profiling_interval));
-			}
-		}
-		if (entityProfilingUploader.NeedsCreation())
-		{
-			if (Analytics.UseV2)
-			{
-				entityProfilingUploader = null;
-			}
-			else
-			{
-				entityProfilingUploader = AzureAnalyticsUploader.Create("entity_profiling", TimeSpan.FromSeconds(runtime_profiling_interval), AnalyticsDocumentMode.CSV);
-			}
-		}
-		if (entityAggregateUploader.NeedsCreation())
-		{
-			if (Analytics.UseV2)
-			{
-				entityAggregateUploader = null;
-			}
-			else
-			{
-				entityAggregateUploader = AzureAnalyticsUploader.Create("entity_aggregates", TimeSpan.FromSeconds(runtime_profiling_interval), AnalyticsDocumentMode.CSV);
-			}
-		}
-		if (invokeDetailsUploader.NeedsCreation())
-		{
-			if (Analytics.UseV2)
-			{
-				invokeDetailsUploader = null;
-			}
-			else
-			{
-				invokeDetailsUploader = AzureAnalyticsUploader.Create("invoke_minute_breakdown", TimeSpan.FromSeconds(runtime_profiling_interval), AnalyticsDocumentMode.CSV);
-			}
-		}
-		if (methodUploader.NeedsCreation())
-		{
-			if (Analytics.UseV2)
-			{
-				methodUploader = null;
-			}
-			else
-			{
-				methodUploader = AzureAnalyticsUploader.Create("unity_methods", TimeSpan.FromSeconds(runtime_profiling_interval), AnalyticsDocumentMode.CSV);
-			}
-		}
-		if (objectWorkQueueUploader.NeedsCreation())
-		{
-			if (Analytics.UseV2)
-			{
-				objectWorkQueueUploader = null;
-			}
-			else
-			{
-				objectWorkQueueUploader = AzureAnalyticsUploader.Create("object_work_queue_2", TimeSpan.FromSeconds(runtime_profiling_interval), AnalyticsDocumentMode.CSV);
-			}
-		}
-		if (packetUploader.NeedsCreation())
-		{
-			if (Analytics.UseV2)
-			{
-				packetUploader = null;
-			}
-			else
-			{
-				packetUploader = AzureAnalyticsUploader.Create("packets_per_type", TimeSpan.FromSeconds(runtime_profiling_interval), AnalyticsDocumentMode.CSV);
-			}
-		}
-		if (lagSpikeUploader.NeedsCreation())
-		{
-			if (Analytics.UseV2)
-			{
-				lagSpikeUploader = null;
-			}
-			else
-			{
-				lagSpikeUploader = AzureAnalyticsUploader.Create("lag_spikes", TimeSpan.FromSeconds(runtime_profiling_interval));
-				lagSpikeUploader.UseJsonDataObject = true;
-			}
-		}
-		if (rconUploader.NeedsCreation())
-		{
-			if (Analytics.UseV2)
-			{
-				rconUploader = null;
-			}
-			else
-			{
-				rconUploader = AzureAnalyticsUploader.Create("rcon_profiling", TimeSpan.FromSeconds(runtime_profiling_interval));
-			}
-		}
-		if (raknetUploader.NeedsCreation())
-		{
-			if (Analytics.UseV2)
-			{
-				raknetUploader = null;
-			}
-			else
-			{
-				raknetUploader = AzureAnalyticsUploader.Create("raknet", TimeSpan.FromSeconds(runtime_profiling_interval), AnalyticsDocumentMode.CSV);
-			}
-		}
-		if (poolUploader.NeedsCreation())
-		{
-			if (Analytics.UseV2)
-			{
-				poolUploader = null;
-				return;
-			}
-			poolUploader = AzureAnalyticsUploader.Create("pool_profiling", TimeSpan.FromSeconds(runtime_profiling_interval));
-			poolUploader.UseJsonDataObject = true;
 		}
 	}
 
@@ -2641,36 +2446,29 @@ public static class RuntimeProfiler
 		serializationTimer.Restart();
 		RconProfilerStats currentStats = RconProfiler.GetCurrentStats(true);
 		DateTime utcNow = DateTime.UtcNow;
-		EventRecord eventRecord = EventRecord.New("frame_profiling").AddField("frame_index", frameIndex);
+		EventRecord eventRecord = EventRecord.New("profiling_frames").AddField("frame_index", frameIndex);
 		eventRecord.Timestamp = utcNow;
-		LagSpikeProfiler.Serialize(lagSpikeUploader, LagSpikeTable, frameIndex, utcNow);
+		LagSpikeProfiler.Serialize(LagSpikeTable, frameIndex, utcNow);
 		SerializeCommon(eventRecord, currentStats);
 		SerializeNetworking(eventRecord, frameIndex, utcNow);
 		SerializeInvokes(eventRecord);
 		if (DateTime.UtcNow >= lastInvokeSerialization + TimeSpan.FromSeconds(60.0))
 		{
-			SerializeInvokeExecutionTime(InvokeProfiler.update, invokeDetailsUploader, InvokeDetailsTable, utcNow);
-			SerializeInvokeExecutionTime(InvokeProfiler.fixedUpdate, invokeDetailsUploader, InvokeDetailsTable, utcNow);
+			SerializeInvokeExecutionTime(InvokeProfiler.update, InvokeDetailsTable, utcNow);
+			SerializeInvokeExecutionTime(InvokeProfiler.fixedUpdate, InvokeDetailsTable, utcNow);
 			lastInvokeSerialization = DateTime.UtcNow;
 		}
 		SerializeProfilingSamples(eventRecord);
-		EntityProfiler.Serialize(eventRecord, frameIndex, utcNow, entityProfilingUploader, EntityProfilingTable);
-		EntityProfiler.TrySerializeEntityAggregates(frameIndex, utcNow, entityAggregateUploader, EntityAggregateTable);
-		WorkQueueProfiler.Serialize(objectWorkQueueUploader, ObjectWorkQueueTable, frameIndex, utcNow);
-		PlayerNetworkingProfiler.Serialize(raknetUploader, RaknetTable, frameIndex, utcNow);
-		SerializeRconEvents(rconUploader, RconTable, frameIndex, utcNow, currentStats);
-		SerializeMemoryPool(poolUploader, PoolTable, frameIndex, utcNow);
+		EntityProfiler.Serialize(eventRecord, frameIndex, utcNow, EntityProfilingTable);
+		EntityProfiler.TrySerializeEntityAggregates(frameIndex, utcNow, EntityAggregateTable);
+		WorkQueueProfiler.Serialize(ObjectWorkQueueTable, frameIndex, utcNow);
+		PlayerNetworkingProfiler.Serialize(RaknetTable, frameIndex, utcNow);
+		SerializeRconEvents(RconTable, frameIndex, utcNow, currentStats);
+		SerializeMemoryPool(PoolTable, frameIndex, utcNow);
 		ResetAllMeasurements();
 		Pool.Free<RconProfilerStats>(ref currentStats);
 		eventRecord.AddField("serialization_time", serializationTimer.Elapsed);
-		if (Analytics.UseV2)
-		{
-			FrameProfilingTable.Append(eventRecord);
-		}
-		else
-		{
-			frameProfilingUploader.Append(eventRecord);
-		}
+		FrameProfilingTable.Append(eventRecord);
 	}
 
 	private static void ResetAllMeasurements()
@@ -2744,43 +2542,41 @@ public static class RuntimeProfiler
 			int num3 = 0;
 			int num4 = 0;
 			int num5 = 0;
+			int num6 = 0;
 			for (int i = 0; i < 29; i++)
 			{
-				int num6 = PacketProfiler.inboundCount[i];
-				int num7 = PacketProfiler.inboundBytes[i];
-				int num8 = PacketProfiler.outboundCount[i];
-				int num9 = PacketProfiler.outboundSum[i];
-				int num10 = PacketProfiler.outboundBytes[i];
-				num += num6;
-				num2 += num7;
-				num3 += num8;
-				num4 += num9;
-				num5 += num10;
-				if (num6 > 0 || num8 > 0)
+				int num7 = PacketProfiler.inboundCount[i];
+				int num8 = PacketProfiler.inboundBytes[i];
+				int num9 = PacketProfiler.outboundCount[i];
+				int num10 = PacketProfiler.outboundSum[i];
+				int num11 = PacketProfiler.outboundMsgBytes[i];
+				int num12 = PacketProfiler.outboundBytes[i];
+				num += num7;
+				num2 += num8;
+				num3 += num9;
+				num4 += num10;
+				num5 += num11;
+				num6 += num12;
+				if (num7 > 0 || num9 > 0)
 				{
 					EventRecord eventRecord = EventRecord.CSV();
-					eventRecord.AddField("", frameIndex).AddField("", timestamp).AddField("", AnalyticsKeys.MessageType[i])
-						.AddField("", num6)
-						.AddField("", num7)
-						.AddField("", num8)
-						.AddField("", num9)
-						.AddField("", num10)
-						.AddField("", Server.server_id);
-					if (Analytics.UseV2)
-					{
-						PacketTable.Append(eventRecord);
-					}
-					else
-					{
-						packetUploader.Append(eventRecord);
-					}
+					eventRecord.AddField("frame_index", frameIndex).AddField("Timestamp", timestamp).AddField("Type", AnalyticsKeys.MessageType[i])
+						.AddField("InboundCount", num7)
+						.AddField("InboundBytes", num8)
+						.AddField("OutboundCount", num9)
+						.AddField("OutboundSum", num10)
+						.AddField("OutboundBytes", num12)
+						.AddField("Server_id", Server.server_id)
+						.AddField("OutboundMsgBytes", num11);
+					PacketTable.Append(eventRecord);
 				}
 			}
 			frameRecord.AddField("inbound_count_total", num);
 			frameRecord.AddField("inbound_bytes_total", num2);
 			frameRecord.AddField("outbound_count_total", num3);
 			frameRecord.AddField("outbound_sum_total", num4);
-			frameRecord.AddField("outbound_bytes_total", num5);
+			frameRecord.AddField("outbound_msg_bytes_total", num5);
+			frameRecord.AddField("outbound_bytes_total", num6);
 		}
 		catch (Exception ex)
 		{
@@ -2813,7 +2609,7 @@ public static class RuntimeProfiler
 		}
 	}
 
-	private static void SerializeInvokeExecutionTime(InvokeProfiler profiler, AzureAnalyticsUploader uploader, AnalyticsTable table, DateTime timestamp, bool reset = true)
+	private static void SerializeInvokeExecutionTime(InvokeProfiler profiler, AnalyticsTable table, DateTime timestamp, bool reset = true)
 	{
 		if (profiler.mode < 2)
 		{
@@ -2827,19 +2623,12 @@ public static class RuntimeProfiler
 				if (trackingData.Calls != 0)
 				{
 					EventRecord eventRecord = EventRecord.CSV();
-					eventRecord.AddField("", timestamp).AddField("", profiler.Name).AddField("", trackingData.TypeName)
-						.AddField("", trackingData.Key.MethodName)
-						.AddField("", trackingData.ExecutionTime)
-						.AddField("", trackingData.Calls)
-						.AddField("", Server.server_id);
-					if (Analytics.UseV2)
-					{
-						table.Append(eventRecord);
-					}
-					else
-					{
-						uploader.Append(eventRecord);
-					}
+					eventRecord.AddField("Timestamp", timestamp).AddField("Update/FixedUpdate", profiler.Name).AddField("Type", trackingData.TypeName)
+						.AddField("Method", trackingData.Key.MethodName)
+						.AddField("Time", trackingData.ExecutionTime)
+						.AddField("Calls", trackingData.Calls)
+						.AddField("ServerId", Server.server_id);
+					table.Append(eventRecord);
 					if (reset)
 					{
 						trackingData.Reset();
@@ -2848,19 +2637,12 @@ public static class RuntimeProfiler
 			}
 			invokeExecutionResetTimer.Stop();
 			EventRecord eventRecord2 = EventRecord.CSV();
-			eventRecord2.AddField("", timestamp).AddField("", "Update").AddField("", "RuntimeProfiler")
-				.AddField("", "Invoke_Execution_Serialization")
-				.AddField("", invokeExecutionResetTimer.Elapsed)
-				.AddField("", 1)
-				.AddField("", Server.server_id);
-			if (Analytics.UseV2)
-			{
-				table.Append(eventRecord2);
-			}
-			else
-			{
-				uploader.Append(eventRecord2);
-			}
+			eventRecord2.AddField("Timestamp", timestamp).AddField("Update/FixedUpdate", "Update").AddField("Type", "RuntimeProfiler")
+				.AddField("Method", "Invoke_Execution_Serialization")
+				.AddField("Time", invokeExecutionResetTimer.Elapsed)
+				.AddField("Calls", 1)
+				.AddField("ServerId", Server.server_id);
+			table.Append(eventRecord2);
 		}
 		catch (Exception ex)
 		{
@@ -2887,70 +2669,49 @@ public static class RuntimeProfiler
 		}
 	}
 
-	private static void SerializeRconEvents(AzureAnalyticsUploader uploader, AnalyticsTable table, int frameIndex, DateTime timestamp, RconProfilerStats rconStats)
+	private static void SerializeRconEvents(AnalyticsTable table, int frameIndex, DateTime timestamp, RconProfilerStats rconStats)
 	{
-		//IL_0011: Unknown result type (might be due to invalid IL or missing references)
-		//IL_0016: Unknown result type (might be due to invalid IL or missing references)
-		//IL_0028: Unknown result type (might be due to invalid IL or missing references)
-		//IL_0038: Unknown result type (might be due to invalid IL or missing references)
-		//IL_0048: Unknown result type (might be due to invalid IL or missing references)
-		//IL_0058: Unknown result type (might be due to invalid IL or missing references)
-		//IL_0068: Unknown result type (might be due to invalid IL or missing references)
+		//IL_0010: Unknown result type (might be due to invalid IL or missing references)
+		//IL_0015: Unknown result type (might be due to invalid IL or missing references)
+		//IL_0027: Unknown result type (might be due to invalid IL or missing references)
+		//IL_0037: Unknown result type (might be due to invalid IL or missing references)
+		//IL_0047: Unknown result type (might be due to invalid IL or missing references)
+		//IL_0057: Unknown result type (might be due to invalid IL or missing references)
+		//IL_0067: Unknown result type (might be due to invalid IL or missing references)
+		//IL_00a3: Unknown result type (might be due to invalid IL or missing references)
+		//IL_00a8: Unknown result type (might be due to invalid IL or missing references)
 		//IL_00bb: Unknown result type (might be due to invalid IL or missing references)
-		//IL_00c0: Unknown result type (might be due to invalid IL or missing references)
-		//IL_00d3: Unknown result type (might be due to invalid IL or missing references)
-		//IL_00e4: Unknown result type (might be due to invalid IL or missing references)
-		//IL_00f5: Unknown result type (might be due to invalid IL or missing references)
-		//IL_0106: Unknown result type (might be due to invalid IL or missing references)
-		//IL_0117: Unknown result type (might be due to invalid IL or missing references)
-		//IL_016c: Unknown result type (might be due to invalid IL or missing references)
-		//IL_0171: Unknown result type (might be due to invalid IL or missing references)
-		//IL_0184: Unknown result type (might be due to invalid IL or missing references)
-		//IL_0195: Unknown result type (might be due to invalid IL or missing references)
-		//IL_01a6: Unknown result type (might be due to invalid IL or missing references)
+		//IL_00cc: Unknown result type (might be due to invalid IL or missing references)
+		//IL_00dd: Unknown result type (might be due to invalid IL or missing references)
+		//IL_00ee: Unknown result type (might be due to invalid IL or missing references)
+		//IL_00ff: Unknown result type (might be due to invalid IL or missing references)
+		//IL_013f: Unknown result type (might be due to invalid IL or missing references)
+		//IL_0144: Unknown result type (might be due to invalid IL or missing references)
+		//IL_0157: Unknown result type (might be due to invalid IL or missing references)
+		//IL_0168: Unknown result type (might be due to invalid IL or missing references)
+		//IL_0179: Unknown result type (might be due to invalid IL or missing references)
 		foreach (RconConnectionAttempt connectionAttempt in rconStats.ConnectionAttempts)
 		{
 			EventRecord record = CreatePoint("rcon_connection_attempt", frameIndex, timestamp).AddField("ip", connectionAttempt.IP).AddField("port", connectionAttempt.Port).AddField("connection_id", connectionAttempt.ConnectionId)
 				.AddField("password", connectionAttempt.PasswordAttempt)
 				.AddField("success", connectionAttempt.Success);
-			if (Analytics.UseV2)
-			{
-				table.Append(record);
-			}
-			else
-			{
-				uploader.Append(record);
-			}
+			table.Append(record);
 		}
 		foreach (RconMessageStats message in rconStats.Messages)
 		{
 			EventRecord record2 = CreatePoint("rcon_message", frameIndex, timestamp).AddField("ip", message.IP).AddField("port", message.Port).AddField("connection_id", message.ConnectionId)
 				.AddField("message", message.Message)
 				.AddField("message_length", message.MessageLength);
-			if (Analytics.UseV2)
-			{
-				table.Append(record2);
-			}
-			else
-			{
-				uploader.Append(record2);
-			}
+			table.Append(record2);
 		}
 		foreach (RconDisconnects disconnect in rconStats.Disconnects)
 		{
 			EventRecord record3 = CreatePoint("rcon_disconnect", frameIndex, timestamp).AddField("ip", disconnect.IP).AddField("port", disconnect.Port).AddField("connection_id", disconnect.ConnectionId);
-			if (Analytics.UseV2)
-			{
-				table.Append(record3);
-			}
-			else
-			{
-				uploader.Append(record3);
-			}
+			table.Append(record3);
 		}
 	}
 
-	private static void SerializeMemoryPool(AzureAnalyticsUploader uploader, AnalyticsTable table, int frameIndex, DateTime timestamp)
+	private static void SerializeMemoryPool(AnalyticsTable table, int frameIndex, DateTime timestamp)
 	{
 		if (runtime_profiling_pooling == 0 || !(timestamp > nextPoolFlush))
 		{
@@ -2967,14 +2728,7 @@ public static class RuntimeProfiler
 				.AddField("taken", value.ItemsTaken)
 				.AddField("spilled", value.ItemsSpilled)
 				.AddField("max_used", value.MaxItemsInUse);
-			if (Analytics.UseV2)
-			{
-				table.Append(record);
-			}
-			else
-			{
-				uploader.Append(record);
-			}
+			table.Append(record);
 		}
 		ArrayPool<byte> arrayPool = BaseNetwork.ArrayPool;
 		ConcurrentQueue<byte[]>[] buffer = arrayPool.GetBuffer();
@@ -2982,14 +2736,7 @@ public static class RuntimeProfiler
 		{
 			ConcurrentQueue<byte[]> concurrentQueue = buffer[i];
 			EventRecord record2 = CreatePoint("pool_networking", frameIndex, timestamp).AddField("size", arrayPool.IndexToSize(i)).AddField("amount", concurrentQueue.Count);
-			if (Analytics.UseV2)
-			{
-				table.Append(record2);
-			}
-			else
-			{
-				uploader.Append(record2);
-			}
+			table.Append(record2);
 		}
 	}
 
@@ -3114,12 +2861,12 @@ public static class UnityProfiler
 		ActiveRecorders.Clear();
 	}
 
-	public static void Serialize(AzureAnalyticsUploader uploader, AnalyticsTable table, DateTime timestamp, int frameIndex)
+	public static void Serialize(AnalyticsTable table, DateTime timestamp, int frameIndex)
 	{
-		//IL_0022: Unknown result type (might be due to invalid IL or missing references)
-		//IL_0027: Unknown result type (might be due to invalid IL or missing references)
-		//IL_0064: Unknown result type (might be due to invalid IL or missing references)
-		//IL_0069: Unknown result type (might be due to invalid IL or missing references)
+		//IL_001f: Unknown result type (might be due to invalid IL or missing references)
+		//IL_0024: Unknown result type (might be due to invalid IL or missing references)
+		//IL_0061: Unknown result type (might be due to invalid IL or missing references)
+		//IL_0066: Unknown result type (might be due to invalid IL or missing references)
 		if (!enabled)
 		{
 			return;
@@ -3135,14 +2882,7 @@ public static class UnityProfiler
 					EventRecord eventRecord2 = eventRecord.AddField("", frameIndex).AddField("", timestamp).AddField("", activeRecorder.MethodName);
 					recorder = activeRecorder.Recorder;
 					eventRecord2.AddField("", ((ProfilerRecorder)(ref recorder)).LastValue).AddField("", Server.server_id);
-					if (Analytics.UseV2)
-					{
-						table.Append(eventRecord);
-					}
-					else
-					{
-						uploader.Append(eventRecord);
-					}
+					table.Append(eventRecord);
 				}
 			}
 		}
@@ -3173,15 +2913,15 @@ public static class WorkQueueProfiler
 {
 	public static bool enabled;
 
-	public static void Serialize(AzureAnalyticsUploader uploader, AnalyticsTable table, int frameIndex, DateTime timestamp)
+	public static void Serialize(AnalyticsTable table, int frameIndex, DateTime timestamp)
 	{
 		//IL_000b: Unknown result type (might be due to invalid IL or missing references)
 		//IL_002c: Unknown result type (might be due to invalid IL or missing references)
-		//IL_012c: Unknown result type (might be due to invalid IL or missing references)
-		//IL_0245: Unknown result type (might be due to invalid IL or missing references)
-		//IL_0255: Unknown result type (might be due to invalid IL or missing references)
-		//IL_0265: Unknown result type (might be due to invalid IL or missing references)
-		//IL_0284: Unknown result type (might be due to invalid IL or missing references)
+		//IL_011b: Unknown result type (might be due to invalid IL or missing references)
+		//IL_0223: Unknown result type (might be due to invalid IL or missing references)
+		//IL_0233: Unknown result type (might be due to invalid IL or missing references)
+		//IL_0243: Unknown result type (might be due to invalid IL or missing references)
+		//IL_0262: Unknown result type (might be due to invalid IL or missing references)
 		if (!enabled)
 		{
 			return;
@@ -3195,20 +2935,13 @@ public static class WorkQueueProfiler
 				if (item.Stats.ProcessedCount != 0)
 				{
 					EventRecord eventRecord = EventRecord.CSV();
-					eventRecord.AddField("", frameIndex).AddField("", timestamp).AddField("", item.Name)
-						.AddField("", item.Stats.QueueCount)
-						.AddField("", item.Stats.ExecutionTime)
-						.AddField("", item.Stats.ProcessedCount)
-						.AddField("", Server.server_id)
-						.AddField("", item.Stats.BudgetTime);
-					if (Analytics.UseV2)
-					{
-						table.Append(eventRecord);
-					}
-					else
-					{
-						uploader.Append(eventRecord);
-					}
+					eventRecord.AddField("frame_index", frameIndex).AddField("Timestamp", timestamp).AddField("QueueName", item.Name)
+						.AddField("StartCount", item.Stats.QueueCount)
+						.AddField("TimeTaken", item.Stats.ExecutionTime)
+						.AddField("ProcessedCount", item.Stats.ProcessedCount)
+						.AddField("server_id", Server.server_id)
+						.AddField("BudgetTime", item.Stats.BudgetTime);
+					table.Append(eventRecord);
 				}
 			}
 			foreach (PersistentObjectWorkQueue item2 in PersistentObjectWorkQueue.All)
@@ -3217,37 +2950,23 @@ public static class WorkQueueProfiler
 				if (item2.Stats.ProcessedCount != 0)
 				{
 					EventRecord eventRecord2 = EventRecord.CSV();
-					eventRecord2.AddField("", frameIndex).AddField("", timestamp).AddField("", item2.Name)
-						.AddField("", item2.Stats.QueueCount)
-						.AddField("", item2.Stats.ExecutionTime)
-						.AddField("", item2.Stats.ProcessedCount)
-						.AddField("", Server.server_id)
-						.AddField("", item2.Stats.BudgetTime);
-					if (Analytics.UseV2)
-					{
-						table.Append(eventRecord2);
-					}
-					else
-					{
-						uploader.Append(eventRecord2);
-					}
+					eventRecord2.AddField("frame_index", frameIndex).AddField("Timestamp", timestamp).AddField("QueueName", item2.Name)
+						.AddField("StartCount", item2.Stats.QueueCount)
+						.AddField("TimeTaken", item2.Stats.ExecutionTime)
+						.AddField("ProcessedCount", item2.Stats.ProcessedCount)
+						.AddField("server_id", Server.server_id)
+						.AddField("BudgetTime", item2.Stats.BudgetTime);
+					table.Append(eventRecord2);
 				}
 			}
 			EventRecord eventRecord3 = EventRecord.CSV();
-			eventRecord3.AddField("", frameIndex).AddField("", timestamp).AddField("", "Aggregate")
-				.AddField("", val.QueueCount)
-				.AddField("", val.ExecutionTime)
-				.AddField("", val.ProcessedCount)
-				.AddField("", Server.server_id)
-				.AddField("", val.BudgetTime);
-			if (Analytics.UseV2)
-			{
-				table.Append(eventRecord3);
-			}
-			else
-			{
-				uploader.Append(eventRecord3);
-			}
+			eventRecord3.AddField("frame_index", frameIndex).AddField("Timestamp", timestamp).AddField("QueueName", "Aggregate")
+				.AddField("StartCount", val.QueueCount)
+				.AddField("TimeTaken", val.ExecutionTime)
+				.AddField("ProcessedCount", val.ProcessedCount)
+				.AddField("server_id", Server.server_id)
+				.AddField("BudgetTime", val.BudgetTime);
+			table.Append(eventRecord3);
 		}
 		catch (Exception ex)
 		{
@@ -3293,8 +3012,8 @@ public class ModelViewer_RenderParameters
 	[Header("Anti Aliasing")]
 	public PostProcessLayer.Antialiasing antialiasing = PostProcessLayer.Antialiasing.TemporalAntialiasing;
 
-	[Header("Shadows")]
 	[Range(1f, 4f)]
+	[Header("Shadows")]
 	public int shadowCascades = 4;
 
 	[Range(1f, 3f)]
@@ -3342,8 +3061,8 @@ public class ModelViewer_RenderParameters
 	[Range(0f, 1f)]
 	public float traceBias = 0.03f;
 
-	[Header("Ambient Occlusion")]
 	[Header("                ")]
+	[Header("Ambient Occlusion")]
 	public bool enableAmbientOcclusion = true;
 
 	public SampleCountLevel SampleCount = SampleCountLevel.Medium;
@@ -3352,16 +3071,16 @@ public class ModelViewer_RenderParameters
 
 	public Color Tint = Color.black;
 
-	[Range(0f, 32f)]
 	[Tooltip("Radius spread of the occlusion.")]
+	[Range(0f, 32f)]
 	public float Radius = 2f;
 
-	[Range(0f, 16f)]
 	[Tooltip("Power exponent attenuation of the occlusion.")]
+	[Range(0f, 16f)]
 	public float PowerExponent = 1.8f;
 
-	[Range(0f, 0.99f)]
 	[Tooltip("Controls the initial occlusion contribution offset.")]
+	[Range(0f, 0.99f)]
 	public float Bias = 0.05f;
 
 	[Range(0f, 1f)]
@@ -3398,8 +3117,8 @@ public class ModelViewer_RenderParameters
 	[Tooltip("Final Thickness parameter.")]
 	public float FadeToThickness = 1f;
 
-	[Header("                ")]
 	[Header("Reflections")]
+	[Header("                ")]
 	public ReflectionProbeMode Type = (ReflectionProbeMode)1;
 
 	public ReflectionProbeRefreshMode RefreshMode = (ReflectionProbeRefreshMode)1;
@@ -3478,8 +3197,8 @@ public class ModelViewer_MainCameraParameters
 	public float followLag;
 
 	[Header("Lens")]
-	[Header("                ")]
 	[Range(0.01f, 360f)]
+	[Header("                ")]
 	public float fieldOfView = 15f;
 
 	public float nearPlane = 0.05f;
@@ -3494,8 +3213,8 @@ public class ModelViewer_MainCameraParameters
 	[Range(0.01f, 100f)]
 	public float Ratio = 3f;
 
-	[Header("Focus")]
 	[Header("                ")]
+	[Header("Focus")]
 	public bool depthOfField;
 
 	public float focalLength = 3f;
@@ -3508,21 +3227,21 @@ public class ModelViewer_MainCameraParameters
 
 	public bool debugMode;
 
-	[Header("                ")]
 	[Range(0f, 360f)]
+	[Header("                ")]
 	[Header("Motion Blur")]
 	public float shutterAngle;
 
+	[Range(-100f, 100f)]
 	[Header("Distortion")]
 	[Header("                ")]
-	[Range(-100f, 100f)]
 	public float barrelAndPincushion;
 
 	[Range(0f, 1f)]
 	public float chromaticAbberation;
 
-	[Header("Post Effects")]
 	[Header("                ")]
+	[Header("Post Effects")]
 	public TonemappingMode ToneMapping = TonemappingMode.Neutral;
 
 	public float Exposure = 2.34f;
@@ -3539,8 +3258,8 @@ public class ModelViewer_MainCameraParameters
 
 	public float limit;
 
-	[Header("                ")]
 	[Header("God Rays")]
+	[Header("                ")]
 	public bool GodRays = true;
 
 	[Header("                ")]
@@ -3568,8 +3287,8 @@ public class ModelViewer_MainCameraParameters
 
 	public float Sharpness;
 
-	[Header("Grain")]
 	[Header("                ")]
+	[Header("Grain")]
 	public bool Coloured = true;
 
 	[Range(0f, 1f)]
@@ -3612,9 +3331,9 @@ public class ModelViewer_SkyParameters
 	[Range(0f, 1f)]
 	public float skyBrightness = 1f;
 
-	[Tooltip("Current hour of the day.")]
 	[Header("Time of Day")]
 	[Header("                ")]
+	[Tooltip("Current hour of the day.")]
 	public float Hour = 9f;
 
 	[Tooltip("Current day of the month.")]
@@ -3623,12 +3342,12 @@ public class ModelViewer_SkyParameters
 	[Tooltip("Current month of the year.")]
 	public int Month = 5;
 
-	[Tooltip("Current year.")]
 	[TOD_Range(1f, 9999f)]
+	[Tooltip("Current year.")]
 	public int Year = 2000;
 
-	[Tooltip("Latitude of the current location in degrees.")]
 	[Range(-90f, 90f)]
+	[Tooltip("Latitude of the current location in degrees.")]
 	public float Latitude = -10f;
 
 	[Tooltip("Longitude of the current location in degrees.")]
@@ -4329,15 +4048,15 @@ public static class FEngineering
 {
 	private static Plane axis2DProjection;
 
-	private static PhysicMaterial _slidingMat;
+	private static PhysicsMaterial _slidingMat;
 
-	private static PhysicMaterial _frictMat;
+	private static PhysicsMaterial _frictMat;
 
 	private static PhysicsMaterial2D _slidingMat2D;
 
 	private static PhysicsMaterial2D _frictMat2D;
 
-	public static PhysicMaterial PMSliding
+	public static PhysicsMaterial PMSliding
 	{
 		get
 		{
@@ -4347,15 +4066,15 @@ public static class FEngineering
 			{
 				return _slidingMat;
 			}
-			_slidingMat = new PhysicMaterial("Slide");
-			_slidingMat.frictionCombine = (PhysicMaterialCombine)2;
+			_slidingMat = new PhysicsMaterial("Slide");
+			_slidingMat.frictionCombine = (PhysicsMaterialCombine)2;
 			_slidingMat.dynamicFriction = 0f;
 			_slidingMat.staticFriction = 0f;
 			return _slidingMat;
 		}
 	}
 
-	public static PhysicMaterial PMFrict
+	public static PhysicsMaterial PMFrict
 	{
 		get
 		{
@@ -4365,8 +4084,8 @@ public static class FEngineering
 			{
 				return _frictMat;
 			}
-			_frictMat = new PhysicMaterial("Friction");
-			_frictMat.frictionCombine = (PhysicMaterialCombine)3;
+			_frictMat = new PhysicsMaterial("Friction");
+			_frictMat.frictionCombine = (PhysicsMaterialCombine)3;
 			_frictMat.dynamicFriction = 10f;
 			_frictMat.staticFriction = 10f;
 			return _frictMat;
@@ -11191,32 +10910,6 @@ public class FimpIK_Limb : FIK_ProcessorBase
 	}
 
 	[NonSerialized]
-	[Tooltip("3-Bones limb array")]
-	private IKBone[] IKBones;
-
-	[Space(4f)]
-	[Range(0f, 1f)]
-	[Tooltip("Blend value for goal position")]
-	public float IKPositionWeight = 1f;
-
-	[Tooltip("Blend value for end bone rotation")]
-	[Range(0f, 1f)]
-	public float FootRotationWeight = 1f;
-
-	[Tooltip("Flex style algorithm for different limbs")]
-	public FIK_HintMode AutoHintMode = FIK_HintMode.MiddleForward;
-
-	protected Vector3 targetElbowNormal = Vector3.right;
-
-	protected Quaternion lateEndBoneRotation;
-
-	protected Quaternion postIKAnimatorEndBoneRot;
-
-	public Vector3 ExtraHintAdjustementOffset = Vector3.zero;
-
-	public bool InverseHint;
-
-	[NonSerialized]
 	public float FeetStretchWeight = 1f;
 
 	[NonSerialized]
@@ -11261,6 +10954,32 @@ public class FimpIK_Limb : FIK_ProcessorBase
 
 	private float internalRotationWeightMul = 1f;
 
+	[NonSerialized]
+	[Tooltip("3-Bones limb array")]
+	private IKBone[] IKBones;
+
+	[Range(0f, 1f)]
+	[Tooltip("Blend value for goal position")]
+	[Space(4f)]
+	public float IKPositionWeight = 1f;
+
+	[Range(0f, 1f)]
+	[Tooltip("Blend value for end bone rotation")]
+	public float FootRotationWeight = 1f;
+
+	[Tooltip("Flex style algorithm for different limbs")]
+	public FIK_HintMode AutoHintMode = FIK_HintMode.MiddleForward;
+
+	protected Vector3 targetElbowNormal = Vector3.right;
+
+	protected Quaternion lateEndBoneRotation;
+
+	protected Quaternion postIKAnimatorEndBoneRot;
+
+	public Vector3 ExtraHintAdjustementOffset = Vector3.zero;
+
+	public bool InverseHint;
+
 	public Quaternion EndBoneMapping { get; protected set; }
 
 	public IKBone FeetIKBone => IKBones[3];
@@ -11278,227 +10997,6 @@ public class FimpIK_Limb : FIK_ProcessorBase
 	public IKBone EndParentIKBone { get; private set; }
 
 	public int BonesCount => IKBones.Length;
-
-	public override void Update()
-	{
-		//IL_002e: Unknown result type (might be due to invalid IL or missing references)
-		//IL_003e: Unknown result type (might be due to invalid IL or missing references)
-		//IL_0043: Unknown result type (might be due to invalid IL or missing references)
-		//IL_0048: Unknown result type (might be due to invalid IL or missing references)
-		//IL_0066: Unknown result type (might be due to invalid IL or missing references)
-		//IL_0076: Unknown result type (might be due to invalid IL or missing references)
-		//IL_007b: Unknown result type (might be due to invalid IL or missing references)
-		//IL_0080: Unknown result type (might be due to invalid IL or missing references)
-		//IL_008f: Unknown result type (might be due to invalid IL or missing references)
-		//IL_0094: Unknown result type (might be due to invalid IL or missing references)
-		//IL_009a: Unknown result type (might be due to invalid IL or missing references)
-		//IL_009f: Unknown result type (might be due to invalid IL or missing references)
-		//IL_0107: Unknown result type (might be due to invalid IL or missing references)
-		//IL_00ad: Unknown result type (might be due to invalid IL or missing references)
-		//IL_00be: Unknown result type (might be due to invalid IL or missing references)
-		//IL_00ce: Unknown result type (might be due to invalid IL or missing references)
-		//IL_00d4: Unknown result type (might be due to invalid IL or missing references)
-		//IL_00d9: Unknown result type (might be due to invalid IL or missing references)
-		//IL_00de: Unknown result type (might be due to invalid IL or missing references)
-		//IL_00e3: Unknown result type (might be due to invalid IL or missing references)
-		//IL_00f3: Unknown result type (might be due to invalid IL or missing references)
-		//IL_00f8: Unknown result type (might be due to invalid IL or missing references)
-		//IL_00fb: Unknown result type (might be due to invalid IL or missing references)
-		//IL_0100: Unknown result type (might be due to invalid IL or missing references)
-		//IL_011d: Unknown result type (might be due to invalid IL or missing references)
-		//IL_0122: Unknown result type (might be due to invalid IL or missing references)
-		//IL_0115: Unknown result type (might be due to invalid IL or missing references)
-		//IL_0127: Unknown result type (might be due to invalid IL or missing references)
-		//IL_012c: Unknown result type (might be due to invalid IL or missing references)
-		//IL_012d: Unknown result type (might be due to invalid IL or missing references)
-		//IL_012e: Unknown result type (might be due to invalid IL or missing references)
-		//IL_0145: Unknown result type (might be due to invalid IL or missing references)
-		//IL_0155: Unknown result type (might be due to invalid IL or missing references)
-		//IL_015a: Unknown result type (might be due to invalid IL or missing references)
-		//IL_015f: Unknown result type (might be due to invalid IL or missing references)
-		//IL_0223: Unknown result type (might be due to invalid IL or missing references)
-		//IL_0228: Unknown result type (might be due to invalid IL or missing references)
-		//IL_0171: Unknown result type (might be due to invalid IL or missing references)
-		//IL_0173: Unknown result type (might be due to invalid IL or missing references)
-		//IL_0178: Unknown result type (might be due to invalid IL or missing references)
-		//IL_017e: Unknown result type (might be due to invalid IL or missing references)
-		//IL_0183: Unknown result type (might be due to invalid IL or missing references)
-		//IL_0188: Unknown result type (might be due to invalid IL or missing references)
-		//IL_01af: Unknown result type (might be due to invalid IL or missing references)
-		//IL_01bc: Unknown result type (might be due to invalid IL or missing references)
-		//IL_01cc: Unknown result type (might be due to invalid IL or missing references)
-		//IL_01d1: Unknown result type (might be due to invalid IL or missing references)
-		//IL_01dc: Unknown result type (might be due to invalid IL or missing references)
-		//IL_01e1: Unknown result type (might be due to invalid IL or missing references)
-		//IL_01e6: Unknown result type (might be due to invalid IL or missing references)
-		//IL_0197: Unknown result type (might be due to invalid IL or missing references)
-		//IL_019c: Unknown result type (might be due to invalid IL or missing references)
-		//IL_019e: Unknown result type (might be due to invalid IL or missing references)
-		//IL_01a3: Unknown result type (might be due to invalid IL or missing references)
-		//IL_0210: Unknown result type (might be due to invalid IL or missing references)
-		//IL_01f6: Unknown result type (might be due to invalid IL or missing references)
-		//IL_01fb: Unknown result type (might be due to invalid IL or missing references)
-		//IL_01fe: Unknown result type (might be due to invalid IL or missing references)
-		//IL_0203: Unknown result type (might be due to invalid IL or missing references)
-		if (!base.Initialized)
-		{
-			return;
-		}
-		Refresh();
-		float num = IKPositionWeight * IKWeight;
-		IKBone startIKBone = StartIKBone;
-		Vector3 val = MiddleIKBone.transform.position - StartIKBone.transform.position;
-		startIKBone.sqrMagn = ((Vector3)(ref val)).sqrMagnitude;
-		IKBone middleIKBone = MiddleIKBone;
-		val = EndIKBone.transform.position - MiddleIKBone.transform.position;
-		middleIKBone.sqrMagn = ((Vector3)(ref val)).sqrMagnitude;
-		targetElbowNormal = GetDefaultFlexNormal();
-		if (ExtraHintAdjustementOffset != Vector3.zero)
-		{
-			val = Vector3.Lerp(targetElbowNormal, CalculateElbowNormalToPosition(EndIKBone.transform.position + EndIKBone.transform.rotation * ExtraHintAdjustementOffset), ((Vector3)(ref ExtraHintAdjustementOffset)).magnitude);
-			targetElbowNormal = ((Vector3)(ref val)).normalized;
-		}
-		Vector3 val2 = GetOrientationDirection(IKTargetPosition, InverseHint ? (-targetElbowNormal) : targetElbowNormal);
-		if (val2 == Vector3.zero)
-		{
-			val2 = MiddleIKBone.transform.position - StartIKBone.transform.position;
-		}
-		if (num > 0f)
-		{
-			Quaternion val3 = StartIKBone.GetRotation(val2, targetElbowNormal) * base.StartBoneRotationOffset;
-			if (num < 1f)
-			{
-				val3 = Quaternion.LerpUnclamped(StartIKBone.srcRotation, val3, num);
-			}
-			StartIKBone.transform.rotation = val3;
-			Quaternion val4 = MiddleIKBone.GetRotation(IKTargetPosition - MiddleIKBone.transform.position, MiddleIKBone.GetCurrentOrientationNormal());
-			if (num < 1f)
-			{
-				val4 = Quaternion.LerpUnclamped(MiddleIKBone.srcRotation, val4, num);
-			}
-			MiddleIKBone.transform.rotation = val4;
-		}
-		postIKAnimatorEndBoneRot = EndIKBone.transform.rotation;
-		EndBoneRotation();
-	}
-
-	private Vector3 GetAutomaticFlexNormal()
-	{
-		//IL_0006: Unknown result type (might be due to invalid IL or missing references)
-		//IL_000b: Unknown result type (might be due to invalid IL or missing references)
-		//IL_0136: Unknown result type (might be due to invalid IL or missing references)
-		//IL_0141: Unknown result type (might be due to invalid IL or missing references)
-		//IL_014c: Unknown result type (might be due to invalid IL or missing references)
-		//IL_0151: Unknown result type (might be due to invalid IL or missing references)
-		//IL_015b: Unknown result type (might be due to invalid IL or missing references)
-		//IL_0167: Unknown result type (might be due to invalid IL or missing references)
-		//IL_0172: Unknown result type (might be due to invalid IL or missing references)
-		//IL_0177: Unknown result type (might be due to invalid IL or missing references)
-		//IL_017c: Unknown result type (might be due to invalid IL or missing references)
-		//IL_01ed: Unknown result type (might be due to invalid IL or missing references)
-		//IL_01ef: Unknown result type (might be due to invalid IL or missing references)
-		//IL_01fa: Unknown result type (might be due to invalid IL or missing references)
-		//IL_01ff: Unknown result type (might be due to invalid IL or missing references)
-		//IL_0209: Unknown result type (might be due to invalid IL or missing references)
-		//IL_0188: Unknown result type (might be due to invalid IL or missing references)
-		//IL_0193: Unknown result type (might be due to invalid IL or missing references)
-		//IL_019e: Unknown result type (might be due to invalid IL or missing references)
-		//IL_01a3: Unknown result type (might be due to invalid IL or missing references)
-		//IL_01a8: Unknown result type (might be due to invalid IL or missing references)
-		//IL_01b3: Unknown result type (might be due to invalid IL or missing references)
-		//IL_01b8: Unknown result type (might be due to invalid IL or missing references)
-		//IL_01be: Unknown result type (might be due to invalid IL or missing references)
-		//IL_01c9: Unknown result type (might be due to invalid IL or missing references)
-		//IL_01ce: Unknown result type (might be due to invalid IL or missing references)
-		//IL_01d3: Unknown result type (might be due to invalid IL or missing references)
-		//IL_01d8: Unknown result type (might be due to invalid IL or missing references)
-		//IL_01da: Unknown result type (might be due to invalid IL or missing references)
-		//IL_01dc: Unknown result type (might be due to invalid IL or missing references)
-		//IL_003b: Unknown result type (might be due to invalid IL or missing references)
-		//IL_0046: Unknown result type (might be due to invalid IL or missing references)
-		//IL_0051: Unknown result type (might be due to invalid IL or missing references)
-		//IL_005b: Unknown result type (might be due to invalid IL or missing references)
-		//IL_0060: Unknown result type (might be due to invalid IL or missing references)
-		//IL_0065: Unknown result type (might be due to invalid IL or missing references)
-		//IL_01ea: Unknown result type (might be due to invalid IL or missing references)
-		//IL_01e8: Unknown result type (might be due to invalid IL or missing references)
-		//IL_00e2: Unknown result type (might be due to invalid IL or missing references)
-		//IL_00f2: Unknown result type (might be due to invalid IL or missing references)
-		//IL_010a: Unknown result type (might be due to invalid IL or missing references)
-		//IL_010f: Unknown result type (might be due to invalid IL or missing references)
-		//IL_0111: Unknown result type (might be due to invalid IL or missing references)
-		//IL_0116: Unknown result type (might be due to invalid IL or missing references)
-		//IL_011b: Unknown result type (might be due to invalid IL or missing references)
-		//IL_0120: Unknown result type (might be due to invalid IL or missing references)
-		//IL_0123: Unknown result type (might be due to invalid IL or missing references)
-		//IL_0128: Unknown result type (might be due to invalid IL or missing references)
-		//IL_012e: Unknown result type (might be due to invalid IL or missing references)
-		//IL_006e: Unknown result type (might be due to invalid IL or missing references)
-		//IL_0075: Unknown result type (might be due to invalid IL or missing references)
-		//IL_007f: Unknown result type (might be due to invalid IL or missing references)
-		//IL_0084: Unknown result type (might be due to invalid IL or missing references)
-		//IL_0089: Unknown result type (might be due to invalid IL or missing references)
-		//IL_0091: Unknown result type (might be due to invalid IL or missing references)
-		//IL_0096: Unknown result type (might be due to invalid IL or missing references)
-		//IL_009b: Unknown result type (might be due to invalid IL or missing references)
-		//IL_00a9: Unknown result type (might be due to invalid IL or missing references)
-		//IL_00b0: Unknown result type (might be due to invalid IL or missing references)
-		//IL_00b2: Unknown result type (might be due to invalid IL or missing references)
-		//IL_00bd: Unknown result type (might be due to invalid IL or missing references)
-		//IL_00c2: Unknown result type (might be due to invalid IL or missing references)
-		//IL_00cc: Unknown result type (might be due to invalid IL or missing references)
-		//IL_00d1: Unknown result type (might be due to invalid IL or missing references)
-		//IL_00d6: Unknown result type (might be due to invalid IL or missing references)
-		//IL_0246: Unknown result type (might be due to invalid IL or missing references)
-		//IL_023b: Unknown result type (might be due to invalid IL or missing references)
-		//IL_0240: Unknown result type (might be due to invalid IL or missing references)
-		Vector3 currentOrientationNormal = StartIKBone.GetCurrentOrientationNormal();
-		switch (AutoHintMode)
-		{
-		case FIK_HintMode.Leg:
-		{
-			Vector3 val2 = IKTargetRotation * (EndIKBone.forward * internalRotationWeightMul * 2f);
-			if (hasRoot)
-			{
-				val2 += Root.forward * 0.06f;
-				Vector3 val3 = Root.InverseTransformPoint(IKTargetPosition);
-				val3.y = 0f;
-				val2 += (Root.TransformPoint(val3) - Root.position) * 0.025f;
-			}
-			float num = Vector3.Distance(MiddleIKBone.transform.position, EndIKBone.transform.position) * 0.1f;
-			Vector3 val4 = CalculateElbowNormalToPosition(MiddleIKBone.srcPosition + val2 * num);
-			return Vector3.LerpUnclamped(((Vector3)(ref currentOrientationNormal)).normalized, val4, 0.85f);
-		}
-		case FIK_HintMode.MiddleForward:
-			return Vector3.LerpUnclamped(((Vector3)(ref currentOrientationNormal)).normalized, MiddleIKBone.srcRotation * MiddleIKBone.right, 0.5f);
-		case FIK_HintMode.MiddleBack:
-			return MiddleIKBone.srcRotation * -MiddleIKBone.right;
-		case FIK_HintMode.EndForward:
-		{
-			Vector3 val = Vector3.Cross(MiddleIKBone.srcPosition + EndIKBone.srcRotation * EndIKBone.forward - StartIKBone.srcPosition, IKTargetPosition - StartIKBone.srcPosition);
-			if (val == Vector3.zero)
-			{
-				return currentOrientationNormal;
-			}
-			return val;
-		}
-		case FIK_HintMode.OnGoal:
-			return Vector3.LerpUnclamped(currentOrientationNormal, lateEndBoneRotation * EndIKBone.right, 0.5f);
-		case FIK_HintMode.UnityHumanoidIK:
-			if (Object.op_Implicit((Object)(object)HumanoidAnimator))
-			{
-				HumanoidAnimator.logWarnings = false;
-				return CalculateElbowNormalToPosition(HumanoidAnimator.GetIKHintPosition((AvatarIKHint)(IsRight ? 1 : 0)));
-			}
-			break;
-		}
-		return currentOrientationNormal;
-	}
-
-	public void OnDrawGizmos()
-	{
-		_ = base.Initialized;
-	}
 
 	public virtual void SetRootReference(Transform mainParentTransform)
 	{
@@ -12084,6 +11582,227 @@ public class FimpIK_Limb : FIK_ProcessorBase
 		float num3 = Mathf.Sqrt(Mathf.Clamp(StartIKBone.sqrMagn - num2 * num2, 0f, float.PositiveInfinity));
 		Vector3 val2 = Vector3.Cross(val / num, orientationNormal);
 		return Quaternion.LookRotation(val, val2) * new Vector3(0f, num3, num2);
+	}
+
+	public override void Update()
+	{
+		//IL_002e: Unknown result type (might be due to invalid IL or missing references)
+		//IL_003e: Unknown result type (might be due to invalid IL or missing references)
+		//IL_0043: Unknown result type (might be due to invalid IL or missing references)
+		//IL_0048: Unknown result type (might be due to invalid IL or missing references)
+		//IL_0066: Unknown result type (might be due to invalid IL or missing references)
+		//IL_0076: Unknown result type (might be due to invalid IL or missing references)
+		//IL_007b: Unknown result type (might be due to invalid IL or missing references)
+		//IL_0080: Unknown result type (might be due to invalid IL or missing references)
+		//IL_008f: Unknown result type (might be due to invalid IL or missing references)
+		//IL_0094: Unknown result type (might be due to invalid IL or missing references)
+		//IL_009a: Unknown result type (might be due to invalid IL or missing references)
+		//IL_009f: Unknown result type (might be due to invalid IL or missing references)
+		//IL_0107: Unknown result type (might be due to invalid IL or missing references)
+		//IL_00ad: Unknown result type (might be due to invalid IL or missing references)
+		//IL_00be: Unknown result type (might be due to invalid IL or missing references)
+		//IL_00ce: Unknown result type (might be due to invalid IL or missing references)
+		//IL_00d4: Unknown result type (might be due to invalid IL or missing references)
+		//IL_00d9: Unknown result type (might be due to invalid IL or missing references)
+		//IL_00de: Unknown result type (might be due to invalid IL or missing references)
+		//IL_00e3: Unknown result type (might be due to invalid IL or missing references)
+		//IL_00f3: Unknown result type (might be due to invalid IL or missing references)
+		//IL_00f8: Unknown result type (might be due to invalid IL or missing references)
+		//IL_00fb: Unknown result type (might be due to invalid IL or missing references)
+		//IL_0100: Unknown result type (might be due to invalid IL or missing references)
+		//IL_011d: Unknown result type (might be due to invalid IL or missing references)
+		//IL_0122: Unknown result type (might be due to invalid IL or missing references)
+		//IL_0115: Unknown result type (might be due to invalid IL or missing references)
+		//IL_0127: Unknown result type (might be due to invalid IL or missing references)
+		//IL_012c: Unknown result type (might be due to invalid IL or missing references)
+		//IL_012d: Unknown result type (might be due to invalid IL or missing references)
+		//IL_012e: Unknown result type (might be due to invalid IL or missing references)
+		//IL_0145: Unknown result type (might be due to invalid IL or missing references)
+		//IL_0155: Unknown result type (might be due to invalid IL or missing references)
+		//IL_015a: Unknown result type (might be due to invalid IL or missing references)
+		//IL_015f: Unknown result type (might be due to invalid IL or missing references)
+		//IL_0223: Unknown result type (might be due to invalid IL or missing references)
+		//IL_0228: Unknown result type (might be due to invalid IL or missing references)
+		//IL_0171: Unknown result type (might be due to invalid IL or missing references)
+		//IL_0173: Unknown result type (might be due to invalid IL or missing references)
+		//IL_0178: Unknown result type (might be due to invalid IL or missing references)
+		//IL_017e: Unknown result type (might be due to invalid IL or missing references)
+		//IL_0183: Unknown result type (might be due to invalid IL or missing references)
+		//IL_0188: Unknown result type (might be due to invalid IL or missing references)
+		//IL_01af: Unknown result type (might be due to invalid IL or missing references)
+		//IL_01bc: Unknown result type (might be due to invalid IL or missing references)
+		//IL_01cc: Unknown result type (might be due to invalid IL or missing references)
+		//IL_01d1: Unknown result type (might be due to invalid IL or missing references)
+		//IL_01dc: Unknown result type (might be due to invalid IL or missing references)
+		//IL_01e1: Unknown result type (might be due to invalid IL or missing references)
+		//IL_01e6: Unknown result type (might be due to invalid IL or missing references)
+		//IL_0197: Unknown result type (might be due to invalid IL or missing references)
+		//IL_019c: Unknown result type (might be due to invalid IL or missing references)
+		//IL_019e: Unknown result type (might be due to invalid IL or missing references)
+		//IL_01a3: Unknown result type (might be due to invalid IL or missing references)
+		//IL_0210: Unknown result type (might be due to invalid IL or missing references)
+		//IL_01f6: Unknown result type (might be due to invalid IL or missing references)
+		//IL_01fb: Unknown result type (might be due to invalid IL or missing references)
+		//IL_01fe: Unknown result type (might be due to invalid IL or missing references)
+		//IL_0203: Unknown result type (might be due to invalid IL or missing references)
+		if (!base.Initialized)
+		{
+			return;
+		}
+		Refresh();
+		float num = IKPositionWeight * IKWeight;
+		IKBone startIKBone = StartIKBone;
+		Vector3 val = MiddleIKBone.transform.position - StartIKBone.transform.position;
+		startIKBone.sqrMagn = ((Vector3)(ref val)).sqrMagnitude;
+		IKBone middleIKBone = MiddleIKBone;
+		val = EndIKBone.transform.position - MiddleIKBone.transform.position;
+		middleIKBone.sqrMagn = ((Vector3)(ref val)).sqrMagnitude;
+		targetElbowNormal = GetDefaultFlexNormal();
+		if (ExtraHintAdjustementOffset != Vector3.zero)
+		{
+			val = Vector3.Lerp(targetElbowNormal, CalculateElbowNormalToPosition(EndIKBone.transform.position + EndIKBone.transform.rotation * ExtraHintAdjustementOffset), ((Vector3)(ref ExtraHintAdjustementOffset)).magnitude);
+			targetElbowNormal = ((Vector3)(ref val)).normalized;
+		}
+		Vector3 val2 = GetOrientationDirection(IKTargetPosition, InverseHint ? (-targetElbowNormal) : targetElbowNormal);
+		if (val2 == Vector3.zero)
+		{
+			val2 = MiddleIKBone.transform.position - StartIKBone.transform.position;
+		}
+		if (num > 0f)
+		{
+			Quaternion val3 = StartIKBone.GetRotation(val2, targetElbowNormal) * base.StartBoneRotationOffset;
+			if (num < 1f)
+			{
+				val3 = Quaternion.LerpUnclamped(StartIKBone.srcRotation, val3, num);
+			}
+			StartIKBone.transform.rotation = val3;
+			Quaternion val4 = MiddleIKBone.GetRotation(IKTargetPosition - MiddleIKBone.transform.position, MiddleIKBone.GetCurrentOrientationNormal());
+			if (num < 1f)
+			{
+				val4 = Quaternion.LerpUnclamped(MiddleIKBone.srcRotation, val4, num);
+			}
+			MiddleIKBone.transform.rotation = val4;
+		}
+		postIKAnimatorEndBoneRot = EndIKBone.transform.rotation;
+		EndBoneRotation();
+	}
+
+	private Vector3 GetAutomaticFlexNormal()
+	{
+		//IL_0006: Unknown result type (might be due to invalid IL or missing references)
+		//IL_000b: Unknown result type (might be due to invalid IL or missing references)
+		//IL_0136: Unknown result type (might be due to invalid IL or missing references)
+		//IL_0141: Unknown result type (might be due to invalid IL or missing references)
+		//IL_014c: Unknown result type (might be due to invalid IL or missing references)
+		//IL_0151: Unknown result type (might be due to invalid IL or missing references)
+		//IL_015b: Unknown result type (might be due to invalid IL or missing references)
+		//IL_0167: Unknown result type (might be due to invalid IL or missing references)
+		//IL_0172: Unknown result type (might be due to invalid IL or missing references)
+		//IL_0177: Unknown result type (might be due to invalid IL or missing references)
+		//IL_017c: Unknown result type (might be due to invalid IL or missing references)
+		//IL_01ed: Unknown result type (might be due to invalid IL or missing references)
+		//IL_01ef: Unknown result type (might be due to invalid IL or missing references)
+		//IL_01fa: Unknown result type (might be due to invalid IL or missing references)
+		//IL_01ff: Unknown result type (might be due to invalid IL or missing references)
+		//IL_0209: Unknown result type (might be due to invalid IL or missing references)
+		//IL_0188: Unknown result type (might be due to invalid IL or missing references)
+		//IL_0193: Unknown result type (might be due to invalid IL or missing references)
+		//IL_019e: Unknown result type (might be due to invalid IL or missing references)
+		//IL_01a3: Unknown result type (might be due to invalid IL or missing references)
+		//IL_01a8: Unknown result type (might be due to invalid IL or missing references)
+		//IL_01b3: Unknown result type (might be due to invalid IL or missing references)
+		//IL_01b8: Unknown result type (might be due to invalid IL or missing references)
+		//IL_01be: Unknown result type (might be due to invalid IL or missing references)
+		//IL_01c9: Unknown result type (might be due to invalid IL or missing references)
+		//IL_01ce: Unknown result type (might be due to invalid IL or missing references)
+		//IL_01d3: Unknown result type (might be due to invalid IL or missing references)
+		//IL_01d8: Unknown result type (might be due to invalid IL or missing references)
+		//IL_01da: Unknown result type (might be due to invalid IL or missing references)
+		//IL_01dc: Unknown result type (might be due to invalid IL or missing references)
+		//IL_003b: Unknown result type (might be due to invalid IL or missing references)
+		//IL_0046: Unknown result type (might be due to invalid IL or missing references)
+		//IL_0051: Unknown result type (might be due to invalid IL or missing references)
+		//IL_005b: Unknown result type (might be due to invalid IL or missing references)
+		//IL_0060: Unknown result type (might be due to invalid IL or missing references)
+		//IL_0065: Unknown result type (might be due to invalid IL or missing references)
+		//IL_01ea: Unknown result type (might be due to invalid IL or missing references)
+		//IL_01e8: Unknown result type (might be due to invalid IL or missing references)
+		//IL_00e2: Unknown result type (might be due to invalid IL or missing references)
+		//IL_00f2: Unknown result type (might be due to invalid IL or missing references)
+		//IL_010a: Unknown result type (might be due to invalid IL or missing references)
+		//IL_010f: Unknown result type (might be due to invalid IL or missing references)
+		//IL_0111: Unknown result type (might be due to invalid IL or missing references)
+		//IL_0116: Unknown result type (might be due to invalid IL or missing references)
+		//IL_011b: Unknown result type (might be due to invalid IL or missing references)
+		//IL_0120: Unknown result type (might be due to invalid IL or missing references)
+		//IL_0123: Unknown result type (might be due to invalid IL or missing references)
+		//IL_0128: Unknown result type (might be due to invalid IL or missing references)
+		//IL_012e: Unknown result type (might be due to invalid IL or missing references)
+		//IL_006e: Unknown result type (might be due to invalid IL or missing references)
+		//IL_0075: Unknown result type (might be due to invalid IL or missing references)
+		//IL_007f: Unknown result type (might be due to invalid IL or missing references)
+		//IL_0084: Unknown result type (might be due to invalid IL or missing references)
+		//IL_0089: Unknown result type (might be due to invalid IL or missing references)
+		//IL_0091: Unknown result type (might be due to invalid IL or missing references)
+		//IL_0096: Unknown result type (might be due to invalid IL or missing references)
+		//IL_009b: Unknown result type (might be due to invalid IL or missing references)
+		//IL_00a9: Unknown result type (might be due to invalid IL or missing references)
+		//IL_00b0: Unknown result type (might be due to invalid IL or missing references)
+		//IL_00b2: Unknown result type (might be due to invalid IL or missing references)
+		//IL_00bd: Unknown result type (might be due to invalid IL or missing references)
+		//IL_00c2: Unknown result type (might be due to invalid IL or missing references)
+		//IL_00cc: Unknown result type (might be due to invalid IL or missing references)
+		//IL_00d1: Unknown result type (might be due to invalid IL or missing references)
+		//IL_00d6: Unknown result type (might be due to invalid IL or missing references)
+		//IL_0246: Unknown result type (might be due to invalid IL or missing references)
+		//IL_023b: Unknown result type (might be due to invalid IL or missing references)
+		//IL_0240: Unknown result type (might be due to invalid IL or missing references)
+		Vector3 currentOrientationNormal = StartIKBone.GetCurrentOrientationNormal();
+		switch (AutoHintMode)
+		{
+		case FIK_HintMode.Leg:
+		{
+			Vector3 val2 = IKTargetRotation * (EndIKBone.forward * internalRotationWeightMul * 2f);
+			if (hasRoot)
+			{
+				val2 += Root.forward * 0.06f;
+				Vector3 val3 = Root.InverseTransformPoint(IKTargetPosition);
+				val3.y = 0f;
+				val2 += (Root.TransformPoint(val3) - Root.position) * 0.025f;
+			}
+			float num = Vector3.Distance(MiddleIKBone.transform.position, EndIKBone.transform.position) * 0.1f;
+			Vector3 val4 = CalculateElbowNormalToPosition(MiddleIKBone.srcPosition + val2 * num);
+			return Vector3.LerpUnclamped(((Vector3)(ref currentOrientationNormal)).normalized, val4, 0.85f);
+		}
+		case FIK_HintMode.MiddleForward:
+			return Vector3.LerpUnclamped(((Vector3)(ref currentOrientationNormal)).normalized, MiddleIKBone.srcRotation * MiddleIKBone.right, 0.5f);
+		case FIK_HintMode.MiddleBack:
+			return MiddleIKBone.srcRotation * -MiddleIKBone.right;
+		case FIK_HintMode.EndForward:
+		{
+			Vector3 val = Vector3.Cross(MiddleIKBone.srcPosition + EndIKBone.srcRotation * EndIKBone.forward - StartIKBone.srcPosition, IKTargetPosition - StartIKBone.srcPosition);
+			if (val == Vector3.zero)
+			{
+				return currentOrientationNormal;
+			}
+			return val;
+		}
+		case FIK_HintMode.OnGoal:
+			return Vector3.LerpUnclamped(currentOrientationNormal, lateEndBoneRotation * EndIKBone.right, 0.5f);
+		case FIK_HintMode.UnityHumanoidIK:
+			if (Object.op_Implicit((Object)(object)HumanoidAnimator))
+			{
+				HumanoidAnimator.logWarnings = false;
+				return CalculateElbowNormalToPosition(HumanoidAnimator.GetIKHintPosition((AvatarIKHint)(IsRight ? 1 : 0)));
+			}
+			break;
+		}
+		return currentOrientationNormal;
+	}
+
+	public void OnDrawGizmos()
+	{
+		_ = base.Initialized;
 	}
 }
 
@@ -14634,10 +14353,10 @@ using UnityEngine;
 
 public class FBasic_MaterialTiler : FBasic_MaterialScriptBase
 {
-	[Header("something in script to apply")]
-	[Tooltip("Texture identificator in shader")]
-	[Space(10f)]
 	[Header("When you scale object change")]
+	[Space(10f)]
+	[Tooltip("Texture identificator in shader")]
+	[Header("something in script to apply")]
 	public string TextureProperty = "_MainTex";
 
 	[Tooltip("How much tiles should be multiplied according to gameObject's scale")]
@@ -15905,38 +15624,14 @@ public static class SkeletonRecognize
 
 		public string GetLog()
 		{
-			//IL_002e: Unknown result type (might be due to invalid IL or missing references)
-			//IL_0033: Unknown result type (might be due to invalid IL or missing references)
-			//IL_0053: Unknown result type (might be due to invalid IL or missing references)
-			//IL_0058: Unknown result type (might be due to invalid IL or missing references)
-			//IL_0078: Unknown result type (might be due to invalid IL or missing references)
-			//IL_007d: Unknown result type (might be due to invalid IL or missing references)
-			//IL_009d: Unknown result type (might be due to invalid IL or missing references)
-			//IL_00a2: Unknown result type (might be due to invalid IL or missing references)
-			//IL_00c2: Unknown result type (might be due to invalid IL or missing references)
-			//IL_00c7: Unknown result type (might be due to invalid IL or missing references)
-			//IL_00e7: Unknown result type (might be due to invalid IL or missing references)
-			//IL_00ec: Unknown result type (might be due to invalid IL or missing references)
 			string text = "< " + ((Object)AnimatorTransform).name + " >\n";
 			text += "\nGenerate Guides:\n";
-			string text2 = text;
-			Vector3 val = LocalSpaceHighest;
-			text = text2 + "Highest: " + ((object)(Vector3)(ref val)/*cast due to .constrained prefix*/).ToString() + "     ";
-			string text3 = text;
-			val = LocalSpaceLowest;
-			text = text3 + "Lowest: " + ((object)(Vector3)(ref val)/*cast due to .constrained prefix*/).ToString() + "     ";
-			string text4 = text;
-			val = LocalSpaceMostLeft;
-			text = text4 + "Left: " + ((object)(Vector3)(ref val)/*cast due to .constrained prefix*/).ToString() + "     ";
-			string text5 = text;
-			val = LocalSpaceMostRight;
-			text = text5 + "Right: " + ((object)(Vector3)(ref val)/*cast due to .constrained prefix*/).ToString() + "     ";
-			string text6 = text;
-			val = LocalSpaceMostForward;
-			text = text6 + "Forward: " + ((object)(Vector3)(ref val)/*cast due to .constrained prefix*/).ToString() + "     ";
-			string text7 = text;
-			val = LocalSpaceMostBack;
-			text = text7 + "Back: " + ((object)(Vector3)(ref val)/*cast due to .constrained prefix*/).ToString() + "     ";
+			text = text + "Highest: " + ((object)(Vector3)(ref LocalSpaceHighest)/*cast due to .constrained prefix*/).ToString() + "     ";
+			text = text + "Lowest: " + ((object)(Vector3)(ref LocalSpaceLowest)/*cast due to .constrained prefix*/).ToString() + "     ";
+			text = text + "Left: " + ((object)(Vector3)(ref LocalSpaceMostLeft)/*cast due to .constrained prefix*/).ToString() + "     ";
+			text = text + "Right: " + ((object)(Vector3)(ref LocalSpaceMostRight)/*cast due to .constrained prefix*/).ToString() + "     ";
+			text = text + "Forward: " + ((object)(Vector3)(ref LocalSpaceMostForward)/*cast due to .constrained prefix*/).ToString() + "     ";
+			text = text + "Back: " + ((object)(Vector3)(ref LocalSpaceMostBack)/*cast due to .constrained prefix*/).ToString() + "     ";
 			text += "\n\nGenerated Helper Measurements: \n";
 			text = text + "UpDown: " + LowestVsHighestLen + "     ";
 			text = text + "LeftRight: " + MostLeftVsMostRightLen + "     ";
@@ -17181,38 +16876,14 @@ public class SkeletonInfo
 
 	public string GetLog()
 	{
-		//IL_002e: Unknown result type (might be due to invalid IL or missing references)
-		//IL_0033: Unknown result type (might be due to invalid IL or missing references)
-		//IL_0053: Unknown result type (might be due to invalid IL or missing references)
-		//IL_0058: Unknown result type (might be due to invalid IL or missing references)
-		//IL_0078: Unknown result type (might be due to invalid IL or missing references)
-		//IL_007d: Unknown result type (might be due to invalid IL or missing references)
-		//IL_009d: Unknown result type (might be due to invalid IL or missing references)
-		//IL_00a2: Unknown result type (might be due to invalid IL or missing references)
-		//IL_00c2: Unknown result type (might be due to invalid IL or missing references)
-		//IL_00c7: Unknown result type (might be due to invalid IL or missing references)
-		//IL_00e7: Unknown result type (might be due to invalid IL or missing references)
-		//IL_00ec: Unknown result type (might be due to invalid IL or missing references)
 		string text = "< " + ((Object)AnimatorTransform).name + " >\n";
 		text += "\nGenerate Guides:\n";
-		string text2 = text;
-		Vector3 val = LocalSpaceHighest;
-		text = text2 + "Highest: " + ((object)(Vector3)(ref val)/*cast due to .constrained prefix*/).ToString() + "     ";
-		string text3 = text;
-		val = LocalSpaceLowest;
-		text = text3 + "Lowest: " + ((object)(Vector3)(ref val)/*cast due to .constrained prefix*/).ToString() + "     ";
-		string text4 = text;
-		val = LocalSpaceMostLeft;
-		text = text4 + "Left: " + ((object)(Vector3)(ref val)/*cast due to .constrained prefix*/).ToString() + "     ";
-		string text5 = text;
-		val = LocalSpaceMostRight;
-		text = text5 + "Right: " + ((object)(Vector3)(ref val)/*cast due to .constrained prefix*/).ToString() + "     ";
-		string text6 = text;
-		val = LocalSpaceMostForward;
-		text = text6 + "Forward: " + ((object)(Vector3)(ref val)/*cast due to .constrained prefix*/).ToString() + "     ";
-		string text7 = text;
-		val = LocalSpaceMostBack;
-		text = text7 + "Back: " + ((object)(Vector3)(ref val)/*cast due to .constrained prefix*/).ToString() + "     ";
+		text = text + "Highest: " + ((object)(Vector3)(ref LocalSpaceHighest)/*cast due to .constrained prefix*/).ToString() + "     ";
+		text = text + "Lowest: " + ((object)(Vector3)(ref LocalSpaceLowest)/*cast due to .constrained prefix*/).ToString() + "     ";
+		text = text + "Left: " + ((object)(Vector3)(ref LocalSpaceMostLeft)/*cast due to .constrained prefix*/).ToString() + "     ";
+		text = text + "Right: " + ((object)(Vector3)(ref LocalSpaceMostRight)/*cast due to .constrained prefix*/).ToString() + "     ";
+		text = text + "Forward: " + ((object)(Vector3)(ref LocalSpaceMostForward)/*cast due to .constrained prefix*/).ToString() + "     ";
+		text = text + "Back: " + ((object)(Vector3)(ref LocalSpaceMostBack)/*cast due to .constrained prefix*/).ToString() + "     ";
 		text += "\n\nGenerated Helper Measurements: \n";
 		text = text + "UpDown: " + LowestVsHighestLen + "     ";
 		text = text + "LeftRight: " + MostLeftVsMostRightLen + "     ";
@@ -17953,12 +17624,12 @@ public class PrefabReference
 
 	public static bool StopReloadLayoutOptions;
 
-	[HideInInspector]
 	[SerializeField]
+	[HideInInspector]
 	protected Mesh _refMesh;
 
-	[HideInInspector]
 	[SerializeField]
+	[HideInInspector]
 	protected Collider _refCol;
 
 	public GameObject CoreGameObject => Prefab;

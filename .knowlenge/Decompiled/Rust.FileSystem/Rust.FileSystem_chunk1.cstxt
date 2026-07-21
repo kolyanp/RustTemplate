@@ -33,6 +33,7 @@ public class AssetBundleBackend : FileSystemBackend, IDisposable
 		try
 		{
 			isError = false;
+			assetRoot = Path.GetFullPath(assetRoot);
 			string? directoryName = Path.GetDirectoryName(assetRoot);
 			char directorySeparatorChar = Path.DirectorySeparatorChar;
 			assetPath = directoryName + directorySeparatorChar;
@@ -269,21 +270,25 @@ public class AssetBundleBackend : FileSystemBackend, IDisposable
 		}
 	}
 
-	public List<string> GetRequiredAssetScenesForPrefabs(IEnumerable<string> prefabPaths)
+	public Dictionary<string, HashSet<string>> GetRequiredAssetScenesForPrefabs(IEnumerable<string> prefabPaths)
 	{
-		HashSet<string> hashSet = new HashSet<string>(StringComparer.OrdinalIgnoreCase);
+		Dictionary<string, HashSet<string>> dictionary = new Dictionary<string, HashSet<string>>(StringComparer.OrdinalIgnoreCase);
 		foreach (string prefabPath in prefabPaths)
 		{
 			if (prefabToAssetSceneName.TryGetValue(prefabPath, out var value))
 			{
-				hashSet.Add(value);
+				if (!dictionary.TryGetValue(value, out var value2))
+				{
+					value2 = (dictionary[value] = new HashSet<string>(StringComparer.OrdinalIgnoreCase));
+				}
+				value2.Add(prefabPath);
 			}
 			else
 			{
 				Debug.LogWarning((object)("Prefab '" + prefabPath + "' does not have an associated asset scene."));
 			}
 		}
-		return hashSet.ToList();
+		return dictionary;
 	}
 
 	public List<(string Path, GameObject Prefab)> GetAssetScenePrefabs(List<string> assetSceneNames = null)
@@ -454,7 +459,9 @@ public class AssetSceneManifest
 
 	public const string MonumentSceneName = "AssetScene-monument";
 
-	public const string PropsSceneName = "AssetScene-props";
+	public const string PropsCommonSceneName = "AssetScene-props.common";
+
+	public const string PropsOtherSceneName = "AssetScene-props.other";
 
 	public List<Entry> Scenes { get; set; }
 

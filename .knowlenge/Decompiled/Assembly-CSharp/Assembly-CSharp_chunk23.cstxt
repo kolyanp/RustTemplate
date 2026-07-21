@@ -12,8 +12,8 @@ using UnityEngine.Events;
 using UnityEngine.EventSystems;
 
 [AddComponentMenu("FImpossible Creations/Legs Animator")]
-[HelpURL("https://assetstore.unity.com/packages/tools/animation/legs-animator-154245")]
 [DefaultExecutionOrder(-1301)]
+[HelpURL("https://assetstore.unity.com/packages/tools/animation/legs-animator-154245")]
 public class LegsAnimator : MonoBehaviour, IDropHandler, IEventSystemHandler, IFHierarchyIcon
 {
 	private struct CalibrateTransform
@@ -68,8 +68,8 @@ public class LegsAnimator : MonoBehaviour, IDropHandler, IEventSystemHandler, IF
 		[HideInInspector]
 		public List<string> customStringList;
 
-		[HideInInspector]
 		[SerializeField]
+		[HideInInspector]
 		public List<Object> customObjectList;
 
 		[SerializeField]
@@ -141,8 +141,8 @@ public class LegsAnimator : MonoBehaviour, IDropHandler, IEventSystemHandler, IF
 		[Space(5f)]
 		public Vector3 HipsRotate = Vector3.zero;
 
-		[Range(0f, 1f)]
 		[Space(5f)]
+		[Range(0f, 1f)]
 		public float InheritElasticness = 0.75f;
 
 		[FPD_FixedCurveWindow(0f, 0f, 1f, 1f, 0f, 1f, 1f, 1f)]
@@ -365,12 +365,6 @@ public class LegsAnimator : MonoBehaviour, IDropHandler, IEventSystemHandler, IF
 		}
 	}
 
-	public enum EHipsAdjustStyle
-	{
-		SmoothDamp,
-		FollowLegHeight
-	}
-
 	public enum EHipsHubsHandling
 	{
 		[Tooltip("Applying hips movement offset to the selected hub, in order to fix disconnected hips bones (rare case)")]
@@ -458,6 +452,24 @@ public class LegsAnimator : MonoBehaviour, IDropHandler, IEventSystemHandler, IF
 			}
 		}
 
+		private Vector3 _Hips_StabilityLocalAdjustement = Vector3.zero;
+
+		private Vector3 _Hips_sd_StabilAdjustm = Vector3.zero;
+
+		private Vector3 _stretchPreventerOff = Vector3.zero;
+
+		private float _sd_Hips_StepHeightAdjustOffset;
+
+		private int _h_lowestHitLeg = -1;
+
+		private Vector3 _reAdjustLocal = Vector3.zero;
+
+		private Vector3 _sd_readj = Vector3.zero;
+
+		private Vector3 _pushSmoothed = Vector3.zero;
+
+		private Vector3 _sd_pushSmoothed = Vector3.zero;
+
 		[FPD_Suffix(0f, 1f, FPD_SuffixAttribute.SuffixMode.From0to100, "%", true, 0)]
 		[Tooltip("Applying elasticity algorithm on the pelvis bone align motion, to make it look more organic.")]
 		public float HipsElasticityBlend = 1f;
@@ -502,34 +514,6 @@ public class LegsAnimator : MonoBehaviour, IDropHandler, IEventSystemHandler, IF
 
 		private Quaternion initLocalRot;
 
-		private Vector3 _Hips_StabilityLocalAdjustement = Vector3.zero;
-
-		private Vector3 _Hips_sd_StabilAdjustm = Vector3.zero;
-
-		private Vector3 _stretchPreventerOff = Vector3.zero;
-
-		private float _sd_Hips_StepHeightAdjustOffset;
-
-		private int _h_lowestHitLeg = -1;
-
-		private Vector3 _reAdjustLocal = Vector3.zero;
-
-		private Vector3 _sd_readj = Vector3.zero;
-
-		private Vector3 _pushSmoothed = Vector3.zero;
-
-		private Vector3 _sd_pushSmoothed = Vector3.zero;
-
-		public LegsAnimator Owner { get; private set; }
-
-		public List<Leg> ChildLegs { get; private set; }
-
-		public Transform bone { get; private set; }
-
-		public UniRotateBone UniRotate { get; private set; }
-
-		public List<HipsHubBackbone> HubBackBones { get; private set; }
-
 		public Vector3 _Get_Hips_StabilityLocalAdjustement => _Hips_StabilityLocalAdjustement;
 
 		public float _Hips_LastHipsOffset { get; private set; }
@@ -540,206 +524,15 @@ public class LegsAnimator : MonoBehaviour, IDropHandler, IEventSystemHandler, IF
 
 		public Vector3 _PreHipsAdjustPosition { get; internal set; }
 
-		public void Initialize(LegsAnimator owner, Transform bone, Transform root)
-		{
-			//IL_0017: Unknown result type (might be due to invalid IL or missing references)
-			//IL_001c: Unknown result type (might be due to invalid IL or missing references)
-			//IL_0023: Unknown result type (might be due to invalid IL or missing references)
-			//IL_0028: Unknown result type (might be due to invalid IL or missing references)
-			//IL_002e: Unknown result type (might be due to invalid IL or missing references)
-			//IL_0039: Unknown result type (might be due to invalid IL or missing references)
-			//IL_003e: Unknown result type (might be due to invalid IL or missing references)
-			//IL_0044: Unknown result type (might be due to invalid IL or missing references)
-			//IL_0049: Unknown result type (might be due to invalid IL or missing references)
-			//IL_0051: Unknown result type (might be due to invalid IL or missing references)
-			//IL_0056: Unknown result type (might be due to invalid IL or missing references)
-			//IL_005b: Unknown result type (might be due to invalid IL or missing references)
-			//IL_009d: Unknown result type (might be due to invalid IL or missing references)
-			//IL_00ad: Unknown result type (might be due to invalid IL or missing references)
-			Owner = owner;
-			this.bone = bone;
-			this.root = root;
-			initLocalPos = bone.localPosition;
-			initLocalRot = bone.localRotation;
-			ExtraNonElasticOffset = Vector3.zero;
-			_Hips_StabilityLocalAdjustement = Vector3.zero;
-			_Hips_sd_StabilAdjustm = Vector3.zero;
-			InitHipsPositionRootSpace = root.InverseTransformPoint(bone.position);
-			InitialHipsHeightLocal = InitHipsPositionRootSpace.y;
-			if (HipsMuscle == null)
-			{
-				HipsMuscle = new FMuscle_Vector3();
-			}
-			if (HipsRotMuscle == null)
-			{
-				HipsRotMuscle = new FMuscle_Quaternion();
-			}
-			HipsMuscle.Initialize(Vector3.zero);
-			HipsRotMuscle.Initialize(Quaternion.identity);
-			UniRotate = new UniRotateBone(bone, root);
-			Calibrate();
-		}
+		public LegsAnimator Owner { get; private set; }
 
-		internal void PrepareLegs()
-		{
-			ChildLegs = new List<Leg>();
-			if (!Owner._hipsHubs_using)
-			{
-				ChildLegs = Owner.Legs;
-			}
-			else
-			{
-				for (int i = 0; i < Owner.Legs.Count; i++)
-				{
-					bool? flag = IsFirstParent(Owner.Legs[i], bone);
-					if (flag == true)
-					{
-						ChildLegs.Add(Owner.Legs[i]);
-					}
-					else if (!flag.HasValue && this == Owner.HipsSetup)
-					{
-						ChildLegs.Add(Owner.Legs[i]);
-					}
-				}
-			}
-			for (int j = 0; j < ChildLegs.Count; j++)
-			{
-				ChildLegs[j].AssignParentHub(this);
-			}
-		}
+		public List<Leg> ChildLegs { get; private set; }
 
-		internal void PrepareHubBones()
-		{
-			PrepareLegs();
-			HubBackBones = new List<HipsHubBackbone>();
-			Transform frontBone = bone;
-			Transform parent = bone.parent;
-			while ((Object)(object)parent != (Object)null)
-			{
-				bool flag = false;
-				for (int i = 0; i < Owner.HipsHubs.Count; i++)
-				{
-					if ((Object)(object)parent == (Object)(object)Owner.HipsHubs[i].bone)
-					{
-						flag = true;
-						break;
-					}
-				}
-				if (!flag)
-				{
-					HipsHubBackbone hipsHubBackbone = new HipsHubBackbone(Owner, parent);
-					hipsHubBackbone.frontBone = frontBone;
-					HubBackBones.Add(hipsHubBackbone);
-					if (!((Object)(object)parent == (Object)(object)Owner.HipsSetup.bone))
-					{
-						frontBone = parent;
-						parent = parent.parent;
-						continue;
-					}
-					break;
-				}
-				break;
-			}
-		}
+		public Transform bone { get; private set; }
 
-		private bool? IsFirstParent(Leg leg, Transform hub)
-		{
-			if ((Object)(object)leg.BoneStart == (Object)null)
-			{
-				return false;
-			}
-			Transform val = leg.BoneStart;
-			while ((Object)(object)val != (Object)null)
-			{
-				if ((Object)(object)val == (Object)(object)hub)
-				{
-					return true;
-				}
-				if ((Object)(object)val == (Object)(object)Owner.Hips)
-				{
-					return false;
-				}
-				for (int i = 0; i < Owner.ExtraHipsHubs.Count; i++)
-				{
-					if ((Object)(object)val == (Object)(object)Owner.ExtraHipsHubs[i])
-					{
-						return false;
-					}
-				}
-				val = val.parent;
-			}
-			return null;
-		}
+		public UniRotateBone UniRotate { get; private set; }
 
-		public void Reset()
-		{
-			Calibrate();
-			_Hips_LastHipsOffset = 0f;
-		}
-
-		public void PreCalibrate()
-		{
-			//IL_002d: Unknown result type (might be due to invalid IL or missing references)
-			//IL_003e: Unknown result type (might be due to invalid IL or missing references)
-			UniRotate.PreCalibrate();
-			if (Owner.Calibrate != ECalibrateMode.FixedCalibrate)
-			{
-				UniRotate.PreCalibrate();
-			}
-			else
-			{
-				bone.localPosition = LastKeyframeLocalPosition;
-				bone.localRotation = LastKeyframeLocalRotation;
-			}
-			if (HubBackBones != null)
-			{
-				for (int i = 0; i < HubBackBones.Count; i++)
-				{
-					HubBackBones[i].PreCalibrate();
-				}
-			}
-		}
-
-		public void Calibrate()
-		{
-			//IL_0007: Unknown result type (might be due to invalid IL or missing references)
-			//IL_000c: Unknown result type (might be due to invalid IL or missing references)
-			//IL_0018: Unknown result type (might be due to invalid IL or missing references)
-			//IL_001d: Unknown result type (might be due to invalid IL or missing references)
-			//IL_0029: Unknown result type (might be due to invalid IL or missing references)
-			//IL_002e: Unknown result type (might be due to invalid IL or missing references)
-			//IL_003a: Unknown result type (might be due to invalid IL or missing references)
-			//IL_003f: Unknown result type (might be due to invalid IL or missing references)
-			//IL_004c: Unknown result type (might be due to invalid IL or missing references)
-			//IL_0051: Unknown result type (might be due to invalid IL or missing references)
-			//IL_0056: Unknown result type (might be due to invalid IL or missing references)
-			LastKeyframePosition = bone.position;
-			LastKeyframeLocalPosition = bone.localPosition;
-			LastKeyframeLocalRotation = bone.localRotation;
-			LastKeyframeRotation = bone.rotation;
-			LastRootLocalPos = Owner.ToRootLocalSpace(LastKeyframePosition);
-			LastHipsHeightDiff = GetHeightDiff(LastRootLocalPos.y);
-			if (HubBackBones != null)
-			{
-				for (int i = 0; i < HubBackBones.Count; i++)
-				{
-					HubBackBones[i].Calibrate();
-				}
-			}
-		}
-
-		public float GetHeightDiff(float rootSpaceHeight)
-		{
-			return Mathf.InverseLerp(0f, InitialHipsHeightLocal, rootSpaceHeight);
-		}
-
-		public void CopyMuscleSettingsFrom(HipsReference hipsSetup)
-		{
-			HipsMuscle.Acceleration = hipsSetup.HipsMuscle.Acceleration;
-			HipsMuscle.AccelerationLimit = hipsSetup.HipsMuscle.AccelerationLimit;
-			HipsMuscle.Damping = hipsSetup.HipsMuscle.Damping;
-			HipsMuscle.BrakePower = hipsSetup.HipsMuscle.BrakePower;
-		}
+		public List<HipsHubBackbone> HubBackBones { get; private set; }
 
 		public Vector3 CalculateCenterOfMassStability(float stabilizingMultiplier)
 		{
@@ -1199,12 +992,219 @@ public class LegsAnimator : MonoBehaviour, IDropHandler, IEventSystemHandler, IF
 			//IL_0000: Unknown result type (might be due to invalid IL or missing references)
 			return hubOffset;
 		}
+
+		public void Initialize(LegsAnimator owner, Transform bone, Transform root)
+		{
+			//IL_0017: Unknown result type (might be due to invalid IL or missing references)
+			//IL_001c: Unknown result type (might be due to invalid IL or missing references)
+			//IL_0023: Unknown result type (might be due to invalid IL or missing references)
+			//IL_0028: Unknown result type (might be due to invalid IL or missing references)
+			//IL_002e: Unknown result type (might be due to invalid IL or missing references)
+			//IL_0039: Unknown result type (might be due to invalid IL or missing references)
+			//IL_003e: Unknown result type (might be due to invalid IL or missing references)
+			//IL_0044: Unknown result type (might be due to invalid IL or missing references)
+			//IL_0049: Unknown result type (might be due to invalid IL or missing references)
+			//IL_0051: Unknown result type (might be due to invalid IL or missing references)
+			//IL_0056: Unknown result type (might be due to invalid IL or missing references)
+			//IL_005b: Unknown result type (might be due to invalid IL or missing references)
+			//IL_009d: Unknown result type (might be due to invalid IL or missing references)
+			//IL_00ad: Unknown result type (might be due to invalid IL or missing references)
+			Owner = owner;
+			this.bone = bone;
+			this.root = root;
+			initLocalPos = bone.localPosition;
+			initLocalRot = bone.localRotation;
+			ExtraNonElasticOffset = Vector3.zero;
+			_Hips_StabilityLocalAdjustement = Vector3.zero;
+			_Hips_sd_StabilAdjustm = Vector3.zero;
+			InitHipsPositionRootSpace = root.InverseTransformPoint(bone.position);
+			InitialHipsHeightLocal = InitHipsPositionRootSpace.y;
+			if (HipsMuscle == null)
+			{
+				HipsMuscle = new FMuscle_Vector3();
+			}
+			if (HipsRotMuscle == null)
+			{
+				HipsRotMuscle = new FMuscle_Quaternion();
+			}
+			HipsMuscle.Initialize(Vector3.zero);
+			HipsRotMuscle.Initialize(Quaternion.identity);
+			UniRotate = new UniRotateBone(bone, root);
+			Calibrate();
+		}
+
+		internal void PrepareLegs()
+		{
+			ChildLegs = new List<Leg>();
+			if (!Owner._hipsHubs_using)
+			{
+				ChildLegs = Owner.Legs;
+			}
+			else
+			{
+				for (int i = 0; i < Owner.Legs.Count; i++)
+				{
+					bool? flag = IsFirstParent(Owner.Legs[i], bone);
+					if (flag == true)
+					{
+						ChildLegs.Add(Owner.Legs[i]);
+					}
+					else if (!flag.HasValue && this == Owner.HipsSetup)
+					{
+						ChildLegs.Add(Owner.Legs[i]);
+					}
+				}
+			}
+			for (int j = 0; j < ChildLegs.Count; j++)
+			{
+				ChildLegs[j].AssignParentHub(this);
+			}
+		}
+
+		internal void PrepareHubBones()
+		{
+			PrepareLegs();
+			HubBackBones = new List<HipsHubBackbone>();
+			Transform frontBone = bone;
+			Transform parent = bone.parent;
+			while ((Object)(object)parent != (Object)null)
+			{
+				bool flag = false;
+				for (int i = 0; i < Owner.HipsHubs.Count; i++)
+				{
+					if ((Object)(object)parent == (Object)(object)Owner.HipsHubs[i].bone)
+					{
+						flag = true;
+						break;
+					}
+				}
+				if (!flag)
+				{
+					HipsHubBackbone hipsHubBackbone = new HipsHubBackbone(Owner, parent);
+					hipsHubBackbone.frontBone = frontBone;
+					HubBackBones.Add(hipsHubBackbone);
+					if (!((Object)(object)parent == (Object)(object)Owner.HipsSetup.bone))
+					{
+						frontBone = parent;
+						parent = parent.parent;
+						continue;
+					}
+					break;
+				}
+				break;
+			}
+		}
+
+		private bool? IsFirstParent(Leg leg, Transform hub)
+		{
+			if ((Object)(object)leg.BoneStart == (Object)null)
+			{
+				return false;
+			}
+			Transform val = leg.BoneStart;
+			while ((Object)(object)val != (Object)null)
+			{
+				if ((Object)(object)val == (Object)(object)hub)
+				{
+					return true;
+				}
+				if ((Object)(object)val == (Object)(object)Owner.Hips)
+				{
+					return false;
+				}
+				for (int i = 0; i < Owner.ExtraHipsHubs.Count; i++)
+				{
+					if ((Object)(object)val == (Object)(object)Owner.ExtraHipsHubs[i])
+					{
+						return false;
+					}
+				}
+				val = val.parent;
+			}
+			return null;
+		}
+
+		public void Reset()
+		{
+			Calibrate();
+			_Hips_LastHipsOffset = 0f;
+		}
+
+		public void PreCalibrate()
+		{
+			//IL_002d: Unknown result type (might be due to invalid IL or missing references)
+			//IL_003e: Unknown result type (might be due to invalid IL or missing references)
+			UniRotate.PreCalibrate();
+			if (Owner.Calibrate != ECalibrateMode.FixedCalibrate)
+			{
+				UniRotate.PreCalibrate();
+			}
+			else
+			{
+				bone.localPosition = LastKeyframeLocalPosition;
+				bone.localRotation = LastKeyframeLocalRotation;
+			}
+			if (HubBackBones != null)
+			{
+				for (int i = 0; i < HubBackBones.Count; i++)
+				{
+					HubBackBones[i].PreCalibrate();
+				}
+			}
+		}
+
+		public void Calibrate()
+		{
+			//IL_0007: Unknown result type (might be due to invalid IL or missing references)
+			//IL_000c: Unknown result type (might be due to invalid IL or missing references)
+			//IL_0018: Unknown result type (might be due to invalid IL or missing references)
+			//IL_001d: Unknown result type (might be due to invalid IL or missing references)
+			//IL_0029: Unknown result type (might be due to invalid IL or missing references)
+			//IL_002e: Unknown result type (might be due to invalid IL or missing references)
+			//IL_003a: Unknown result type (might be due to invalid IL or missing references)
+			//IL_003f: Unknown result type (might be due to invalid IL or missing references)
+			//IL_004c: Unknown result type (might be due to invalid IL or missing references)
+			//IL_0051: Unknown result type (might be due to invalid IL or missing references)
+			//IL_0056: Unknown result type (might be due to invalid IL or missing references)
+			LastKeyframePosition = bone.position;
+			LastKeyframeLocalPosition = bone.localPosition;
+			LastKeyframeLocalRotation = bone.localRotation;
+			LastKeyframeRotation = bone.rotation;
+			LastRootLocalPos = Owner.ToRootLocalSpace(LastKeyframePosition);
+			LastHipsHeightDiff = GetHeightDiff(LastRootLocalPos.y);
+			if (HubBackBones != null)
+			{
+				for (int i = 0; i < HubBackBones.Count; i++)
+				{
+					HubBackBones[i].Calibrate();
+				}
+			}
+		}
+
+		public float GetHeightDiff(float rootSpaceHeight)
+		{
+			return Mathf.InverseLerp(0f, InitialHipsHeightLocal, rootSpaceHeight);
+		}
+
+		public void CopyMuscleSettingsFrom(HipsReference hipsSetup)
+		{
+			HipsMuscle.Acceleration = hipsSetup.HipsMuscle.Acceleration;
+			HipsMuscle.AccelerationLimit = hipsSetup.HipsMuscle.AccelerationLimit;
+			HipsMuscle.Damping = hipsSetup.HipsMuscle.Damping;
+			HipsMuscle.BrakePower = hipsSetup.HipsMuscle.BrakePower;
+		}
 	}
 
 	public enum EStabilityMode
 	{
 		Biped_Deprecated,
 		Universal
+	}
+
+	public enum EHipsAdjustStyle
+	{
+		SmoothDamp,
+		FollowLegHeight
 	}
 
 	[Serializable]
@@ -2255,90 +2255,6 @@ public class LegsAnimator : MonoBehaviour, IDropHandler, IEventSystemHandler, IF
 
 		private float _C_DynamicYScale = 1f;
 
-		public LegsAnimator Owner;
-
-		[FPD_Suffix(0f, 1f, FPD_SuffixAttribute.SuffixMode.From0to100, "%", true, 0)]
-		public float LegBlendWeight = 1f;
-
-		internal float InternalModuleBlendWeight = 1f;
-
-		private float finalBoneBlend = 1f;
-
-		[Tooltip("Make idle glue animation motion faster for this single leg")]
-		public float LegMoveSpeedMultiplier = 1f;
-
-		public float LegRaiseMultiplier = 1f;
-
-		[Space(3f)]
-		public float GlueThresholdMultiplier = 1f;
-
-		public Vector2 GluePointOffset = Vector2.zero;
-
-		[Space(3f)]
-		[Range(0f, 1f)]
-		public float LegStretchMultiplier = 1f;
-
-		[Tooltip("Motion preset for the leg to be animated with different character than the other legs ('Idle Glue Motion' settings)")]
-		public LegMotionSettingsPreset CustomLegAnimating;
-
-		[Range(-40f, 40f)]
-		public float FootPitchOffset;
-
-		public Transform BoneStart;
-
-		public Transform BoneMid;
-
-		public Transform BoneEnd;
-
-		public ELegSide Side;
-
-		public int OppositeLegIndex = -1;
-
-		public ERaycastPrecision RaycastPrecision;
-
-		[Tooltip("(Experimental) If you want to animate in additional feet bone which in some cases can add nice animation feeling")]
-		public bool UseFeet;
-
-		public Transform BoneFeet;
-
-		[Range(0f, 1f)]
-		[Tooltip("Defining how quick heel should get up if leg gets stretched (change max stretching param under IK tab to be lower value that 1.1)")]
-		public float FeetSensitivity = 0.5f;
-
-		private bool hasOppositeleg;
-
-		private LegStepAnimatingParameters targetLegAnimating;
-
-		[Tooltip("Apply IK hint inversion, in case leg is bending in wrong direction.")]
-		public bool InverseHint;
-
-		public Vector3 AnkleToHeel = Vector3.zero;
-
-		public Vector3 AnkleToFeetEnd = Vector3.zero;
-
-		public Vector3 AnkleRight = Vector3.right;
-
-		public Vector3 AnkleUp = Vector3.up;
-
-		public Vector3 AnkleForward = Vector3.forward;
-
-		[Range(0f, 1.001f)]
-		public float FootMiddlePosition = 0.5f;
-
-		[Space(5f)]
-		[FPD_Suffix(-45f, 45f, FPD_SuffixAttribute.SuffixMode.FromMinToMax, "°", true, 0)]
-		public float AnkleYawCorrection;
-
-		private bool _StepSent = true;
-
-		private float _StepSentAt = -100f;
-
-		private float _RaiseSentAt = -100f;
-
-		private bool _OppositeLegStepped = true;
-
-		private float _ToConfirmStepEvent;
-
 		private Vector3 _SourceIKPosUnchangedY;
 
 		private Vector3 _SourceIKPos;
@@ -2392,6 +2308,90 @@ public class LegsAnimator : MonoBehaviour, IDropHandler, IEventSystemHandler, IF
 		private Vector3 _PreviousCustomRaycastingIKPos;
 
 		private bool _noRaycast_skipFeetCalcs;
+
+		public LegsAnimator Owner;
+
+		[FPD_Suffix(0f, 1f, FPD_SuffixAttribute.SuffixMode.From0to100, "%", true, 0)]
+		public float LegBlendWeight = 1f;
+
+		internal float InternalModuleBlendWeight = 1f;
+
+		private float finalBoneBlend = 1f;
+
+		[Tooltip("Make idle glue animation motion faster for this single leg")]
+		public float LegMoveSpeedMultiplier = 1f;
+
+		public float LegRaiseMultiplier = 1f;
+
+		[Space(3f)]
+		public float GlueThresholdMultiplier = 1f;
+
+		public Vector2 GluePointOffset = Vector2.zero;
+
+		[Range(0f, 1f)]
+		[Space(3f)]
+		public float LegStretchMultiplier = 1f;
+
+		[Tooltip("Motion preset for the leg to be animated with different character than the other legs ('Idle Glue Motion' settings)")]
+		public LegMotionSettingsPreset CustomLegAnimating;
+
+		[Range(-40f, 40f)]
+		public float FootPitchOffset;
+
+		public Transform BoneStart;
+
+		public Transform BoneMid;
+
+		public Transform BoneEnd;
+
+		public ELegSide Side;
+
+		public int OppositeLegIndex = -1;
+
+		public ERaycastPrecision RaycastPrecision;
+
+		[Tooltip("(Experimental) If you want to animate in additional feet bone which in some cases can add nice animation feeling")]
+		public bool UseFeet;
+
+		public Transform BoneFeet;
+
+		[Range(0f, 1f)]
+		[Tooltip("Defining how quick heel should get up if leg gets stretched (change max stretching param under IK tab to be lower value that 1.1)")]
+		public float FeetSensitivity = 0.5f;
+
+		private bool hasOppositeleg;
+
+		private LegStepAnimatingParameters targetLegAnimating;
+
+		[Tooltip("Apply IK hint inversion, in case leg is bending in wrong direction.")]
+		public bool InverseHint;
+
+		public Vector3 AnkleToHeel = Vector3.zero;
+
+		public Vector3 AnkleToFeetEnd = Vector3.zero;
+
+		public Vector3 AnkleRight = Vector3.right;
+
+		public Vector3 AnkleUp = Vector3.up;
+
+		public Vector3 AnkleForward = Vector3.forward;
+
+		[Range(0f, 1.001f)]
+		public float FootMiddlePosition = 0.5f;
+
+		[FPD_Suffix(-45f, 45f, FPD_SuffixAttribute.SuffixMode.FromMinToMax, "°", true, 0)]
+		[Space(5f)]
+		public float AnkleYawCorrection;
+
+		private bool _StepSent = true;
+
+		private float _StepSentAt = -100f;
+
+		private float _RaiseSentAt = -100f;
+
+		private bool _OppositeLegStepped = true;
+
+		private float _ToConfirmStepEvent;
 
 		public bool G_AttachPossible
 		{
@@ -2482,20 +2482,6 @@ public class LegsAnimator : MonoBehaviour, IDropHandler, IEventSystemHandler, IF
 
 		public float C_AnimatedAnkleFlatHeight { get; private set; }
 
-		public int PlaymodeIndex { get; private set; }
-
-		public float BlendWeight { get; private set; }
-
-		[field: NonSerialized]
-		public Leg NextLeg { get; private set; }
-
-		[field: NonSerialized]
-		public HipsReference ParentHub { get; private set; }
-
-		public LegStepAnimatingParameters LegAnimatingSettings => targetLegAnimating;
-
-		public float LegStretchLimit { get; private set; } = 1f;
-
 		public FimpIK_Limb IKProcessor { get; private set; }
 
 		public Vector3 _PreviousFinalIKPos { get; private set; }
@@ -2535,6 +2521,20 @@ public class LegsAnimator : MonoBehaviour, IDropHandler, IEventSystemHandler, IF
 		public float raycastSlopeAngle { get; private set; }
 
 		public Vector3 InitialPosInRootSpace { get; private set; }
+
+		public int PlaymodeIndex { get; private set; }
+
+		public float BlendWeight { get; private set; }
+
+		[field: NonSerialized]
+		public Leg NextLeg { get; private set; }
+
+		[field: NonSerialized]
+		public HipsReference ParentHub { get; private set; }
+
+		public LegStepAnimatingParameters LegAnimatingSettings => targetLegAnimating;
+
+		public float LegStretchLimit { get; private set; } = 1f;
 
 		public List<Leg> Legs => Owner.Legs;
 
@@ -4002,345 +4002,6 @@ public class LegsAnimator : MonoBehaviour, IDropHandler, IEventSystemHandler, IF
 			_StepSentAt = Time.unscaledTime;
 		}
 
-		public void InitLegBasics(LegsAnimator creator, int index, Leg nextLeg)
-		{
-			//IL_00ef: Unknown result type (might be due to invalid IL or missing references)
-			if ((Object)(object)creator != (Object)null)
-			{
-				Owner = creator;
-			}
-			PlaymodeIndex = index;
-			NextLeg = nextLeg;
-			LegStretchLimit = 1f;
-			BlendWeight = 1f;
-			InternalModuleBlendWeight = 1f;
-			EnsureAxesNormalization();
-			_h_boneStart = new LegHelper(this, BoneStart);
-			_h_boneMid = new LegHelper(this, BoneMid);
-			_h_boneEnd = new LegHelper(this, BoneEnd);
-			_h_boneStart.Child = _h_boneMid;
-			_h_boneMid.Child = _h_boneEnd;
-			Gluing_Init();
-			Reset();
-			Controll_Init();
-			Raycasting_Init();
-			Stability_Init();
-			AlignStep_Init();
-			RefreshHasOppositeLeg();
-			targetLegAnimating = (Object.op_Implicit((Object)(object)CustomLegAnimating) ? CustomLegAnimating.Settings : creator.LegAnimatingSettings);
-			ankleAlignedOnGroundHitWorldPos = _FinalIKPos;
-		}
-
-		public void RefreshHasOppositeLeg()
-		{
-			hasOppositeleg = false;
-			if (GetOppositeLeg() != null)
-			{
-				hasOppositeleg = true;
-			}
-		}
-
-		public void Leg_UpdateParams()
-		{
-			targetLegAnimating = (Object.op_Implicit((Object)(object)CustomLegAnimating) ? CustomLegAnimating.Settings : Owner.LegAnimatingSettings);
-			IK_UpdateParams();
-		}
-
-		internal void AssignParentHub(HipsReference hipsReference)
-		{
-			ParentHub = hipsReference;
-		}
-
-		internal void Reset()
-		{
-			//IL_0007: Unknown result type (might be due to invalid IL or missing references)
-			//IL_000c: Unknown result type (might be due to invalid IL or missing references)
-			//IL_0018: Unknown result type (might be due to invalid IL or missing references)
-			//IL_001d: Unknown result type (might be due to invalid IL or missing references)
-			//IL_0024: Unknown result type (might be due to invalid IL or missing references)
-			//IL_0029: Unknown result type (might be due to invalid IL or missing references)
-			//IL_0030: Unknown result type (might be due to invalid IL or missing references)
-			//IL_0035: Unknown result type (might be due to invalid IL or missing references)
-			//IL_003c: Unknown result type (might be due to invalid IL or missing references)
-			//IL_0048: Unknown result type (might be due to invalid IL or missing references)
-			//IL_0058: Unknown result type (might be due to invalid IL or missing references)
-			//IL_0065: Unknown result type (might be due to invalid IL or missing references)
-			//IL_007b: Unknown result type (might be due to invalid IL or missing references)
-			//IL_0087: Unknown result type (might be due to invalid IL or missing references)
-			//IL_0093: Unknown result type (might be due to invalid IL or missing references)
-			//IL_0098: Unknown result type (might be due to invalid IL or missing references)
-			//IL_009f: Unknown result type (might be due to invalid IL or missing references)
-			//IL_00a4: Unknown result type (might be due to invalid IL or missing references)
-			//IL_00ab: Unknown result type (might be due to invalid IL or missing references)
-			//IL_00b0: Unknown result type (might be due to invalid IL or missing references)
-			//IL_00b8: Unknown result type (might be due to invalid IL or missing references)
-			//IL_00bd: Unknown result type (might be due to invalid IL or missing references)
-			//IL_00c9: Unknown result type (might be due to invalid IL or missing references)
-			//IL_00ce: Unknown result type (might be due to invalid IL or missing references)
-			//IL_00d5: Unknown result type (might be due to invalid IL or missing references)
-			//IL_00de: Unknown result type (might be due to invalid IL or missing references)
-			//IL_00f0: Unknown result type (might be due to invalid IL or missing references)
-			//IL_00fb: Unknown result type (might be due to invalid IL or missing references)
-			//IL_00fc: Unknown result type (might be due to invalid IL or missing references)
-			_SourceIKPos = BoneEnd.position;
-			_SourceIKRot = BoneEnd.rotation;
-			_FinalIKPos = _SourceIKPos;
-			_FinalIKRot = _SourceIKRot;
-			_PreviousFinalIKPos = _FinalIKPos;
-			_PreviousFinalIKRot = _FinalIKRot;
-			legGroundHit = default(RaycastHit);
-			((RaycastHit)(ref legGroundHit)).point = _FinalIKPos;
-			((RaycastHit)(ref legGroundHit)).normal = Owner.Up;
-			_PreviousFinalIKPosForStability = _SourceIKPos;
-			ankleAlignedOnGroundHitRotation = _SourceIKRot;
-			A_LastApppliedAlignRot = _SourceIKRot;
-			A_LastTargetAlignRot = _SourceIKRot;
-			groundHitRootSpacePos = ToRootLocalSpace(_SourceIKPos);
-			_SourceIKPosUnchangedY = groundHitRootSpacePos;
-			RaycastHit val = default(RaycastHit);
-			((RaycastHit)(ref val)).point = _FinalIKPos;
-			((RaycastHit)(ref val)).normal = Owner.Up;
-			legGroundHit = val;
-			Glue_Reset(initializing: true);
-		}
-
-		public void PreCalibrate()
-		{
-			//IL_006c: Unknown result type (might be due to invalid IL or missing references)
-			//IL_00bd: Unknown result type (might be due to invalid IL or missing references)
-			//IL_00ce: Unknown result type (might be due to invalid IL or missing references)
-			//IL_00df: Unknown result type (might be due to invalid IL or missing references)
-			BlendWeight *= InternalModuleBlendWeight;
-			finalBoneBlend = BlendWeight * Owner._MainBlend;
-			if (finalBoneBlend < 0.0001f)
-			{
-				if (!_G_WasDisabled)
-				{
-					G_Attached = false;
-					G_AttachementHandler.Reset(initializing: false);
-					G_Attachement = default(GlueAttachement);
-					_G_WasDisabled = true;
-					legGroundHit = default(RaycastHit);
-					RaycastHitted = false;
-				}
-			}
-			else if (Owner.Calibrate == ECalibrateMode.Calibrate)
-			{
-				IKProcessor.PreCalibrate();
-			}
-			else if (Owner.Calibrate == ECalibrateMode.FixedCalibrate)
-			{
-				if (!_wasFixedCalibrateAnimationCaptured)
-				{
-					IKProcessor.PreCalibrate();
-					return;
-				}
-				BoneStart.localRotation = _AnimatorStartBoneLocRot;
-				BoneMid.localRotation = _AnimatorMidBoneLocRot;
-				BoneEnd.localRotation = _AnimatorEndBoneLocRot;
-			}
-		}
-
-		public void CheckAnimatorPose()
-		{
-			//IL_0007: Unknown result type (might be due to invalid IL or missing references)
-			//IL_0018: Unknown result type (might be due to invalid IL or missing references)
-			//IL_0029: Unknown result type (might be due to invalid IL or missing references)
-			//IL_004f: Unknown result type (might be due to invalid IL or missing references)
-			//IL_0060: Unknown result type (might be due to invalid IL or missing references)
-			//IL_0071: Unknown result type (might be due to invalid IL or missing references)
-			_AnimatorStartBonePos = BoneStart.position;
-			_AnimatorMidBonePos = BoneMid.position;
-			_AnimatorEndBonePos = BoneEnd.position;
-			if (Owner.Calibrate == ECalibrateMode.FixedCalibrate)
-			{
-				_wasFixedCalibrateAnimationCaptured = true;
-				_AnimatorStartBoneLocRot = BoneStart.localRotation;
-				_AnimatorMidBoneLocRot = BoneMid.localRotation;
-				_AnimatorEndBoneLocRot = BoneEnd.localRotation;
-			}
-		}
-
-		public void BeginLateUpdate()
-		{
-			if (!(finalBoneBlend < 0.0001f))
-			{
-				G_CustomForceAttach = false;
-				G_CustomForceNOTDetach = false;
-				G_CustomForceDetach = false;
-				G_CustomForceNOTAttach = false;
-				IK_PreUpdate();
-				LegStretchLimit = Owner.LimitLegStretch * LegStretchMultiplier;
-			}
-		}
-
-		public void PreLateUpdate()
-		{
-			if (!customOverwritingIKPos && (!_G_WasDisabled || !(finalBoneBlend < 0.0001f)))
-			{
-				Owner.Modules_LegBeforeRaycastingUpdate(this);
-				Raycasting_PreLateUpdate();
-				Controll_Calibrate();
-			}
-		}
-
-		public void LateUpdate()
-		{
-			if (!(finalBoneBlend < 0.0001f) && !customOverwritingIKPos)
-			{
-				Owner.Modules_Leg_LateUpdate(this);
-				AlignStep_CheckAlignStatePre();
-				AlignStep_ValidateFootRotation();
-				Gluing_Update();
-				Gluing_ApplyCoords();
-				AlignStep_OnGroundAlign();
-				AlignStep_SmoothSuddenSteps();
-				AlignStep_LegElevation();
-				AlignStep_Complete();
-				Control_StepEventCalcs();
-				ExtraProcessingApply();
-			}
-		}
-
-		public void LateUpdate_Apply()
-		{
-			IK_PostUpdate();
-		}
-
-		public void FixedUpdate()
-		{
-		}
-
-		public float LegLimbLength()
-		{
-			//IL_0041: Unknown result type (might be due to invalid IL or missing references)
-			//IL_004c: Unknown result type (might be due to invalid IL or missing references)
-			//IL_005d: Unknown result type (might be due to invalid IL or missing references)
-			//IL_0068: Unknown result type (might be due to invalid IL or missing references)
-			if ((Object)(object)BoneStart == (Object)null || (Object)(object)BoneMid == (Object)null || (Object)(object)BoneEnd == (Object)null)
-			{
-				return Owner.HipsToGroundDistance();
-			}
-			return 0f + Vector3.Distance(BoneStart.position, BoneMid.position) + Vector3.Distance(BoneEnd.position, BoneMid.position);
-		}
-
-		public bool HasAllBonesSet()
-		{
-			if ((Object)(object)BoneStart == (Object)null)
-			{
-				return false;
-			}
-			if ((Object)(object)BoneMid == (Object)null)
-			{
-				return false;
-			}
-			if ((Object)(object)BoneEnd == (Object)null)
-			{
-				return false;
-			}
-			return true;
-		}
-
-		public float R(float toRound, int digits = 2)
-		{
-			return (float)Math.Round(toRound, digits);
-		}
-
-		private void SendStepEvent(float factor = 1f, EStepType type = EStepType.IdleGluing)
-		{
-			if (!_StepSent)
-			{
-				if (Owner.GroundedTime < 0.1f)
-				{
-					type = EStepType.OnLanding;
-				}
-				else if (!Owner.IsMoving && Owner.StoppedTime < 0.15f)
-				{
-					type = EStepType.OnStopping;
-				}
-				Owner.Events_OnStep(this, factor, type);
-				_StepSent = true;
-				_StepSentAt = Time.unscaledTime;
-				if (hasOppositeleg)
-				{
-					_OppositeLegStepped = true;
-					GetOppositeLeg()._OppositeLegStepped = !Owner.IsMoving;
-				}
-			}
-		}
-
-		private void SendRaiseEvent(float distanceToNew = 1f)
-		{
-			if (!(Time.unscaledTime - _RaiseSentAt < 0.05f))
-			{
-				_RaiseSentAt = Time.unscaledTime;
-				EStepType type = EStepType.IdleGluing;
-				if (!Owner.IsMoving && Owner.StoppedTime < 0.15f)
-				{
-					type = EStepType.OnStopping;
-				}
-				Owner.Events_OnRaise(this, distanceToNew, type);
-			}
-		}
-
-		private void StepEventRestore()
-		{
-			//IL_0178: Unknown result type (might be due to invalid IL or missing references)
-			if (!Owner.UseEvents || !_StepSent || Time.unscaledTime - _StepSentAt < 0.1f || Owner.GroundedTime < 0.1f)
-			{
-				return;
-			}
-			if (Owner.UseGluing)
-			{
-				if (G_AttachementHandler.glueAnimationBlend > 0.5f && G_GlueInternalTransition > 0.25f)
-				{
-					return;
-				}
-				if (Owner._glueModeExecuted == EGlueMode.Idle)
-				{
-					if (!G_DuringAttaching || (Owner.GlueMode == EGlueMode.Automatic && (Owner.IsMoving || Owner.Helper_WasMoving)) || (!Owner.SendOnStopping && Owner.StoppedTime < 0.155f) || G_AttachementHandler.lasGlueModeOnAttaching != 0 || G_AttachementHandler.legMoveDistanceFactor < 0.05f)
-					{
-						return;
-					}
-				}
-				else
-				{
-					if ((Owner.GlueMode == EGlueMode.Automatic && !Owner.IsMoving) || Owner.MovingTime < 0.06f || A_PreWasAligning || A_AligningHelperBlend > 0.5f - Owner.EventExecuteSooner || (hasOppositeleg && !GetOppositeLeg()._OppositeLegStepped))
-					{
-						return;
-					}
-					float num = (0f - ScaleRef) * 0.2f + FloorLevel * Owner.BaseTransform.lossyScale.y + C_AnkleToHeelWorldHeight * 0.75f + A_LastAlignHeightCompareValue * (3f + Owner.EventExecuteSooner);
-					if (A_LastAlignHeightDiff < num)
-					{
-						return;
-					}
-				}
-			}
-			else
-			{
-				if (A_PreWasAligning || A_AligningHelperBlend > 0.05f)
-				{
-					return;
-				}
-				if (Owner.IsMovingBlend < 0.05f)
-				{
-					_StepSent = true;
-					return;
-				}
-				if (!Owner.Helper_WasMoving)
-				{
-					_StepSent = true;
-					return;
-				}
-				if (!Owner.IsMoving)
-				{
-					_StepSent = true;
-					return;
-				}
-			}
-			_StepSent = false;
-		}
-
 		public void IK_Initialize(bool generateNew = true)
 		{
 			//IL_012a: Unknown result type (might be due to invalid IL or missing references)
@@ -5222,6 +4883,345 @@ public class LegsAnimator : MonoBehaviour, IDropHandler, IEventSystemHandler, IF
 			InitialPosInRootSpace = initialPosInRootSpace;
 		}
 
+		public void InitLegBasics(LegsAnimator creator, int index, Leg nextLeg)
+		{
+			//IL_00ef: Unknown result type (might be due to invalid IL or missing references)
+			if ((Object)(object)creator != (Object)null)
+			{
+				Owner = creator;
+			}
+			PlaymodeIndex = index;
+			NextLeg = nextLeg;
+			LegStretchLimit = 1f;
+			BlendWeight = 1f;
+			InternalModuleBlendWeight = 1f;
+			EnsureAxesNormalization();
+			_h_boneStart = new LegHelper(this, BoneStart);
+			_h_boneMid = new LegHelper(this, BoneMid);
+			_h_boneEnd = new LegHelper(this, BoneEnd);
+			_h_boneStart.Child = _h_boneMid;
+			_h_boneMid.Child = _h_boneEnd;
+			Gluing_Init();
+			Reset();
+			Controll_Init();
+			Raycasting_Init();
+			Stability_Init();
+			AlignStep_Init();
+			RefreshHasOppositeLeg();
+			targetLegAnimating = (Object.op_Implicit((Object)(object)CustomLegAnimating) ? CustomLegAnimating.Settings : creator.LegAnimatingSettings);
+			ankleAlignedOnGroundHitWorldPos = _FinalIKPos;
+		}
+
+		public void RefreshHasOppositeLeg()
+		{
+			hasOppositeleg = false;
+			if (GetOppositeLeg() != null)
+			{
+				hasOppositeleg = true;
+			}
+		}
+
+		public void Leg_UpdateParams()
+		{
+			targetLegAnimating = (Object.op_Implicit((Object)(object)CustomLegAnimating) ? CustomLegAnimating.Settings : Owner.LegAnimatingSettings);
+			IK_UpdateParams();
+		}
+
+		internal void AssignParentHub(HipsReference hipsReference)
+		{
+			ParentHub = hipsReference;
+		}
+
+		internal void Reset()
+		{
+			//IL_0007: Unknown result type (might be due to invalid IL or missing references)
+			//IL_000c: Unknown result type (might be due to invalid IL or missing references)
+			//IL_0018: Unknown result type (might be due to invalid IL or missing references)
+			//IL_001d: Unknown result type (might be due to invalid IL or missing references)
+			//IL_0024: Unknown result type (might be due to invalid IL or missing references)
+			//IL_0029: Unknown result type (might be due to invalid IL or missing references)
+			//IL_0030: Unknown result type (might be due to invalid IL or missing references)
+			//IL_0035: Unknown result type (might be due to invalid IL or missing references)
+			//IL_003c: Unknown result type (might be due to invalid IL or missing references)
+			//IL_0048: Unknown result type (might be due to invalid IL or missing references)
+			//IL_0058: Unknown result type (might be due to invalid IL or missing references)
+			//IL_0065: Unknown result type (might be due to invalid IL or missing references)
+			//IL_007b: Unknown result type (might be due to invalid IL or missing references)
+			//IL_0087: Unknown result type (might be due to invalid IL or missing references)
+			//IL_0093: Unknown result type (might be due to invalid IL or missing references)
+			//IL_0098: Unknown result type (might be due to invalid IL or missing references)
+			//IL_009f: Unknown result type (might be due to invalid IL or missing references)
+			//IL_00a4: Unknown result type (might be due to invalid IL or missing references)
+			//IL_00ab: Unknown result type (might be due to invalid IL or missing references)
+			//IL_00b0: Unknown result type (might be due to invalid IL or missing references)
+			//IL_00b8: Unknown result type (might be due to invalid IL or missing references)
+			//IL_00bd: Unknown result type (might be due to invalid IL or missing references)
+			//IL_00c9: Unknown result type (might be due to invalid IL or missing references)
+			//IL_00ce: Unknown result type (might be due to invalid IL or missing references)
+			//IL_00d5: Unknown result type (might be due to invalid IL or missing references)
+			//IL_00de: Unknown result type (might be due to invalid IL or missing references)
+			//IL_00f0: Unknown result type (might be due to invalid IL or missing references)
+			//IL_00fb: Unknown result type (might be due to invalid IL or missing references)
+			//IL_00fc: Unknown result type (might be due to invalid IL or missing references)
+			_SourceIKPos = BoneEnd.position;
+			_SourceIKRot = BoneEnd.rotation;
+			_FinalIKPos = _SourceIKPos;
+			_FinalIKRot = _SourceIKRot;
+			_PreviousFinalIKPos = _FinalIKPos;
+			_PreviousFinalIKRot = _FinalIKRot;
+			legGroundHit = default(RaycastHit);
+			((RaycastHit)(ref legGroundHit)).point = _FinalIKPos;
+			((RaycastHit)(ref legGroundHit)).normal = Owner.Up;
+			_PreviousFinalIKPosForStability = _SourceIKPos;
+			ankleAlignedOnGroundHitRotation = _SourceIKRot;
+			A_LastApppliedAlignRot = _SourceIKRot;
+			A_LastTargetAlignRot = _SourceIKRot;
+			groundHitRootSpacePos = ToRootLocalSpace(_SourceIKPos);
+			_SourceIKPosUnchangedY = groundHitRootSpacePos;
+			RaycastHit val = default(RaycastHit);
+			((RaycastHit)(ref val)).point = _FinalIKPos;
+			((RaycastHit)(ref val)).normal = Owner.Up;
+			legGroundHit = val;
+			Glue_Reset(initializing: true);
+		}
+
+		public void PreCalibrate()
+		{
+			//IL_006c: Unknown result type (might be due to invalid IL or missing references)
+			//IL_00bd: Unknown result type (might be due to invalid IL or missing references)
+			//IL_00ce: Unknown result type (might be due to invalid IL or missing references)
+			//IL_00df: Unknown result type (might be due to invalid IL or missing references)
+			BlendWeight *= InternalModuleBlendWeight;
+			finalBoneBlend = BlendWeight * Owner._MainBlend;
+			if (finalBoneBlend < 0.0001f)
+			{
+				if (!_G_WasDisabled)
+				{
+					G_Attached = false;
+					G_AttachementHandler.Reset(initializing: false);
+					G_Attachement = default(GlueAttachement);
+					_G_WasDisabled = true;
+					legGroundHit = default(RaycastHit);
+					RaycastHitted = false;
+				}
+			}
+			else if (Owner.Calibrate == ECalibrateMode.Calibrate)
+			{
+				IKProcessor.PreCalibrate();
+			}
+			else if (Owner.Calibrate == ECalibrateMode.FixedCalibrate)
+			{
+				if (!_wasFixedCalibrateAnimationCaptured)
+				{
+					IKProcessor.PreCalibrate();
+					return;
+				}
+				BoneStart.localRotation = _AnimatorStartBoneLocRot;
+				BoneMid.localRotation = _AnimatorMidBoneLocRot;
+				BoneEnd.localRotation = _AnimatorEndBoneLocRot;
+			}
+		}
+
+		public void CheckAnimatorPose()
+		{
+			//IL_0007: Unknown result type (might be due to invalid IL or missing references)
+			//IL_0018: Unknown result type (might be due to invalid IL or missing references)
+			//IL_0029: Unknown result type (might be due to invalid IL or missing references)
+			//IL_004f: Unknown result type (might be due to invalid IL or missing references)
+			//IL_0060: Unknown result type (might be due to invalid IL or missing references)
+			//IL_0071: Unknown result type (might be due to invalid IL or missing references)
+			_AnimatorStartBonePos = BoneStart.position;
+			_AnimatorMidBonePos = BoneMid.position;
+			_AnimatorEndBonePos = BoneEnd.position;
+			if (Owner.Calibrate == ECalibrateMode.FixedCalibrate)
+			{
+				_wasFixedCalibrateAnimationCaptured = true;
+				_AnimatorStartBoneLocRot = BoneStart.localRotation;
+				_AnimatorMidBoneLocRot = BoneMid.localRotation;
+				_AnimatorEndBoneLocRot = BoneEnd.localRotation;
+			}
+		}
+
+		public void BeginLateUpdate()
+		{
+			if (!(finalBoneBlend < 0.0001f))
+			{
+				G_CustomForceAttach = false;
+				G_CustomForceNOTDetach = false;
+				G_CustomForceDetach = false;
+				G_CustomForceNOTAttach = false;
+				IK_PreUpdate();
+				LegStretchLimit = Owner.LimitLegStretch * LegStretchMultiplier;
+			}
+		}
+
+		public void PreLateUpdate()
+		{
+			if (!customOverwritingIKPos && (!_G_WasDisabled || !(finalBoneBlend < 0.0001f)))
+			{
+				Owner.Modules_LegBeforeRaycastingUpdate(this);
+				Raycasting_PreLateUpdate();
+				Controll_Calibrate();
+			}
+		}
+
+		public void LateUpdate()
+		{
+			if (!(finalBoneBlend < 0.0001f) && !customOverwritingIKPos)
+			{
+				Owner.Modules_Leg_LateUpdate(this);
+				AlignStep_CheckAlignStatePre();
+				AlignStep_ValidateFootRotation();
+				Gluing_Update();
+				Gluing_ApplyCoords();
+				AlignStep_OnGroundAlign();
+				AlignStep_SmoothSuddenSteps();
+				AlignStep_LegElevation();
+				AlignStep_Complete();
+				Control_StepEventCalcs();
+				ExtraProcessingApply();
+			}
+		}
+
+		public void LateUpdate_Apply()
+		{
+			IK_PostUpdate();
+		}
+
+		public void FixedUpdate()
+		{
+		}
+
+		public float LegLimbLength()
+		{
+			//IL_0041: Unknown result type (might be due to invalid IL or missing references)
+			//IL_004c: Unknown result type (might be due to invalid IL or missing references)
+			//IL_005d: Unknown result type (might be due to invalid IL or missing references)
+			//IL_0068: Unknown result type (might be due to invalid IL or missing references)
+			if ((Object)(object)BoneStart == (Object)null || (Object)(object)BoneMid == (Object)null || (Object)(object)BoneEnd == (Object)null)
+			{
+				return Owner.HipsToGroundDistance();
+			}
+			return 0f + Vector3.Distance(BoneStart.position, BoneMid.position) + Vector3.Distance(BoneEnd.position, BoneMid.position);
+		}
+
+		public bool HasAllBonesSet()
+		{
+			if ((Object)(object)BoneStart == (Object)null)
+			{
+				return false;
+			}
+			if ((Object)(object)BoneMid == (Object)null)
+			{
+				return false;
+			}
+			if ((Object)(object)BoneEnd == (Object)null)
+			{
+				return false;
+			}
+			return true;
+		}
+
+		public float R(float toRound, int digits = 2)
+		{
+			return (float)Math.Round(toRound, digits);
+		}
+
+		private void SendStepEvent(float factor = 1f, EStepType type = EStepType.IdleGluing)
+		{
+			if (!_StepSent)
+			{
+				if (Owner.GroundedTime < 0.1f)
+				{
+					type = EStepType.OnLanding;
+				}
+				else if (!Owner.IsMoving && Owner.StoppedTime < 0.15f)
+				{
+					type = EStepType.OnStopping;
+				}
+				Owner.Events_OnStep(this, factor, type);
+				_StepSent = true;
+				_StepSentAt = Time.unscaledTime;
+				if (hasOppositeleg)
+				{
+					_OppositeLegStepped = true;
+					GetOppositeLeg()._OppositeLegStepped = !Owner.IsMoving;
+				}
+			}
+		}
+
+		private void SendRaiseEvent(float distanceToNew = 1f)
+		{
+			if (!(Time.unscaledTime - _RaiseSentAt < 0.05f))
+			{
+				_RaiseSentAt = Time.unscaledTime;
+				EStepType type = EStepType.IdleGluing;
+				if (!Owner.IsMoving && Owner.StoppedTime < 0.15f)
+				{
+					type = EStepType.OnStopping;
+				}
+				Owner.Events_OnRaise(this, distanceToNew, type);
+			}
+		}
+
+		private void StepEventRestore()
+		{
+			//IL_0178: Unknown result type (might be due to invalid IL or missing references)
+			if (!Owner.UseEvents || !_StepSent || Time.unscaledTime - _StepSentAt < 0.1f || Owner.GroundedTime < 0.1f)
+			{
+				return;
+			}
+			if (Owner.UseGluing)
+			{
+				if (G_AttachementHandler.glueAnimationBlend > 0.5f && G_GlueInternalTransition > 0.25f)
+				{
+					return;
+				}
+				if (Owner._glueModeExecuted == EGlueMode.Idle)
+				{
+					if (!G_DuringAttaching || (Owner.GlueMode == EGlueMode.Automatic && (Owner.IsMoving || Owner.Helper_WasMoving)) || (!Owner.SendOnStopping && Owner.StoppedTime < 0.155f) || G_AttachementHandler.lasGlueModeOnAttaching != 0 || G_AttachementHandler.legMoveDistanceFactor < 0.05f)
+					{
+						return;
+					}
+				}
+				else
+				{
+					if ((Owner.GlueMode == EGlueMode.Automatic && !Owner.IsMoving) || Owner.MovingTime < 0.06f || A_PreWasAligning || A_AligningHelperBlend > 0.5f - Owner.EventExecuteSooner || (hasOppositeleg && !GetOppositeLeg()._OppositeLegStepped))
+					{
+						return;
+					}
+					float num = (0f - ScaleRef) * 0.2f + FloorLevel * Owner.BaseTransform.lossyScale.y + C_AnkleToHeelWorldHeight * 0.75f + A_LastAlignHeightCompareValue * (3f + Owner.EventExecuteSooner);
+					if (A_LastAlignHeightDiff < num)
+					{
+						return;
+					}
+				}
+			}
+			else
+			{
+				if (A_PreWasAligning || A_AligningHelperBlend > 0.05f)
+				{
+					return;
+				}
+				if (Owner.IsMovingBlend < 0.05f)
+				{
+					_StepSent = true;
+					return;
+				}
+				if (!Owner.Helper_WasMoving)
+				{
+					_StepSent = true;
+					return;
+				}
+				if (!Owner.IsMoving)
+				{
+					_StepSent = true;
+					return;
+				}
+			}
+			_StepSent = false;
+		}
+
 		public void DefineLegSide(LegsAnimator get, Leg knownOppositeLeg = null)
 		{
 			if (knownOppositeLeg != null && knownOppositeLeg.Side != 0)
@@ -5370,29 +5370,29 @@ public class LegsAnimator : MonoBehaviour, IDropHandler, IEventSystemHandler, IF
 		[Range(0f, 1f)]
 		public float MinFootRaise = 0.1f;
 
-		[Range(0f, 1f)]
 		[Tooltip("Maximum leg raise height. If distance of target step animation is very big, then foot raise is bigger - up to this maximum raise value.")]
+		[Range(0f, 1f)]
 		public float MaxFootRaise = 0.4f;
 
-		[FPD_FixedCurveWindow(0f, 0f, 1f, 1f, 0.5f, 1f, 0.5f, 1f)]
 		[Tooltip("Raise height step animation curve evaluated on step animation duration.")]
+		[FPD_FixedCurveWindow(0f, 0f, 1f, 1f, 0.5f, 1f, 0.5f, 1f)]
 		public AnimationCurve RaiseYAxisCurve;
 
 		[Range(0f, 1f)]
-		[Tooltip("Allowing to speed up leg adjusting animation when leg is getting stretched, when opposite leg is requesting adjustement or when main character is rotating in place quickly")]
 		[Space(3f)]
+		[Tooltip("Allowing to speed up leg adjusting animation when leg is getting stretched, when opposite leg is requesting adjustement or when main character is rotating in place quickly")]
 		public float AllowSpeedups = 0.4f;
 
-		[Range(0.1f, 1f)]
 		[Tooltip("You can allow to use opposite leg before idle glue leg adjustement finishes")]
+		[Range(0.1f, 1f)]
 		public float AllowDetachBefore = 1f;
 
 		[Tooltip("Extra hips push power animation curve evaluated on step animation duration.")]
 		[FPD_FixedCurveWindow(0f, 0f, 1f, 1f, 1f, 0.6f, 0.6f, 1f)]
 		public AnimationCurve PushHipsOnMoveCurve;
 
-		[Tooltip("Extra foot ankle rotation animation curve evaluated on step animation duration.")]
 		[FPD_FixedCurveWindow(0f, -1f, 1f, 1f, 0f, 1f, 1f, 1f)]
+		[Tooltip("Extra foot ankle rotation animation curve evaluated on step animation duration.")]
 		public AnimationCurve FootRotationCurve;
 
 		public void RefreshDefaultCurves()
@@ -5977,9 +5977,9 @@ public class LegsAnimator : MonoBehaviour, IDropHandler, IEventSystemHandler, IF
 	[NonSerialized]
 	public float MinNonRagdolledForBlendOut;
 
+	[Range(0f, 1f)]
 	[Space(5f)]
 	[Tooltip("Calculating leg swing velocity in order to prevent gluing foot when swinging forward during movement forward (during forward swing, foot sometimes is touching ground which can result in gluing foot too soon, especially with ground level increased)\nWhen this value is high, foot will detect gluing less oftem.")]
-	[Range(0f, 1f)]
 	public float SwingHelper;
 
 	[Tooltip("Local height value for the glue algorithm. You can try adjusting it's value during character movement and idling, to detect glue more effectively.")]
@@ -6003,8 +6003,8 @@ public class LegsAnimator : MonoBehaviour, IDropHandler, IEventSystemHandler, IF
 
 	public UnityEvent Event_OnStep = new UnityEvent();
 
-	[Range(0f, 0.3f)]
 	[Tooltip("Increase to execute step event sooner (speed up step confirmation). Useful if step events are executed too late.")]
+	[Range(0f, 0.3f)]
 	public float EventExecuteSooner = 0.05f;
 
 	[Tooltip("If you want to send step events also during movement idle (in case you already use animation clip events for it)")]
@@ -6016,8 +6016,8 @@ public class LegsAnimator : MonoBehaviour, IDropHandler, IEventSystemHandler, IF
 	[Tooltip("Enabling triggering step events when character just switched grounded state")]
 	public bool StepEventOnLanding;
 
-	[Space(5f)]
 	[Tooltip("Game Object with attached component implementing LegsAnimator.ILegStepInfoReceiver interface to receiver detailed info about leg step")]
+	[Space(5f)]
 	public Transform StepInfoReceiver;
 
 	private ILegStepReceiver _StepReceiver;
@@ -6084,72 +6084,6 @@ public class LegsAnimator : MonoBehaviour, IDropHandler, IEventSystemHandler, IF
 
 	private Vector3 _Hips_RotationElasticLocalOffset = Vector3.zero;
 
-	[Tooltip("Use hips step adjustements and the stability algorithms")]
-	public bool UseHips = true;
-
-	[FPD_Suffix(0f, 1f, FPD_SuffixAttribute.SuffixMode.From0to100, "%", true, 0)]
-	[Tooltip("Whole body lift effect blend")]
-	public float HipsHeightStepBlend = 1f;
-
-	[Tooltip("How fast body should adjust up/down")]
-	[Range(0f, 1f)]
-	public float HipsHeightStepSpeed = 0.7f;
-
-	public EHipsAdjustStyle HipsAdjustStyle;
-
-	[Tooltip("Adjusting hips to keep body balance pose")]
-	[FPD_Suffix(0f, 1f, FPD_SuffixAttribute.SuffixMode.From0to100, "%", true, 0)]
-	public float StabilizeCenterOfMass = 0.45f;
-
-	[Range(0f, 1f)]
-	[Tooltip("Blend stability pose reference from: initial pose to: current animator pose")]
-	public float AnimationIsStablePose = 0.75f;
-
-	[Tooltip("How fast body should adjust to the stability pose / to stretch preventer pose")]
-	[Range(0f, 1f)]
-	public float StabilizingSpeed = 0.375f;
-
-	[Tooltip("Simulating body behaviour when doing leg steps")]
-	[Range(0f, 1f)]
-	public float PushHipsOnLegMove = 0.1f;
-
-	[Tooltip("If your setup contains more than 2 legs it can be helpful to prevent overlapping pushes of multiple legs")]
-	public bool NormalizePush;
-
-	[Range(0f, 1f)]
-	[Tooltip("Related with 'Push Hips On Leg Move' parameter above. How rapidly the pelvis push effect should be animated.")]
-	public float PushReactionSpeed = 0.3f;
-
-	[Tooltip("If Push in Y axis seems to be too strong, you can calm it down with this parameter")]
-	[Range(0f, 2f)]
-	public float PushYBlend = 1f;
-
-	[Space(3f)]
-	[Tooltip("Auto adjust hips to prevent leg stretching poses")]
-	[Range(0f, 1f)]
-	public float HipsStretchPreventer = 0.15f;
-
-	public float StretchPreventerSpeed = 0.8f;
-
-	[Space(7f)]
-	[Tooltip("Some of the stabilizing features may be not wanted when your character is running, you can blend them automatically to desired amount with this slider (you need to implement IsGrounded/IsMoving controls to give Legs Animator information about your character movement state)")]
-	[FPD_Suffix(0f, 1f, FPD_SuffixAttribute.SuffixMode.From0to100, "%", true, 0)]
-	public float StabilizeOnIsMoving = 0.5f;
-
-	private Vector3 _LastAppliedHipsStabilityOffset = Vector3.zero;
-
-	internal Vector3 _LastAppliedHipsFinalPosition = Vector3.zero;
-
-	internal Vector3 _LastAppliedHipsFinalOffset = Vector3.zero;
-
-	internal Quaternion _LastAppliedHipsFinalRotationOffset = Quaternion.identity;
-
-	internal Quaternion _LastHipsRotationOffsetOutsideInfo = Quaternion.identity;
-
-	public Vector3 _Hips_Modules_ExtraWOffset = Vector3.zero;
-
-	public Vector3 _Hips_Modules_ExtraRotOffset = Vector3.zero;
-
 	private bool _updateHipsAdjustements = true;
 
 	[Tooltip("If this model is created out of multiple leg bones hubs, you can define it here")]
@@ -6161,8 +6095,8 @@ public class LegsAnimator : MonoBehaviour, IDropHandler, IEventSystemHandler, IF
 	[Range(0f, 1f)]
 	public float HipsHubsBlend = 1f;
 
-	[Tooltip("If leg hub is having backbones to compensate target rotation, you can controll the spine bend style with this curve")]
 	[FPD_FixedCurveWindow(0f, 0f, 1f, 3f, 0f, 1f, 1f, 1f)]
+	[Tooltip("If leg hub is having backbones to compensate target rotation, you can controll the spine bend style with this curve")]
 	public AnimationCurve HubsBackBonesBlend = AnimationCurve.Linear(0f, 1f, 1f, 1f);
 
 	[Range(0f, 1f)]
@@ -6181,6 +6115,72 @@ public class LegsAnimator : MonoBehaviour, IDropHandler, IEventSystemHandler, IF
 
 	private Vector3 _Hips_FinalStabilityOffset = Vector3.zero;
 
+	[Tooltip("Use hips step adjustements and the stability algorithms")]
+	public bool UseHips = true;
+
+	[FPD_Suffix(0f, 1f, FPD_SuffixAttribute.SuffixMode.From0to100, "%", true, 0)]
+	[Tooltip("Whole body lift effect blend")]
+	public float HipsHeightStepBlend = 1f;
+
+	[Range(0f, 1f)]
+	[Tooltip("How fast body should adjust up/down")]
+	public float HipsHeightStepSpeed = 0.7f;
+
+	public EHipsAdjustStyle HipsAdjustStyle;
+
+	[Tooltip("Adjusting hips to keep body balance pose")]
+	[FPD_Suffix(0f, 1f, FPD_SuffixAttribute.SuffixMode.From0to100, "%", true, 0)]
+	public float StabilizeCenterOfMass = 0.45f;
+
+	[Range(0f, 1f)]
+	[Tooltip("Blend stability pose reference from: initial pose to: current animator pose")]
+	public float AnimationIsStablePose = 0.75f;
+
+	[Tooltip("How fast body should adjust to the stability pose / to stretch preventer pose")]
+	[Range(0f, 1f)]
+	public float StabilizingSpeed = 0.375f;
+
+	[Range(0f, 1f)]
+	[Tooltip("Simulating body behaviour when doing leg steps")]
+	public float PushHipsOnLegMove = 0.1f;
+
+	[Tooltip("If your setup contains more than 2 legs it can be helpful to prevent overlapping pushes of multiple legs")]
+	public bool NormalizePush;
+
+	[Tooltip("Related with 'Push Hips On Leg Move' parameter above. How rapidly the pelvis push effect should be animated.")]
+	[Range(0f, 1f)]
+	public float PushReactionSpeed = 0.3f;
+
+	[Tooltip("If Push in Y axis seems to be too strong, you can calm it down with this parameter")]
+	[Range(0f, 2f)]
+	public float PushYBlend = 1f;
+
+	[Space(3f)]
+	[Tooltip("Auto adjust hips to prevent leg stretching poses")]
+	[Range(0f, 1f)]
+	public float HipsStretchPreventer = 0.15f;
+
+	public float StretchPreventerSpeed = 0.8f;
+
+	[Tooltip("Some of the stabilizing features may be not wanted when your character is running, you can blend them automatically to desired amount with this slider (you need to implement IsGrounded/IsMoving controls to give Legs Animator information about your character movement state)")]
+	[Space(7f)]
+	[FPD_Suffix(0f, 1f, FPD_SuffixAttribute.SuffixMode.From0to100, "%", true, 0)]
+	public float StabilizeOnIsMoving = 0.5f;
+
+	private Vector3 _LastAppliedHipsStabilityOffset = Vector3.zero;
+
+	internal Vector3 _LastAppliedHipsFinalPosition = Vector3.zero;
+
+	internal Vector3 _LastAppliedHipsFinalOffset = Vector3.zero;
+
+	internal Quaternion _LastAppliedHipsFinalRotationOffset = Quaternion.identity;
+
+	internal Quaternion _LastHipsRotationOffsetOutsideInfo = Quaternion.identity;
+
+	public Vector3 _Hips_Modules_ExtraWOffset = Vector3.zero;
+
+	public Vector3 _Hips_Modules_ExtraRotOffset = Vector3.zero;
+
 	public List<Leg> Legs = new List<Leg>();
 
 	public LegStepAnimatingParameters BaseLegAnimating = new LegStepAnimatingParameters();
@@ -6188,38 +6188,38 @@ public class LegsAnimator : MonoBehaviour, IDropHandler, IEventSystemHandler, IF
 	[Tooltip("Using algorithm responsive for attaching feet to the ground when detected grounded foot in the played animation.")]
 	public bool UseGluing = true;
 
-	[Tooltip("You can smoothly change Glue Blend down to transition into sliding if your character is walking on ice or sliding on steep ground.")]
 	[FPD_Suffix(0f, 1f, FPD_SuffixAttribute.SuffixMode.From0to100, "%", true, 0)]
+	[Tooltip("You can smoothly change Glue Blend down to transition into sliding if your character is walking on ice or sliding on steep ground.")]
 	public float MainGlueBlend = 1f;
 
 	[FPD_Suffix(0f, 1f, FPD_SuffixAttribute.SuffixMode.From0to100, "%", true, 0)]
 	public float AdditionalGlueBlend = 1f;
 
+	[Space(3f)]
 	[Tooltip("If distance from the last attach point exceeds this distance (check scene gizmos) the leg will be detached.")]
 	[Range(0f, 1f)]
-	[Space(3f)]
 	public float GlueRangeThreshold = 0.375f;
 
-	[Range(0f, 1f)]
 	[Tooltip("How quickly leg attachement transition should be proceeded.")]
+	[Range(0f, 1f)]
 	public float GlueFadeInSpeed = 0.85f;
 
-	[Range(0f, 1f)]
 	[Tooltip("If foot animation in original played clip is not reaching floor soon enough, increase it to attach for position slightly below current foot positioning.")]
+	[Range(0f, 1f)]
 	public float AllowGlueBelowFoot = 0.2f;
 
-	[Range(0f, 1f)]
 	[Tooltip("How quickly leg detachement transition should be proceeded.")]
+	[Range(0f, 1f)]
 	public float GlueFadeOutSpeed = 0.5f;
 
+	[FPD_Suffix(0f, 90f, FPD_SuffixAttribute.SuffixMode.FromMinToMaxRounded, "°", true, 0)]
 	[Space(5f)]
 	[Tooltip("If leg rotation exceeds this angle during being attach, the leg will be detached.")]
-	[FPD_Suffix(0f, 90f, FPD_SuffixAttribute.SuffixMode.FromMinToMaxRounded, "°", true, 0)]
 	public float UnglueOn = 30f;
 
+	[Range(0f, 1f)]
 	[Space(1f)]
 	[Tooltip("When leg glue target position is stretching leg too much it will shift leg target towards source animation leg position.")]
-	[Range(0f, 1f)]
 	public float AllowGlueDrag = 0.7f;
 
 	[NonSerialized]
@@ -6235,22 +6235,22 @@ public class LegsAnimator : MonoBehaviour, IDropHandler, IEventSystemHandler, IF
 	[Range(0f, 1f)]
 	public float SmoothSuddenSteps = 0.85f;
 
-	[Space(3f)]
 	[Tooltip("Making leg rise a bit over ground when character leg overlaps collision (it's mostly visible on steep slopes)")]
+	[Space(3f)]
 	[Range(0f, 2f)]
 	public float LegElevateBlend = 0.7f;
 
 	[Range(0f, 1f)]
 	public float LegElevateHeightLimit = 0.6f;
 
-	[Tooltip("Overall foot rotation blend on the slope step align.")]
-	[FPD_Suffix(0f, 1f, FPD_SuffixAttribute.SuffixMode.From0to100, "%", true, 0)]
 	[Space(6f)]
+	[FPD_Suffix(0f, 1f, FPD_SuffixAttribute.SuffixMode.From0to100, "%", true, 0)]
+	[Tooltip("Overall foot rotation blend on the slope step align.")]
 	public float FootRotationBlend = 1f;
 
+	[Space(4f)]
 	[Tooltip("How quickly foot should align it's rotation to the slopes")]
 	[Range(0f, 1f)]
-	[Space(4f)]
 	public float FootAlignRapidity = 0.75f;
 
 	[Tooltip("If it's human leg limb with foot, then turn it on for the foot bone animation and alignments. But if it's something like spider leg, then disable it")]
@@ -6302,8 +6302,8 @@ public class LegsAnimator : MonoBehaviour, IDropHandler, IEventSystemHandler, IF
 	[Range(-1f, 1f)]
 	public float FeetLengthAdjust;
 
-	[SerializeField]
 	[Tooltip("When not assigned, component will use this transform as 'Base Transform', but if your movement controller core is located in different transform, assign it here to be fully synchronized.")]
+	[SerializeField]
 	private Transform baseTransform;
 
 	[Tooltip("The anchor bone for all other limbs.\n! It needs to be parent of Leg Bones !")]
@@ -6353,14 +6353,14 @@ public class LegsAnimator : MonoBehaviour, IDropHandler, IEventSystemHandler, IF
 
 	public QueryTriggerInteraction RaycastHitTrigger = (QueryTriggerInteraction)1;
 
-	[Range(0f, 2f)]
 	[Tooltip("Maximum raycasting check range. Check Gizmos on the scene view")]
+	[Range(0f, 2f)]
 	public float CastDistance = 1f;
 
 	public ERaycastStartHeight RaycastStartHeight;
 
-	[Tooltip("Origin height point for raycasts. Check Gizmos on the scene view")]
 	[Range(0.5f, 2.5f)]
+	[Tooltip("Origin height point for raycasts. Check Gizmos on the scene view")]
 	public float RaycastStartHeightMul = 1f;
 
 	[Tooltip("How physical raycasting should be done. Enter on the selected style to see tooltip.")]
@@ -6369,8 +6369,8 @@ public class LegsAnimator : MonoBehaviour, IDropHandler, IEventSystemHandler, IF
 	[Tooltip("Physics detection ray volume size. Sphere Cast can provide more smooth transitions on the edges but costs a bit more.")]
 	public ERaycastMode RaycastShape;
 
-	[Range(0f, 1f)]
 	[Tooltip("Shift spherecast hit point result towards original XZ position instead of hit position. Can be helpful to prevent spider legs from being bent too much in narrow spaces.")]
+	[Range(0f, 1f)]
 	public float SpherecastRealign;
 
 	[Tooltip("Shift spherecast hit point result towards original XZ position instead of hit position. Can be helpful to prevent spider legs from being bent too much in narrow spaces.")]
@@ -6384,8 +6384,8 @@ public class LegsAnimator : MonoBehaviour, IDropHandler, IEventSystemHandler, IF
 
 	public float NoRaycast_KeepAttachedUntilStretch = 1.1f;
 
-	[Range(0f, 1f)]
 	[Tooltip("How low whole body can be pulled down when one of the legs raycast hit is lower than default object position.")]
+	[Range(0f, 1f)]
 	public float BodyStepDown = 0.5f;
 
 	[Space(3f)]
@@ -6393,8 +6393,8 @@ public class LegsAnimator : MonoBehaviour, IDropHandler, IEventSystemHandler, IF
 	[Range(0f, 1f)]
 	public float MaxBodyStepUp;
 
-	[Space(3f)]
 	[Tooltip("How fast should be applied fade-out when character starts being ungrounded. (jumping/falling)")]
+	[Space(3f)]
 	[Range(0f, 1f)]
 	public float UngroundFadeSpeed = 0.1f;
 
@@ -6441,6 +6441,12 @@ public class LegsAnimator : MonoBehaviour, IDropHandler, IEventSystemHandler, IF
 
 	private float HipsBlendWeight => _MainBlend * HipsAdjustingBlend * HipsHeightStepBlend;
 
+	public List<HipsReference> HipsHubs { get; private set; }
+
+	public Vector3 _Get_Hips_StabilityLocalOffset => _Hips_StabilityLocalOffset;
+
+	public Vector3 _Get_Hips_StabilityLocalAdjustement => HipsSetup._Get_Hips_StabilityLocalAdjustement;
+
 	public float HipsAdjustingBlend
 	{
 		get
@@ -6452,12 +6458,6 @@ public class LegsAnimator : MonoBehaviour, IDropHandler, IEventSystemHandler, IF
 			return 1f;
 		}
 	}
-
-	public List<HipsReference> HipsHubs { get; private set; }
-
-	public Vector3 _Get_Hips_StabilityLocalOffset => _Hips_StabilityLocalOffset;
-
-	public Vector3 _Get_Hips_StabilityLocalAdjustement => HipsSetup._Get_Hips_StabilityLocalAdjustement;
 
 	public LegStepAnimatingParameters LegAnimatingSettings => BaseLegAnimating;
 
@@ -6873,14 +6873,14 @@ public class LegsAnimator : MonoBehaviour, IDropHandler, IEventSystemHandler, IF
 		}
 		else if (Object.op_Implicit((Object)(object)Rigidbody))
 		{
-			Vector3 velocity = Rigidbody.velocity;
-			if (((Vector3)(ref velocity)).magnitude < ScaleReference * 0.1f)
+			Vector3 linearVelocity = Rigidbody.linearVelocity;
+			if (((Vector3)(ref linearVelocity)).magnitude < ScaleReference * 0.1f)
 			{
 				DesiredMovementDirection = Vector3.zero;
 				return;
 			}
-			velocity = Rigidbody.velocity;
-			DesiredMovementDirection = ((Vector3)(ref velocity)).normalized;
+			linearVelocity = Rigidbody.linearVelocity;
+			DesiredMovementDirection = ((Vector3)(ref linearVelocity)).normalized;
 		}
 	}
 
@@ -7571,160 +7571,6 @@ public class LegsAnimator : MonoBehaviour, IDropHandler, IEventSystemHandler, IF
 		}
 	}
 
-	public void Hips_PreLateUpdate()
-	{
-		if (_updateHipsAdjustements)
-		{
-			HipsSetup.Calibrate();
-			HipsHubs_CaptureAnimation();
-		}
-	}
-
-	public void Hips_LateUpdate()
-	{
-		if (_updateHipsAdjustements)
-		{
-			Hips_Calc_BodyAdjust();
-		}
-	}
-
-	public void Hips_PostLateUpdate()
-	{
-		if (_updateHipsAdjustements)
-		{
-			Hips_Calc_Stabilize();
-			Hips_Calc_UpdateImpulses();
-			Hips_Calc_ApplyImpulsesInherit();
-			Hips_Calc_Elasticity();
-			Hips_Calc_Apply();
-			Hips_Calc_ApplyImpulses();
-			Hips_ApplyTransformations();
-		}
-	}
-
-	protected virtual void Hips_ApplyTransformations()
-	{
-		//IL_003e: Unknown result type (might be due to invalid IL or missing references)
-		//IL_0043: Unknown result type (might be due to invalid IL or missing references)
-		//IL_0048: Unknown result type (might be due to invalid IL or missing references)
-		//IL_0084: Unknown result type (might be due to invalid IL or missing references)
-		//IL_0089: Unknown result type (might be due to invalid IL or missing references)
-		//IL_008f: Unknown result type (might be due to invalid IL or missing references)
-		//IL_0094: Unknown result type (might be due to invalid IL or missing references)
-		//IL_0176: Unknown result type (might be due to invalid IL or missing references)
-		//IL_00b2: Unknown result type (might be due to invalid IL or missing references)
-		//IL_00b7: Unknown result type (might be due to invalid IL or missing references)
-		//IL_00b8: Unknown result type (might be due to invalid IL or missing references)
-		//IL_00bd: Unknown result type (might be due to invalid IL or missing references)
-		//IL_00be: Unknown result type (might be due to invalid IL or missing references)
-		//IL_0182: Unknown result type (might be due to invalid IL or missing references)
-		//IL_018d: Unknown result type (might be due to invalid IL or missing references)
-		//IL_0192: Unknown result type (might be due to invalid IL or missing references)
-		//IL_0197: Unknown result type (might be due to invalid IL or missing references)
-		//IL_00ea: Unknown result type (might be due to invalid IL or missing references)
-		//IL_00cb: Unknown result type (might be due to invalid IL or missing references)
-		//IL_00cc: Unknown result type (might be due to invalid IL or missing references)
-		//IL_00da: Unknown result type (might be due to invalid IL or missing references)
-		//IL_00df: Unknown result type (might be due to invalid IL or missing references)
-		//IL_00e4: Unknown result type (might be due to invalid IL or missing references)
-		//IL_00e9: Unknown result type (might be due to invalid IL or missing references)
-		//IL_0116: Unknown result type (might be due to invalid IL or missing references)
-		//IL_00f7: Unknown result type (might be due to invalid IL or missing references)
-		//IL_00f8: Unknown result type (might be due to invalid IL or missing references)
-		//IL_0106: Unknown result type (might be due to invalid IL or missing references)
-		//IL_010b: Unknown result type (might be due to invalid IL or missing references)
-		//IL_0110: Unknown result type (might be due to invalid IL or missing references)
-		//IL_0115: Unknown result type (might be due to invalid IL or missing references)
-		//IL_0143: Unknown result type (might be due to invalid IL or missing references)
-		//IL_0144: Unknown result type (might be due to invalid IL or missing references)
-		//IL_0149: Unknown result type (might be due to invalid IL or missing references)
-		//IL_0150: Unknown result type (might be due to invalid IL or missing references)
-		//IL_0155: Unknown result type (might be due to invalid IL or missing references)
-		//IL_015a: Unknown result type (might be due to invalid IL or missing references)
-		//IL_0162: Unknown result type (might be due to invalid IL or missing references)
-		//IL_0167: Unknown result type (might be due to invalid IL or missing references)
-		//IL_0123: Unknown result type (might be due to invalid IL or missing references)
-		//IL_0124: Unknown result type (might be due to invalid IL or missing references)
-		//IL_0132: Unknown result type (might be due to invalid IL or missing references)
-		//IL_0137: Unknown result type (might be due to invalid IL or missing references)
-		//IL_013c: Unknown result type (might be due to invalid IL or missing references)
-		//IL_0141: Unknown result type (might be due to invalid IL or missing references)
-		if (float.IsNaN(_LastAppliedHipsFinalPosition.x) || float.IsNaN(_LastAppliedHipsFinalPosition.y) || float.IsNaN(_LastAppliedHipsFinalPosition.z))
-		{
-			_LastAppliedHipsFinalPosition = RootToWorldSpace(HipsSetup.InitHipsPositionRootSpace);
-			if (float.IsNaN(_LastAppliedHipsFinalPosition.x) || float.IsNaN(_LastAppliedHipsFinalPosition.y) || float.IsNaN(_LastAppliedHipsFinalPosition.z))
-			{
-				_LastAppliedHipsFinalPosition = Vector3.zero;
-			}
-		}
-		if (_Hips_Modules_ExtraRotOffset != Vector3.zero)
-		{
-			float num = _MainBlend * ImpulsesPowerMultiplier;
-			Vector3 hips_Modules_ExtraRotOffset = _Hips_Modules_ExtraRotOffset;
-			Quaternion val = Quaternion.identity;
-			if (hips_Modules_ExtraRotOffset.z != 0f)
-			{
-				val *= Quaternion.AngleAxis(hips_Modules_ExtraRotOffset.z * num, BaseTransform.right);
-			}
-			if (hips_Modules_ExtraRotOffset.x != 0f)
-			{
-				val *= Quaternion.AngleAxis(hips_Modules_ExtraRotOffset.x * num, BaseTransform.forward);
-			}
-			if (hips_Modules_ExtraRotOffset.y != 0f)
-			{
-				val *= Quaternion.AngleAxis(hips_Modules_ExtraRotOffset.y * num, BaseTransform.up);
-			}
-			_LastAppliedHipsFinalRotationOffset = val;
-			Quaternion val2 = val * Hips.rotation;
-			Hips.SetPositionAndRotation(_LastAppliedHipsFinalPosition, val2);
-		}
-		else
-		{
-			Hips.position = _LastAppliedHipsFinalPosition;
-		}
-		_LastAppliedHipsFinalOffset = _LastAppliedHipsFinalPosition - HipsSetup.LastKeyframePosition;
-		HipsHubs_ApplyTransformations();
-		Hips_Finalize();
-	}
-
-	protected virtual void Hips_Finalize()
-	{
-		//IL_0001: Unknown result type (might be due to invalid IL or missing references)
-		//IL_0006: Unknown result type (might be due to invalid IL or missing references)
-		_LastHipsRotationOffsetOutsideInfo = Quaternion.identity;
-	}
-
-	private void Hips_Calc_Apply()
-	{
-		//IL_0001: Unknown result type (might be due to invalid IL or missing references)
-		//IL_0006: Unknown result type (might be due to invalid IL or missing references)
-		//IL_000c: Unknown result type (might be due to invalid IL or missing references)
-		//IL_0011: Unknown result type (might be due to invalid IL or missing references)
-		//IL_001d: Unknown result type (might be due to invalid IL or missing references)
-		//IL_0022: Unknown result type (might be due to invalid IL or missing references)
-		//IL_0029: Unknown result type (might be due to invalid IL or missing references)
-		//IL_0034: Unknown result type (might be due to invalid IL or missing references)
-		//IL_003f: Unknown result type (might be due to invalid IL or missing references)
-		//IL_0044: Unknown result type (might be due to invalid IL or missing references)
-		//IL_004b: Unknown result type (might be due to invalid IL or missing references)
-		//IL_0051: Unknown result type (might be due to invalid IL or missing references)
-		//IL_0056: Unknown result type (might be due to invalid IL or missing references)
-		//IL_005b: Unknown result type (might be due to invalid IL or missing references)
-		//IL_0062: Unknown result type (might be due to invalid IL or missing references)
-		//IL_0068: Unknown result type (might be due to invalid IL or missing references)
-		//IL_006d: Unknown result type (might be due to invalid IL or missing references)
-		//IL_0072: Unknown result type (might be due to invalid IL or missing references)
-		//IL_0078: Unknown result type (might be due to invalid IL or missing references)
-		//IL_007d: Unknown result type (might be due to invalid IL or missing references)
-		_LastAppliedHipsFinalOffset = Vector3.zero;
-		_LastAppliedHipsFinalRotationOffset = Quaternion.identity;
-		_LastAppliedHipsFinalPosition = Hips.position;
-		_LastAppliedHipsStabilityOffset = _Hips_FinalStabilityOffset * _MainBlendPlusGrounded * HipsAdjustingBlend;
-		_LastAppliedHipsFinalPosition += _LastAppliedHipsStabilityOffset;
-		_LastAppliedHipsFinalPosition += _Hips_Modules_ExtraWOffset;
-		_Hips_Modules_ExtraWOffset = Vector3.zero;
-	}
-
 	protected void Hips_PreCalibrate()
 	{
 		_updateHipsAdjustements = true;
@@ -8178,6 +8024,160 @@ public class LegsAnimator : MonoBehaviour, IDropHandler, IEventSystemHandler, IF
 		{
 			value = target;
 		}
+	}
+
+	public void Hips_PreLateUpdate()
+	{
+		if (_updateHipsAdjustements)
+		{
+			HipsSetup.Calibrate();
+			HipsHubs_CaptureAnimation();
+		}
+	}
+
+	public void Hips_LateUpdate()
+	{
+		if (_updateHipsAdjustements)
+		{
+			Hips_Calc_BodyAdjust();
+		}
+	}
+
+	public void Hips_PostLateUpdate()
+	{
+		if (_updateHipsAdjustements)
+		{
+			Hips_Calc_Stabilize();
+			Hips_Calc_UpdateImpulses();
+			Hips_Calc_ApplyImpulsesInherit();
+			Hips_Calc_Elasticity();
+			Hips_Calc_Apply();
+			Hips_Calc_ApplyImpulses();
+			Hips_ApplyTransformations();
+		}
+	}
+
+	protected virtual void Hips_ApplyTransformations()
+	{
+		//IL_003e: Unknown result type (might be due to invalid IL or missing references)
+		//IL_0043: Unknown result type (might be due to invalid IL or missing references)
+		//IL_0048: Unknown result type (might be due to invalid IL or missing references)
+		//IL_0084: Unknown result type (might be due to invalid IL or missing references)
+		//IL_0089: Unknown result type (might be due to invalid IL or missing references)
+		//IL_008f: Unknown result type (might be due to invalid IL or missing references)
+		//IL_0094: Unknown result type (might be due to invalid IL or missing references)
+		//IL_0176: Unknown result type (might be due to invalid IL or missing references)
+		//IL_00b2: Unknown result type (might be due to invalid IL or missing references)
+		//IL_00b7: Unknown result type (might be due to invalid IL or missing references)
+		//IL_00b8: Unknown result type (might be due to invalid IL or missing references)
+		//IL_00bd: Unknown result type (might be due to invalid IL or missing references)
+		//IL_00be: Unknown result type (might be due to invalid IL or missing references)
+		//IL_0182: Unknown result type (might be due to invalid IL or missing references)
+		//IL_018d: Unknown result type (might be due to invalid IL or missing references)
+		//IL_0192: Unknown result type (might be due to invalid IL or missing references)
+		//IL_0197: Unknown result type (might be due to invalid IL or missing references)
+		//IL_00ea: Unknown result type (might be due to invalid IL or missing references)
+		//IL_00cb: Unknown result type (might be due to invalid IL or missing references)
+		//IL_00cc: Unknown result type (might be due to invalid IL or missing references)
+		//IL_00da: Unknown result type (might be due to invalid IL or missing references)
+		//IL_00df: Unknown result type (might be due to invalid IL or missing references)
+		//IL_00e4: Unknown result type (might be due to invalid IL or missing references)
+		//IL_00e9: Unknown result type (might be due to invalid IL or missing references)
+		//IL_0116: Unknown result type (might be due to invalid IL or missing references)
+		//IL_00f7: Unknown result type (might be due to invalid IL or missing references)
+		//IL_00f8: Unknown result type (might be due to invalid IL or missing references)
+		//IL_0106: Unknown result type (might be due to invalid IL or missing references)
+		//IL_010b: Unknown result type (might be due to invalid IL or missing references)
+		//IL_0110: Unknown result type (might be due to invalid IL or missing references)
+		//IL_0115: Unknown result type (might be due to invalid IL or missing references)
+		//IL_0143: Unknown result type (might be due to invalid IL or missing references)
+		//IL_0144: Unknown result type (might be due to invalid IL or missing references)
+		//IL_0149: Unknown result type (might be due to invalid IL or missing references)
+		//IL_0150: Unknown result type (might be due to invalid IL or missing references)
+		//IL_0155: Unknown result type (might be due to invalid IL or missing references)
+		//IL_015a: Unknown result type (might be due to invalid IL or missing references)
+		//IL_0162: Unknown result type (might be due to invalid IL or missing references)
+		//IL_0167: Unknown result type (might be due to invalid IL or missing references)
+		//IL_0123: Unknown result type (might be due to invalid IL or missing references)
+		//IL_0124: Unknown result type (might be due to invalid IL or missing references)
+		//IL_0132: Unknown result type (might be due to invalid IL or missing references)
+		//IL_0137: Unknown result type (might be due to invalid IL or missing references)
+		//IL_013c: Unknown result type (might be due to invalid IL or missing references)
+		//IL_0141: Unknown result type (might be due to invalid IL or missing references)
+		if (float.IsNaN(_LastAppliedHipsFinalPosition.x) || float.IsNaN(_LastAppliedHipsFinalPosition.y) || float.IsNaN(_LastAppliedHipsFinalPosition.z))
+		{
+			_LastAppliedHipsFinalPosition = RootToWorldSpace(HipsSetup.InitHipsPositionRootSpace);
+			if (float.IsNaN(_LastAppliedHipsFinalPosition.x) || float.IsNaN(_LastAppliedHipsFinalPosition.y) || float.IsNaN(_LastAppliedHipsFinalPosition.z))
+			{
+				_LastAppliedHipsFinalPosition = Vector3.zero;
+			}
+		}
+		if (_Hips_Modules_ExtraRotOffset != Vector3.zero)
+		{
+			float num = _MainBlend * ImpulsesPowerMultiplier;
+			Vector3 hips_Modules_ExtraRotOffset = _Hips_Modules_ExtraRotOffset;
+			Quaternion val = Quaternion.identity;
+			if (hips_Modules_ExtraRotOffset.z != 0f)
+			{
+				val *= Quaternion.AngleAxis(hips_Modules_ExtraRotOffset.z * num, BaseTransform.right);
+			}
+			if (hips_Modules_ExtraRotOffset.x != 0f)
+			{
+				val *= Quaternion.AngleAxis(hips_Modules_ExtraRotOffset.x * num, BaseTransform.forward);
+			}
+			if (hips_Modules_ExtraRotOffset.y != 0f)
+			{
+				val *= Quaternion.AngleAxis(hips_Modules_ExtraRotOffset.y * num, BaseTransform.up);
+			}
+			_LastAppliedHipsFinalRotationOffset = val;
+			Quaternion val2 = val * Hips.rotation;
+			Hips.SetPositionAndRotation(_LastAppliedHipsFinalPosition, val2);
+		}
+		else
+		{
+			Hips.position = _LastAppliedHipsFinalPosition;
+		}
+		_LastAppliedHipsFinalOffset = _LastAppliedHipsFinalPosition - HipsSetup.LastKeyframePosition;
+		HipsHubs_ApplyTransformations();
+		Hips_Finalize();
+	}
+
+	protected virtual void Hips_Finalize()
+	{
+		//IL_0001: Unknown result type (might be due to invalid IL or missing references)
+		//IL_0006: Unknown result type (might be due to invalid IL or missing references)
+		_LastHipsRotationOffsetOutsideInfo = Quaternion.identity;
+	}
+
+	private void Hips_Calc_Apply()
+	{
+		//IL_0001: Unknown result type (might be due to invalid IL or missing references)
+		//IL_0006: Unknown result type (might be due to invalid IL or missing references)
+		//IL_000c: Unknown result type (might be due to invalid IL or missing references)
+		//IL_0011: Unknown result type (might be due to invalid IL or missing references)
+		//IL_001d: Unknown result type (might be due to invalid IL or missing references)
+		//IL_0022: Unknown result type (might be due to invalid IL or missing references)
+		//IL_0029: Unknown result type (might be due to invalid IL or missing references)
+		//IL_0034: Unknown result type (might be due to invalid IL or missing references)
+		//IL_003f: Unknown result type (might be due to invalid IL or missing references)
+		//IL_0044: Unknown result type (might be due to invalid IL or missing references)
+		//IL_004b: Unknown result type (might be due to invalid IL or missing references)
+		//IL_0051: Unknown result type (might be due to invalid IL or missing references)
+		//IL_0056: Unknown result type (might be due to invalid IL or missing references)
+		//IL_005b: Unknown result type (might be due to invalid IL or missing references)
+		//IL_0062: Unknown result type (might be due to invalid IL or missing references)
+		//IL_0068: Unknown result type (might be due to invalid IL or missing references)
+		//IL_006d: Unknown result type (might be due to invalid IL or missing references)
+		//IL_0072: Unknown result type (might be due to invalid IL or missing references)
+		//IL_0078: Unknown result type (might be due to invalid IL or missing references)
+		//IL_007d: Unknown result type (might be due to invalid IL or missing references)
+		_LastAppliedHipsFinalOffset = Vector3.zero;
+		_LastAppliedHipsFinalRotationOffset = Quaternion.identity;
+		_LastAppliedHipsFinalPosition = Hips.position;
+		_LastAppliedHipsStabilityOffset = _Hips_FinalStabilityOffset * _MainBlendPlusGrounded * HipsAdjustingBlend;
+		_LastAppliedHipsFinalPosition += _LastAppliedHipsStabilityOffset;
+		_LastAppliedHipsFinalPosition += _Hips_Modules_ExtraWOffset;
+		_Hips_Modules_ExtraWOffset = Vector3.zero;
 	}
 
 	public Leg Setup_TryAutoLegSetup(Leg scheme, Transform toSetup, bool apply = true)
@@ -9777,7 +9777,7 @@ public class LegsAnimator : MonoBehaviour, IDropHandler, IEventSystemHandler, IF
 		//IL_0028: Unknown result type (might be due to invalid IL or missing references)
 		if (UseRigidbodyVelocityForIsMoving && Object.op_Implicit((Object)(object)Rigidbody))
 		{
-			Vector3 val = ToRootLocalSpaceVec(Rigidbody.velocity);
+			Vector3 val = ToRootLocalSpaceVec(Rigidbody.linearVelocity);
 			val.y = 0f;
 			bool moving = ((Vector3)(ref val)).magnitude > ScaleReferenceNoScale * 0.02f;
 			User_SetIsMoving(moving);
@@ -9985,8 +9985,8 @@ public class LegsAnimatorCustomModuleHelper
 	[HideInInspector]
 	public List<string> customStringList;
 
-	[HideInInspector]
 	[SerializeField]
+	[HideInInspector]
 	public List<Object> customObjectList;
 
 	[SerializeField]
@@ -10062,8 +10062,8 @@ public class PelvisImpulseSettings
 	[Space(5f)]
 	public Vector3 HipsRotate = Vector3.zero;
 
-	[Range(0f, 1f)]
 	[Space(5f)]
+	[Range(0f, 1f)]
 	public float InheritElasticness = 0.75f;
 
 	[FPD_FixedCurveWindow(0f, 0f, 1f, 1f, 0f, 1f, 1f, 1f)]
@@ -10290,13 +10290,6 @@ public struct ImpulseExecutor
 }
 
 
-public enum EHipsAdjustStyle
-{
-	SmoothDamp,
-	FollowLegHeight
-}
-
-
 using UnityEngine;
 
 public enum EHipsHubsHandling
@@ -10392,6 +10385,24 @@ public class HipsReference
 		}
 	}
 
+	private Vector3 _Hips_StabilityLocalAdjustement = Vector3.zero;
+
+	private Vector3 _Hips_sd_StabilAdjustm = Vector3.zero;
+
+	private Vector3 _stretchPreventerOff = Vector3.zero;
+
+	private float _sd_Hips_StepHeightAdjustOffset;
+
+	private int _h_lowestHitLeg = -1;
+
+	private Vector3 _reAdjustLocal = Vector3.zero;
+
+	private Vector3 _sd_readj = Vector3.zero;
+
+	private Vector3 _pushSmoothed = Vector3.zero;
+
+	private Vector3 _sd_pushSmoothed = Vector3.zero;
+
 	[FPD_Suffix(0f, 1f, FPD_SuffixAttribute.SuffixMode.From0to100, "%", true, 0)]
 	[Tooltip("Applying elasticity algorithm on the pelvis bone align motion, to make it look more organic.")]
 	public float HipsElasticityBlend = 1f;
@@ -10436,34 +10447,6 @@ public class HipsReference
 
 	private Quaternion initLocalRot;
 
-	private Vector3 _Hips_StabilityLocalAdjustement = Vector3.zero;
-
-	private Vector3 _Hips_sd_StabilAdjustm = Vector3.zero;
-
-	private Vector3 _stretchPreventerOff = Vector3.zero;
-
-	private float _sd_Hips_StepHeightAdjustOffset;
-
-	private int _h_lowestHitLeg = -1;
-
-	private Vector3 _reAdjustLocal = Vector3.zero;
-
-	private Vector3 _sd_readj = Vector3.zero;
-
-	private Vector3 _pushSmoothed = Vector3.zero;
-
-	private Vector3 _sd_pushSmoothed = Vector3.zero;
-
-	public LegsAnimator Owner { get; private set; }
-
-	public List<Leg> ChildLegs { get; private set; }
-
-	public Transform bone { get; private set; }
-
-	public UniRotateBone UniRotate { get; private set; }
-
-	public List<HipsHubBackbone> HubBackBones { get; private set; }
-
 	public Vector3 _Get_Hips_StabilityLocalAdjustement => _Hips_StabilityLocalAdjustement;
 
 	public float _Hips_LastHipsOffset { get; private set; }
@@ -10474,206 +10457,15 @@ public class HipsReference
 
 	public Vector3 _PreHipsAdjustPosition { get; internal set; }
 
-	public void Initialize(LegsAnimator owner, Transform bone, Transform root)
-	{
-		//IL_0017: Unknown result type (might be due to invalid IL or missing references)
-		//IL_001c: Unknown result type (might be due to invalid IL or missing references)
-		//IL_0023: Unknown result type (might be due to invalid IL or missing references)
-		//IL_0028: Unknown result type (might be due to invalid IL or missing references)
-		//IL_002e: Unknown result type (might be due to invalid IL or missing references)
-		//IL_0039: Unknown result type (might be due to invalid IL or missing references)
-		//IL_003e: Unknown result type (might be due to invalid IL or missing references)
-		//IL_0044: Unknown result type (might be due to invalid IL or missing references)
-		//IL_0049: Unknown result type (might be due to invalid IL or missing references)
-		//IL_0051: Unknown result type (might be due to invalid IL or missing references)
-		//IL_0056: Unknown result type (might be due to invalid IL or missing references)
-		//IL_005b: Unknown result type (might be due to invalid IL or missing references)
-		//IL_009d: Unknown result type (might be due to invalid IL or missing references)
-		//IL_00ad: Unknown result type (might be due to invalid IL or missing references)
-		Owner = owner;
-		this.bone = bone;
-		this.root = root;
-		initLocalPos = bone.localPosition;
-		initLocalRot = bone.localRotation;
-		ExtraNonElasticOffset = Vector3.zero;
-		_Hips_StabilityLocalAdjustement = Vector3.zero;
-		_Hips_sd_StabilAdjustm = Vector3.zero;
-		InitHipsPositionRootSpace = root.InverseTransformPoint(bone.position);
-		InitialHipsHeightLocal = InitHipsPositionRootSpace.y;
-		if (HipsMuscle == null)
-		{
-			HipsMuscle = new FMuscle_Vector3();
-		}
-		if (HipsRotMuscle == null)
-		{
-			HipsRotMuscle = new FMuscle_Quaternion();
-		}
-		HipsMuscle.Initialize(Vector3.zero);
-		HipsRotMuscle.Initialize(Quaternion.identity);
-		UniRotate = new UniRotateBone(bone, root);
-		Calibrate();
-	}
+	public LegsAnimator Owner { get; private set; }
 
-	internal void PrepareLegs()
-	{
-		ChildLegs = new List<Leg>();
-		if (!Owner._hipsHubs_using)
-		{
-			ChildLegs = Owner.Legs;
-		}
-		else
-		{
-			for (int i = 0; i < Owner.Legs.Count; i++)
-			{
-				bool? flag = IsFirstParent(Owner.Legs[i], bone);
-				if (flag == true)
-				{
-					ChildLegs.Add(Owner.Legs[i]);
-				}
-				else if (!flag.HasValue && this == Owner.HipsSetup)
-				{
-					ChildLegs.Add(Owner.Legs[i]);
-				}
-			}
-		}
-		for (int j = 0; j < ChildLegs.Count; j++)
-		{
-			ChildLegs[j].AssignParentHub(this);
-		}
-	}
+	public List<Leg> ChildLegs { get; private set; }
 
-	internal void PrepareHubBones()
-	{
-		PrepareLegs();
-		HubBackBones = new List<HipsHubBackbone>();
-		Transform frontBone = bone;
-		Transform parent = bone.parent;
-		while ((Object)(object)parent != (Object)null)
-		{
-			bool flag = false;
-			for (int i = 0; i < Owner.HipsHubs.Count; i++)
-			{
-				if ((Object)(object)parent == (Object)(object)Owner.HipsHubs[i].bone)
-				{
-					flag = true;
-					break;
-				}
-			}
-			if (!flag)
-			{
-				HipsHubBackbone hipsHubBackbone = new HipsHubBackbone(Owner, parent);
-				hipsHubBackbone.frontBone = frontBone;
-				HubBackBones.Add(hipsHubBackbone);
-				if (!((Object)(object)parent == (Object)(object)Owner.HipsSetup.bone))
-				{
-					frontBone = parent;
-					parent = parent.parent;
-					continue;
-				}
-				break;
-			}
-			break;
-		}
-	}
+	public Transform bone { get; private set; }
 
-	private bool? IsFirstParent(Leg leg, Transform hub)
-	{
-		if ((Object)(object)leg.BoneStart == (Object)null)
-		{
-			return false;
-		}
-		Transform val = leg.BoneStart;
-		while ((Object)(object)val != (Object)null)
-		{
-			if ((Object)(object)val == (Object)(object)hub)
-			{
-				return true;
-			}
-			if ((Object)(object)val == (Object)(object)Owner.Hips)
-			{
-				return false;
-			}
-			for (int i = 0; i < Owner.ExtraHipsHubs.Count; i++)
-			{
-				if ((Object)(object)val == (Object)(object)Owner.ExtraHipsHubs[i])
-				{
-					return false;
-				}
-			}
-			val = val.parent;
-		}
-		return null;
-	}
+	public UniRotateBone UniRotate { get; private set; }
 
-	public void Reset()
-	{
-		Calibrate();
-		_Hips_LastHipsOffset = 0f;
-	}
-
-	public void PreCalibrate()
-	{
-		//IL_002d: Unknown result type (might be due to invalid IL or missing references)
-		//IL_003e: Unknown result type (might be due to invalid IL or missing references)
-		UniRotate.PreCalibrate();
-		if (Owner.Calibrate != ECalibrateMode.FixedCalibrate)
-		{
-			UniRotate.PreCalibrate();
-		}
-		else
-		{
-			bone.localPosition = LastKeyframeLocalPosition;
-			bone.localRotation = LastKeyframeLocalRotation;
-		}
-		if (HubBackBones != null)
-		{
-			for (int i = 0; i < HubBackBones.Count; i++)
-			{
-				HubBackBones[i].PreCalibrate();
-			}
-		}
-	}
-
-	public void Calibrate()
-	{
-		//IL_0007: Unknown result type (might be due to invalid IL or missing references)
-		//IL_000c: Unknown result type (might be due to invalid IL or missing references)
-		//IL_0018: Unknown result type (might be due to invalid IL or missing references)
-		//IL_001d: Unknown result type (might be due to invalid IL or missing references)
-		//IL_0029: Unknown result type (might be due to invalid IL or missing references)
-		//IL_002e: Unknown result type (might be due to invalid IL or missing references)
-		//IL_003a: Unknown result type (might be due to invalid IL or missing references)
-		//IL_003f: Unknown result type (might be due to invalid IL or missing references)
-		//IL_004c: Unknown result type (might be due to invalid IL or missing references)
-		//IL_0051: Unknown result type (might be due to invalid IL or missing references)
-		//IL_0056: Unknown result type (might be due to invalid IL or missing references)
-		LastKeyframePosition = bone.position;
-		LastKeyframeLocalPosition = bone.localPosition;
-		LastKeyframeLocalRotation = bone.localRotation;
-		LastKeyframeRotation = bone.rotation;
-		LastRootLocalPos = Owner.ToRootLocalSpace(LastKeyframePosition);
-		LastHipsHeightDiff = GetHeightDiff(LastRootLocalPos.y);
-		if (HubBackBones != null)
-		{
-			for (int i = 0; i < HubBackBones.Count; i++)
-			{
-				HubBackBones[i].Calibrate();
-			}
-		}
-	}
-
-	public float GetHeightDiff(float rootSpaceHeight)
-	{
-		return Mathf.InverseLerp(0f, InitialHipsHeightLocal, rootSpaceHeight);
-	}
-
-	public void CopyMuscleSettingsFrom(HipsReference hipsSetup)
-	{
-		HipsMuscle.Acceleration = hipsSetup.HipsMuscle.Acceleration;
-		HipsMuscle.AccelerationLimit = hipsSetup.HipsMuscle.AccelerationLimit;
-		HipsMuscle.Damping = hipsSetup.HipsMuscle.Damping;
-		HipsMuscle.BrakePower = hipsSetup.HipsMuscle.BrakePower;
-	}
+	public List<HipsHubBackbone> HubBackBones { get; private set; }
 
 	public Vector3 CalculateCenterOfMassStability(float stabilizingMultiplier)
 	{
@@ -11133,6 +10925,207 @@ public class HipsReference
 		//IL_0000: Unknown result type (might be due to invalid IL or missing references)
 		return hubOffset;
 	}
+
+	public void Initialize(LegsAnimator owner, Transform bone, Transform root)
+	{
+		//IL_0017: Unknown result type (might be due to invalid IL or missing references)
+		//IL_001c: Unknown result type (might be due to invalid IL or missing references)
+		//IL_0023: Unknown result type (might be due to invalid IL or missing references)
+		//IL_0028: Unknown result type (might be due to invalid IL or missing references)
+		//IL_002e: Unknown result type (might be due to invalid IL or missing references)
+		//IL_0039: Unknown result type (might be due to invalid IL or missing references)
+		//IL_003e: Unknown result type (might be due to invalid IL or missing references)
+		//IL_0044: Unknown result type (might be due to invalid IL or missing references)
+		//IL_0049: Unknown result type (might be due to invalid IL or missing references)
+		//IL_0051: Unknown result type (might be due to invalid IL or missing references)
+		//IL_0056: Unknown result type (might be due to invalid IL or missing references)
+		//IL_005b: Unknown result type (might be due to invalid IL or missing references)
+		//IL_009d: Unknown result type (might be due to invalid IL or missing references)
+		//IL_00ad: Unknown result type (might be due to invalid IL or missing references)
+		Owner = owner;
+		this.bone = bone;
+		this.root = root;
+		initLocalPos = bone.localPosition;
+		initLocalRot = bone.localRotation;
+		ExtraNonElasticOffset = Vector3.zero;
+		_Hips_StabilityLocalAdjustement = Vector3.zero;
+		_Hips_sd_StabilAdjustm = Vector3.zero;
+		InitHipsPositionRootSpace = root.InverseTransformPoint(bone.position);
+		InitialHipsHeightLocal = InitHipsPositionRootSpace.y;
+		if (HipsMuscle == null)
+		{
+			HipsMuscle = new FMuscle_Vector3();
+		}
+		if (HipsRotMuscle == null)
+		{
+			HipsRotMuscle = new FMuscle_Quaternion();
+		}
+		HipsMuscle.Initialize(Vector3.zero);
+		HipsRotMuscle.Initialize(Quaternion.identity);
+		UniRotate = new UniRotateBone(bone, root);
+		Calibrate();
+	}
+
+	internal void PrepareLegs()
+	{
+		ChildLegs = new List<Leg>();
+		if (!Owner._hipsHubs_using)
+		{
+			ChildLegs = Owner.Legs;
+		}
+		else
+		{
+			for (int i = 0; i < Owner.Legs.Count; i++)
+			{
+				bool? flag = IsFirstParent(Owner.Legs[i], bone);
+				if (flag == true)
+				{
+					ChildLegs.Add(Owner.Legs[i]);
+				}
+				else if (!flag.HasValue && this == Owner.HipsSetup)
+				{
+					ChildLegs.Add(Owner.Legs[i]);
+				}
+			}
+		}
+		for (int j = 0; j < ChildLegs.Count; j++)
+		{
+			ChildLegs[j].AssignParentHub(this);
+		}
+	}
+
+	internal void PrepareHubBones()
+	{
+		PrepareLegs();
+		HubBackBones = new List<HipsHubBackbone>();
+		Transform frontBone = bone;
+		Transform parent = bone.parent;
+		while ((Object)(object)parent != (Object)null)
+		{
+			bool flag = false;
+			for (int i = 0; i < Owner.HipsHubs.Count; i++)
+			{
+				if ((Object)(object)parent == (Object)(object)Owner.HipsHubs[i].bone)
+				{
+					flag = true;
+					break;
+				}
+			}
+			if (!flag)
+			{
+				HipsHubBackbone hipsHubBackbone = new HipsHubBackbone(Owner, parent);
+				hipsHubBackbone.frontBone = frontBone;
+				HubBackBones.Add(hipsHubBackbone);
+				if (!((Object)(object)parent == (Object)(object)Owner.HipsSetup.bone))
+				{
+					frontBone = parent;
+					parent = parent.parent;
+					continue;
+				}
+				break;
+			}
+			break;
+		}
+	}
+
+	private bool? IsFirstParent(Leg leg, Transform hub)
+	{
+		if ((Object)(object)leg.BoneStart == (Object)null)
+		{
+			return false;
+		}
+		Transform val = leg.BoneStart;
+		while ((Object)(object)val != (Object)null)
+		{
+			if ((Object)(object)val == (Object)(object)hub)
+			{
+				return true;
+			}
+			if ((Object)(object)val == (Object)(object)Owner.Hips)
+			{
+				return false;
+			}
+			for (int i = 0; i < Owner.ExtraHipsHubs.Count; i++)
+			{
+				if ((Object)(object)val == (Object)(object)Owner.ExtraHipsHubs[i])
+				{
+					return false;
+				}
+			}
+			val = val.parent;
+		}
+		return null;
+	}
+
+	public void Reset()
+	{
+		Calibrate();
+		_Hips_LastHipsOffset = 0f;
+	}
+
+	public void PreCalibrate()
+	{
+		//IL_002d: Unknown result type (might be due to invalid IL or missing references)
+		//IL_003e: Unknown result type (might be due to invalid IL or missing references)
+		UniRotate.PreCalibrate();
+		if (Owner.Calibrate != ECalibrateMode.FixedCalibrate)
+		{
+			UniRotate.PreCalibrate();
+		}
+		else
+		{
+			bone.localPosition = LastKeyframeLocalPosition;
+			bone.localRotation = LastKeyframeLocalRotation;
+		}
+		if (HubBackBones != null)
+		{
+			for (int i = 0; i < HubBackBones.Count; i++)
+			{
+				HubBackBones[i].PreCalibrate();
+			}
+		}
+	}
+
+	public void Calibrate()
+	{
+		//IL_0007: Unknown result type (might be due to invalid IL or missing references)
+		//IL_000c: Unknown result type (might be due to invalid IL or missing references)
+		//IL_0018: Unknown result type (might be due to invalid IL or missing references)
+		//IL_001d: Unknown result type (might be due to invalid IL or missing references)
+		//IL_0029: Unknown result type (might be due to invalid IL or missing references)
+		//IL_002e: Unknown result type (might be due to invalid IL or missing references)
+		//IL_003a: Unknown result type (might be due to invalid IL or missing references)
+		//IL_003f: Unknown result type (might be due to invalid IL or missing references)
+		//IL_004c: Unknown result type (might be due to invalid IL or missing references)
+		//IL_0051: Unknown result type (might be due to invalid IL or missing references)
+		//IL_0056: Unknown result type (might be due to invalid IL or missing references)
+		LastKeyframePosition = bone.position;
+		LastKeyframeLocalPosition = bone.localPosition;
+		LastKeyframeLocalRotation = bone.localRotation;
+		LastKeyframeRotation = bone.rotation;
+		LastRootLocalPos = Owner.ToRootLocalSpace(LastKeyframePosition);
+		LastHipsHeightDiff = GetHeightDiff(LastRootLocalPos.y);
+		if (HubBackBones != null)
+		{
+			for (int i = 0; i < HubBackBones.Count; i++)
+			{
+				HubBackBones[i].Calibrate();
+			}
+		}
+	}
+
+	public float GetHeightDiff(float rootSpaceHeight)
+	{
+		return Mathf.InverseLerp(0f, InitialHipsHeightLocal, rootSpaceHeight);
+	}
+
+	public void CopyMuscleSettingsFrom(HipsReference hipsSetup)
+	{
+		HipsMuscle.Acceleration = hipsSetup.HipsMuscle.Acceleration;
+		HipsMuscle.AccelerationLimit = hipsSetup.HipsMuscle.AccelerationLimit;
+		HipsMuscle.Damping = hipsSetup.HipsMuscle.Damping;
+		HipsMuscle.BrakePower = hipsSetup.HipsMuscle.BrakePower;
+	}
 }
 
 
@@ -11220,6 +11213,13 @@ public enum EStabilityMode
 {
 	Biped_Deprecated,
 	Universal
+}
+
+
+public enum EHipsAdjustStyle
+{
+	SmoothDamp,
+	FollowLegHeight
 }
 
 
@@ -12276,90 +12276,6 @@ public class Leg
 
 	private float _C_DynamicYScale = 1f;
 
-	public LegsAnimator Owner;
-
-	[FPD_Suffix(0f, 1f, FPD_SuffixAttribute.SuffixMode.From0to100, "%", true, 0)]
-	public float LegBlendWeight = 1f;
-
-	internal float InternalModuleBlendWeight = 1f;
-
-	private float finalBoneBlend = 1f;
-
-	[Tooltip("Make idle glue animation motion faster for this single leg")]
-	public float LegMoveSpeedMultiplier = 1f;
-
-	public float LegRaiseMultiplier = 1f;
-
-	[Space(3f)]
-	public float GlueThresholdMultiplier = 1f;
-
-	public Vector2 GluePointOffset = Vector2.zero;
-
-	[Space(3f)]
-	[Range(0f, 1f)]
-	public float LegStretchMultiplier = 1f;
-
-	[Tooltip("Motion preset for the leg to be animated with different character than the other legs ('Idle Glue Motion' settings)")]
-	public LegMotionSettingsPreset CustomLegAnimating;
-
-	[Range(-40f, 40f)]
-	public float FootPitchOffset;
-
-	public Transform BoneStart;
-
-	public Transform BoneMid;
-
-	public Transform BoneEnd;
-
-	public ELegSide Side;
-
-	public int OppositeLegIndex = -1;
-
-	public ERaycastPrecision RaycastPrecision;
-
-	[Tooltip("(Experimental) If you want to animate in additional feet bone which in some cases can add nice animation feeling")]
-	public bool UseFeet;
-
-	public Transform BoneFeet;
-
-	[Range(0f, 1f)]
-	[Tooltip("Defining how quick heel should get up if leg gets stretched (change max stretching param under IK tab to be lower value that 1.1)")]
-	public float FeetSensitivity = 0.5f;
-
-	private bool hasOppositeleg;
-
-	private LegStepAnimatingParameters targetLegAnimating;
-
-	[Tooltip("Apply IK hint inversion, in case leg is bending in wrong direction.")]
-	public bool InverseHint;
-
-	public Vector3 AnkleToHeel = Vector3.zero;
-
-	public Vector3 AnkleToFeetEnd = Vector3.zero;
-
-	public Vector3 AnkleRight = Vector3.right;
-
-	public Vector3 AnkleUp = Vector3.up;
-
-	public Vector3 AnkleForward = Vector3.forward;
-
-	[Range(0f, 1.001f)]
-	public float FootMiddlePosition = 0.5f;
-
-	[Space(5f)]
-	[FPD_Suffix(-45f, 45f, FPD_SuffixAttribute.SuffixMode.FromMinToMax, "°", true, 0)]
-	public float AnkleYawCorrection;
-
-	private bool _StepSent = true;
-
-	private float _StepSentAt = -100f;
-
-	private float _RaiseSentAt = -100f;
-
-	private bool _OppositeLegStepped = true;
-
-	private float _ToConfirmStepEvent;
-
 	private Vector3 _SourceIKPosUnchangedY;
 
 	private Vector3 _SourceIKPos;
@@ -12413,6 +12329,90 @@ public class Leg
 	private Vector3 _PreviousCustomRaycastingIKPos;
 
 	private bool _noRaycast_skipFeetCalcs;
+
+	public LegsAnimator Owner;
+
+	[FPD_Suffix(0f, 1f, FPD_SuffixAttribute.SuffixMode.From0to100, "%", true, 0)]
+	public float LegBlendWeight = 1f;
+
+	internal float InternalModuleBlendWeight = 1f;
+
+	private float finalBoneBlend = 1f;
+
+	[Tooltip("Make idle glue animation motion faster for this single leg")]
+	public float LegMoveSpeedMultiplier = 1f;
+
+	public float LegRaiseMultiplier = 1f;
+
+	[Space(3f)]
+	public float GlueThresholdMultiplier = 1f;
+
+	public Vector2 GluePointOffset = Vector2.zero;
+
+	[Range(0f, 1f)]
+	[Space(3f)]
+	public float LegStretchMultiplier = 1f;
+
+	[Tooltip("Motion preset for the leg to be animated with different character than the other legs ('Idle Glue Motion' settings)")]
+	public LegMotionSettingsPreset CustomLegAnimating;
+
+	[Range(-40f, 40f)]
+	public float FootPitchOffset;
+
+	public Transform BoneStart;
+
+	public Transform BoneMid;
+
+	public Transform BoneEnd;
+
+	public ELegSide Side;
+
+	public int OppositeLegIndex = -1;
+
+	public ERaycastPrecision RaycastPrecision;
+
+	[Tooltip("(Experimental) If you want to animate in additional feet bone which in some cases can add nice animation feeling")]
+	public bool UseFeet;
+
+	public Transform BoneFeet;
+
+	[Range(0f, 1f)]
+	[Tooltip("Defining how quick heel should get up if leg gets stretched (change max stretching param under IK tab to be lower value that 1.1)")]
+	public float FeetSensitivity = 0.5f;
+
+	private bool hasOppositeleg;
+
+	private LegStepAnimatingParameters targetLegAnimating;
+
+	[Tooltip("Apply IK hint inversion, in case leg is bending in wrong direction.")]
+	public bool InverseHint;
+
+	public Vector3 AnkleToHeel = Vector3.zero;
+
+	public Vector3 AnkleToFeetEnd = Vector3.zero;
+
+	public Vector3 AnkleRight = Vector3.right;
+
+	public Vector3 AnkleUp = Vector3.up;
+
+	public Vector3 AnkleForward = Vector3.forward;
+
+	[Range(0f, 1.001f)]
+	public float FootMiddlePosition = 0.5f;
+
+	[FPD_Suffix(-45f, 45f, FPD_SuffixAttribute.SuffixMode.FromMinToMax, "°", true, 0)]
+	[Space(5f)]
+	public float AnkleYawCorrection;
+
+	private bool _StepSent = true;
+
+	private float _StepSentAt = -100f;
+
+	private float _RaiseSentAt = -100f;
+
+	private bool _OppositeLegStepped = true;
+
+	private float _ToConfirmStepEvent;
 
 	public bool G_AttachPossible
 	{
@@ -12503,20 +12503,6 @@ public class Leg
 
 	public float C_AnimatedAnkleFlatHeight { get; private set; }
 
-	public int PlaymodeIndex { get; private set; }
-
-	public float BlendWeight { get; private set; }
-
-	[field: NonSerialized]
-	public Leg NextLeg { get; private set; }
-
-	[field: NonSerialized]
-	public HipsReference ParentHub { get; private set; }
-
-	public LegStepAnimatingParameters LegAnimatingSettings => targetLegAnimating;
-
-	public float LegStretchLimit { get; private set; } = 1f;
-
 	public FimpIK_Limb IKProcessor { get; private set; }
 
 	public Vector3 _PreviousFinalIKPos { get; private set; }
@@ -12556,6 +12542,20 @@ public class Leg
 	public float raycastSlopeAngle { get; private set; }
 
 	public Vector3 InitialPosInRootSpace { get; private set; }
+
+	public int PlaymodeIndex { get; private set; }
+
+	public float BlendWeight { get; private set; }
+
+	[field: NonSerialized]
+	public Leg NextLeg { get; private set; }
+
+	[field: NonSerialized]
+	public HipsReference ParentHub { get; private set; }
+
+	public LegStepAnimatingParameters LegAnimatingSettings => targetLegAnimating;
+
+	public float LegStretchLimit { get; private set; } = 1f;
 
 	public List<Leg> Legs => Owner.Legs;
 
@@ -14023,345 +14023,6 @@ public class Leg
 		_StepSentAt = Time.unscaledTime;
 	}
 
-	public void InitLegBasics(LegsAnimator creator, int index, Leg nextLeg)
-	{
-		//IL_00ef: Unknown result type (might be due to invalid IL or missing references)
-		if ((Object)(object)creator != (Object)null)
-		{
-			Owner = creator;
-		}
-		PlaymodeIndex = index;
-		NextLeg = nextLeg;
-		LegStretchLimit = 1f;
-		BlendWeight = 1f;
-		InternalModuleBlendWeight = 1f;
-		EnsureAxesNormalization();
-		_h_boneStart = new LegHelper(this, BoneStart);
-		_h_boneMid = new LegHelper(this, BoneMid);
-		_h_boneEnd = new LegHelper(this, BoneEnd);
-		_h_boneStart.Child = _h_boneMid;
-		_h_boneMid.Child = _h_boneEnd;
-		Gluing_Init();
-		Reset();
-		Controll_Init();
-		Raycasting_Init();
-		Stability_Init();
-		AlignStep_Init();
-		RefreshHasOppositeLeg();
-		targetLegAnimating = (Object.op_Implicit((Object)(object)CustomLegAnimating) ? CustomLegAnimating.Settings : creator.LegAnimatingSettings);
-		ankleAlignedOnGroundHitWorldPos = _FinalIKPos;
-	}
-
-	public void RefreshHasOppositeLeg()
-	{
-		hasOppositeleg = false;
-		if (GetOppositeLeg() != null)
-		{
-			hasOppositeleg = true;
-		}
-	}
-
-	public void Leg_UpdateParams()
-	{
-		targetLegAnimating = (Object.op_Implicit((Object)(object)CustomLegAnimating) ? CustomLegAnimating.Settings : Owner.LegAnimatingSettings);
-		IK_UpdateParams();
-	}
-
-	internal void AssignParentHub(HipsReference hipsReference)
-	{
-		ParentHub = hipsReference;
-	}
-
-	internal void Reset()
-	{
-		//IL_0007: Unknown result type (might be due to invalid IL or missing references)
-		//IL_000c: Unknown result type (might be due to invalid IL or missing references)
-		//IL_0018: Unknown result type (might be due to invalid IL or missing references)
-		//IL_001d: Unknown result type (might be due to invalid IL or missing references)
-		//IL_0024: Unknown result type (might be due to invalid IL or missing references)
-		//IL_0029: Unknown result type (might be due to invalid IL or missing references)
-		//IL_0030: Unknown result type (might be due to invalid IL or missing references)
-		//IL_0035: Unknown result type (might be due to invalid IL or missing references)
-		//IL_003c: Unknown result type (might be due to invalid IL or missing references)
-		//IL_0048: Unknown result type (might be due to invalid IL or missing references)
-		//IL_0058: Unknown result type (might be due to invalid IL or missing references)
-		//IL_0065: Unknown result type (might be due to invalid IL or missing references)
-		//IL_007b: Unknown result type (might be due to invalid IL or missing references)
-		//IL_0087: Unknown result type (might be due to invalid IL or missing references)
-		//IL_0093: Unknown result type (might be due to invalid IL or missing references)
-		//IL_0098: Unknown result type (might be due to invalid IL or missing references)
-		//IL_009f: Unknown result type (might be due to invalid IL or missing references)
-		//IL_00a4: Unknown result type (might be due to invalid IL or missing references)
-		//IL_00ab: Unknown result type (might be due to invalid IL or missing references)
-		//IL_00b0: Unknown result type (might be due to invalid IL or missing references)
-		//IL_00b8: Unknown result type (might be due to invalid IL or missing references)
-		//IL_00bd: Unknown result type (might be due to invalid IL or missing references)
-		//IL_00c9: Unknown result type (might be due to invalid IL or missing references)
-		//IL_00ce: Unknown result type (might be due to invalid IL or missing references)
-		//IL_00d5: Unknown result type (might be due to invalid IL or missing references)
-		//IL_00de: Unknown result type (might be due to invalid IL or missing references)
-		//IL_00f0: Unknown result type (might be due to invalid IL or missing references)
-		//IL_00fb: Unknown result type (might be due to invalid IL or missing references)
-		//IL_00fc: Unknown result type (might be due to invalid IL or missing references)
-		_SourceIKPos = BoneEnd.position;
-		_SourceIKRot = BoneEnd.rotation;
-		_FinalIKPos = _SourceIKPos;
-		_FinalIKRot = _SourceIKRot;
-		_PreviousFinalIKPos = _FinalIKPos;
-		_PreviousFinalIKRot = _FinalIKRot;
-		legGroundHit = default(RaycastHit);
-		((RaycastHit)(ref legGroundHit)).point = _FinalIKPos;
-		((RaycastHit)(ref legGroundHit)).normal = Owner.Up;
-		_PreviousFinalIKPosForStability = _SourceIKPos;
-		ankleAlignedOnGroundHitRotation = _SourceIKRot;
-		A_LastApppliedAlignRot = _SourceIKRot;
-		A_LastTargetAlignRot = _SourceIKRot;
-		groundHitRootSpacePos = ToRootLocalSpace(_SourceIKPos);
-		_SourceIKPosUnchangedY = groundHitRootSpacePos;
-		RaycastHit val = default(RaycastHit);
-		((RaycastHit)(ref val)).point = _FinalIKPos;
-		((RaycastHit)(ref val)).normal = Owner.Up;
-		legGroundHit = val;
-		Glue_Reset(initializing: true);
-	}
-
-	public void PreCalibrate()
-	{
-		//IL_006c: Unknown result type (might be due to invalid IL or missing references)
-		//IL_00bd: Unknown result type (might be due to invalid IL or missing references)
-		//IL_00ce: Unknown result type (might be due to invalid IL or missing references)
-		//IL_00df: Unknown result type (might be due to invalid IL or missing references)
-		BlendWeight *= InternalModuleBlendWeight;
-		finalBoneBlend = BlendWeight * Owner._MainBlend;
-		if (finalBoneBlend < 0.0001f)
-		{
-			if (!_G_WasDisabled)
-			{
-				G_Attached = false;
-				G_AttachementHandler.Reset(initializing: false);
-				G_Attachement = default(GlueAttachement);
-				_G_WasDisabled = true;
-				legGroundHit = default(RaycastHit);
-				RaycastHitted = false;
-			}
-		}
-		else if (Owner.Calibrate == ECalibrateMode.Calibrate)
-		{
-			IKProcessor.PreCalibrate();
-		}
-		else if (Owner.Calibrate == ECalibrateMode.FixedCalibrate)
-		{
-			if (!_wasFixedCalibrateAnimationCaptured)
-			{
-				IKProcessor.PreCalibrate();
-				return;
-			}
-			BoneStart.localRotation = _AnimatorStartBoneLocRot;
-			BoneMid.localRotation = _AnimatorMidBoneLocRot;
-			BoneEnd.localRotation = _AnimatorEndBoneLocRot;
-		}
-	}
-
-	public void CheckAnimatorPose()
-	{
-		//IL_0007: Unknown result type (might be due to invalid IL or missing references)
-		//IL_0018: Unknown result type (might be due to invalid IL or missing references)
-		//IL_0029: Unknown result type (might be due to invalid IL or missing references)
-		//IL_004f: Unknown result type (might be due to invalid IL or missing references)
-		//IL_0060: Unknown result type (might be due to invalid IL or missing references)
-		//IL_0071: Unknown result type (might be due to invalid IL or missing references)
-		_AnimatorStartBonePos = BoneStart.position;
-		_AnimatorMidBonePos = BoneMid.position;
-		_AnimatorEndBonePos = BoneEnd.position;
-		if (Owner.Calibrate == ECalibrateMode.FixedCalibrate)
-		{
-			_wasFixedCalibrateAnimationCaptured = true;
-			_AnimatorStartBoneLocRot = BoneStart.localRotation;
-			_AnimatorMidBoneLocRot = BoneMid.localRotation;
-			_AnimatorEndBoneLocRot = BoneEnd.localRotation;
-		}
-	}
-
-	public void BeginLateUpdate()
-	{
-		if (!(finalBoneBlend < 0.0001f))
-		{
-			G_CustomForceAttach = false;
-			G_CustomForceNOTDetach = false;
-			G_CustomForceDetach = false;
-			G_CustomForceNOTAttach = false;
-			IK_PreUpdate();
-			LegStretchLimit = Owner.LimitLegStretch * LegStretchMultiplier;
-		}
-	}
-
-	public void PreLateUpdate()
-	{
-		if (!customOverwritingIKPos && (!_G_WasDisabled || !(finalBoneBlend < 0.0001f)))
-		{
-			Owner.Modules_LegBeforeRaycastingUpdate(this);
-			Raycasting_PreLateUpdate();
-			Controll_Calibrate();
-		}
-	}
-
-	public void LateUpdate()
-	{
-		if (!(finalBoneBlend < 0.0001f) && !customOverwritingIKPos)
-		{
-			Owner.Modules_Leg_LateUpdate(this);
-			AlignStep_CheckAlignStatePre();
-			AlignStep_ValidateFootRotation();
-			Gluing_Update();
-			Gluing_ApplyCoords();
-			AlignStep_OnGroundAlign();
-			AlignStep_SmoothSuddenSteps();
-			AlignStep_LegElevation();
-			AlignStep_Complete();
-			Control_StepEventCalcs();
-			ExtraProcessingApply();
-		}
-	}
-
-	public void LateUpdate_Apply()
-	{
-		IK_PostUpdate();
-	}
-
-	public void FixedUpdate()
-	{
-	}
-
-	public float LegLimbLength()
-	{
-		//IL_0041: Unknown result type (might be due to invalid IL or missing references)
-		//IL_004c: Unknown result type (might be due to invalid IL or missing references)
-		//IL_005d: Unknown result type (might be due to invalid IL or missing references)
-		//IL_0068: Unknown result type (might be due to invalid IL or missing references)
-		if ((Object)(object)BoneStart == (Object)null || (Object)(object)BoneMid == (Object)null || (Object)(object)BoneEnd == (Object)null)
-		{
-			return Owner.HipsToGroundDistance();
-		}
-		return 0f + Vector3.Distance(BoneStart.position, BoneMid.position) + Vector3.Distance(BoneEnd.position, BoneMid.position);
-	}
-
-	public bool HasAllBonesSet()
-	{
-		if ((Object)(object)BoneStart == (Object)null)
-		{
-			return false;
-		}
-		if ((Object)(object)BoneMid == (Object)null)
-		{
-			return false;
-		}
-		if ((Object)(object)BoneEnd == (Object)null)
-		{
-			return false;
-		}
-		return true;
-	}
-
-	public float R(float toRound, int digits = 2)
-	{
-		return (float)Math.Round(toRound, digits);
-	}
-
-	private void SendStepEvent(float factor = 1f, EStepType type = EStepType.IdleGluing)
-	{
-		if (!_StepSent)
-		{
-			if (Owner.GroundedTime < 0.1f)
-			{
-				type = EStepType.OnLanding;
-			}
-			else if (!Owner.IsMoving && Owner.StoppedTime < 0.15f)
-			{
-				type = EStepType.OnStopping;
-			}
-			Owner.Events_OnStep(this, factor, type);
-			_StepSent = true;
-			_StepSentAt = Time.unscaledTime;
-			if (hasOppositeleg)
-			{
-				_OppositeLegStepped = true;
-				GetOppositeLeg()._OppositeLegStepped = !Owner.IsMoving;
-			}
-		}
-	}
-
-	private void SendRaiseEvent(float distanceToNew = 1f)
-	{
-		if (!(Time.unscaledTime - _RaiseSentAt < 0.05f))
-		{
-			_RaiseSentAt = Time.unscaledTime;
-			EStepType type = EStepType.IdleGluing;
-			if (!Owner.IsMoving && Owner.StoppedTime < 0.15f)
-			{
-				type = EStepType.OnStopping;
-			}
-			Owner.Events_OnRaise(this, distanceToNew, type);
-		}
-	}
-
-	private void StepEventRestore()
-	{
-		//IL_0178: Unknown result type (might be due to invalid IL or missing references)
-		if (!Owner.UseEvents || !_StepSent || Time.unscaledTime - _StepSentAt < 0.1f || Owner.GroundedTime < 0.1f)
-		{
-			return;
-		}
-		if (Owner.UseGluing)
-		{
-			if (G_AttachementHandler.glueAnimationBlend > 0.5f && G_GlueInternalTransition > 0.25f)
-			{
-				return;
-			}
-			if (Owner._glueModeExecuted == EGlueMode.Idle)
-			{
-				if (!G_DuringAttaching || (Owner.GlueMode == EGlueMode.Automatic && (Owner.IsMoving || Owner.Helper_WasMoving)) || (!Owner.SendOnStopping && Owner.StoppedTime < 0.155f) || G_AttachementHandler.lasGlueModeOnAttaching != 0 || G_AttachementHandler.legMoveDistanceFactor < 0.05f)
-				{
-					return;
-				}
-			}
-			else
-			{
-				if ((Owner.GlueMode == EGlueMode.Automatic && !Owner.IsMoving) || Owner.MovingTime < 0.06f || A_PreWasAligning || A_AligningHelperBlend > 0.5f - Owner.EventExecuteSooner || (hasOppositeleg && !GetOppositeLeg()._OppositeLegStepped))
-				{
-					return;
-				}
-				float num = (0f - ScaleRef) * 0.2f + FloorLevel * Owner.BaseTransform.lossyScale.y + C_AnkleToHeelWorldHeight * 0.75f + A_LastAlignHeightCompareValue * (3f + Owner.EventExecuteSooner);
-				if (A_LastAlignHeightDiff < num)
-				{
-					return;
-				}
-			}
-		}
-		else
-		{
-			if (A_PreWasAligning || A_AligningHelperBlend > 0.05f)
-			{
-				return;
-			}
-			if (Owner.IsMovingBlend < 0.05f)
-			{
-				_StepSent = true;
-				return;
-			}
-			if (!Owner.Helper_WasMoving)
-			{
-				_StepSent = true;
-				return;
-			}
-			if (!Owner.IsMoving)
-			{
-				_StepSent = true;
-				return;
-			}
-		}
-		_StepSent = false;
-	}
-
 	public void IK_Initialize(bool generateNew = true)
 	{
 		//IL_012a: Unknown result type (might be due to invalid IL or missing references)
@@ -15241,6 +14902,345 @@ public class Leg
 		//IL_0013: Unknown result type (might be due to invalid IL or missing references)
 		Vector3 initialPosInRootSpace = ToRootLocalSpace(BoneEnd.position);
 		InitialPosInRootSpace = initialPosInRootSpace;
+	}
+
+	public void InitLegBasics(LegsAnimator creator, int index, Leg nextLeg)
+	{
+		//IL_00ef: Unknown result type (might be due to invalid IL or missing references)
+		if ((Object)(object)creator != (Object)null)
+		{
+			Owner = creator;
+		}
+		PlaymodeIndex = index;
+		NextLeg = nextLeg;
+		LegStretchLimit = 1f;
+		BlendWeight = 1f;
+		InternalModuleBlendWeight = 1f;
+		EnsureAxesNormalization();
+		_h_boneStart = new LegHelper(this, BoneStart);
+		_h_boneMid = new LegHelper(this, BoneMid);
+		_h_boneEnd = new LegHelper(this, BoneEnd);
+		_h_boneStart.Child = _h_boneMid;
+		_h_boneMid.Child = _h_boneEnd;
+		Gluing_Init();
+		Reset();
+		Controll_Init();
+		Raycasting_Init();
+		Stability_Init();
+		AlignStep_Init();
+		RefreshHasOppositeLeg();
+		targetLegAnimating = (Object.op_Implicit((Object)(object)CustomLegAnimating) ? CustomLegAnimating.Settings : creator.LegAnimatingSettings);
+		ankleAlignedOnGroundHitWorldPos = _FinalIKPos;
+	}
+
+	public void RefreshHasOppositeLeg()
+	{
+		hasOppositeleg = false;
+		if (GetOppositeLeg() != null)
+		{
+			hasOppositeleg = true;
+		}
+	}
+
+	public void Leg_UpdateParams()
+	{
+		targetLegAnimating = (Object.op_Implicit((Object)(object)CustomLegAnimating) ? CustomLegAnimating.Settings : Owner.LegAnimatingSettings);
+		IK_UpdateParams();
+	}
+
+	internal void AssignParentHub(HipsReference hipsReference)
+	{
+		ParentHub = hipsReference;
+	}
+
+	internal void Reset()
+	{
+		//IL_0007: Unknown result type (might be due to invalid IL or missing references)
+		//IL_000c: Unknown result type (might be due to invalid IL or missing references)
+		//IL_0018: Unknown result type (might be due to invalid IL or missing references)
+		//IL_001d: Unknown result type (might be due to invalid IL or missing references)
+		//IL_0024: Unknown result type (might be due to invalid IL or missing references)
+		//IL_0029: Unknown result type (might be due to invalid IL or missing references)
+		//IL_0030: Unknown result type (might be due to invalid IL or missing references)
+		//IL_0035: Unknown result type (might be due to invalid IL or missing references)
+		//IL_003c: Unknown result type (might be due to invalid IL or missing references)
+		//IL_0048: Unknown result type (might be due to invalid IL or missing references)
+		//IL_0058: Unknown result type (might be due to invalid IL or missing references)
+		//IL_0065: Unknown result type (might be due to invalid IL or missing references)
+		//IL_007b: Unknown result type (might be due to invalid IL or missing references)
+		//IL_0087: Unknown result type (might be due to invalid IL or missing references)
+		//IL_0093: Unknown result type (might be due to invalid IL or missing references)
+		//IL_0098: Unknown result type (might be due to invalid IL or missing references)
+		//IL_009f: Unknown result type (might be due to invalid IL or missing references)
+		//IL_00a4: Unknown result type (might be due to invalid IL or missing references)
+		//IL_00ab: Unknown result type (might be due to invalid IL or missing references)
+		//IL_00b0: Unknown result type (might be due to invalid IL or missing references)
+		//IL_00b8: Unknown result type (might be due to invalid IL or missing references)
+		//IL_00bd: Unknown result type (might be due to invalid IL or missing references)
+		//IL_00c9: Unknown result type (might be due to invalid IL or missing references)
+		//IL_00ce: Unknown result type (might be due to invalid IL or missing references)
+		//IL_00d5: Unknown result type (might be due to invalid IL or missing references)
+		//IL_00de: Unknown result type (might be due to invalid IL or missing references)
+		//IL_00f0: Unknown result type (might be due to invalid IL or missing references)
+		//IL_00fb: Unknown result type (might be due to invalid IL or missing references)
+		//IL_00fc: Unknown result type (might be due to invalid IL or missing references)
+		_SourceIKPos = BoneEnd.position;
+		_SourceIKRot = BoneEnd.rotation;
+		_FinalIKPos = _SourceIKPos;
+		_FinalIKRot = _SourceIKRot;
+		_PreviousFinalIKPos = _FinalIKPos;
+		_PreviousFinalIKRot = _FinalIKRot;
+		legGroundHit = default(RaycastHit);
+		((RaycastHit)(ref legGroundHit)).point = _FinalIKPos;
+		((RaycastHit)(ref legGroundHit)).normal = Owner.Up;
+		_PreviousFinalIKPosForStability = _SourceIKPos;
+		ankleAlignedOnGroundHitRotation = _SourceIKRot;
+		A_LastApppliedAlignRot = _SourceIKRot;
+		A_LastTargetAlignRot = _SourceIKRot;
+		groundHitRootSpacePos = ToRootLocalSpace(_SourceIKPos);
+		_SourceIKPosUnchangedY = groundHitRootSpacePos;
+		RaycastHit val = default(RaycastHit);
+		((RaycastHit)(ref val)).point = _FinalIKPos;
+		((RaycastHit)(ref val)).normal = Owner.Up;
+		legGroundHit = val;
+		Glue_Reset(initializing: true);
+	}
+
+	public void PreCalibrate()
+	{
+		//IL_006c: Unknown result type (might be due to invalid IL or missing references)
+		//IL_00bd: Unknown result type (might be due to invalid IL or missing references)
+		//IL_00ce: Unknown result type (might be due to invalid IL or missing references)
+		//IL_00df: Unknown result type (might be due to invalid IL or missing references)
+		BlendWeight *= InternalModuleBlendWeight;
+		finalBoneBlend = BlendWeight * Owner._MainBlend;
+		if (finalBoneBlend < 0.0001f)
+		{
+			if (!_G_WasDisabled)
+			{
+				G_Attached = false;
+				G_AttachementHandler.Reset(initializing: false);
+				G_Attachement = default(GlueAttachement);
+				_G_WasDisabled = true;
+				legGroundHit = default(RaycastHit);
+				RaycastHitted = false;
+			}
+		}
+		else if (Owner.Calibrate == ECalibrateMode.Calibrate)
+		{
+			IKProcessor.PreCalibrate();
+		}
+		else if (Owner.Calibrate == ECalibrateMode.FixedCalibrate)
+		{
+			if (!_wasFixedCalibrateAnimationCaptured)
+			{
+				IKProcessor.PreCalibrate();
+				return;
+			}
+			BoneStart.localRotation = _AnimatorStartBoneLocRot;
+			BoneMid.localRotation = _AnimatorMidBoneLocRot;
+			BoneEnd.localRotation = _AnimatorEndBoneLocRot;
+		}
+	}
+
+	public void CheckAnimatorPose()
+	{
+		//IL_0007: Unknown result type (might be due to invalid IL or missing references)
+		//IL_0018: Unknown result type (might be due to invalid IL or missing references)
+		//IL_0029: Unknown result type (might be due to invalid IL or missing references)
+		//IL_004f: Unknown result type (might be due to invalid IL or missing references)
+		//IL_0060: Unknown result type (might be due to invalid IL or missing references)
+		//IL_0071: Unknown result type (might be due to invalid IL or missing references)
+		_AnimatorStartBonePos = BoneStart.position;
+		_AnimatorMidBonePos = BoneMid.position;
+		_AnimatorEndBonePos = BoneEnd.position;
+		if (Owner.Calibrate == ECalibrateMode.FixedCalibrate)
+		{
+			_wasFixedCalibrateAnimationCaptured = true;
+			_AnimatorStartBoneLocRot = BoneStart.localRotation;
+			_AnimatorMidBoneLocRot = BoneMid.localRotation;
+			_AnimatorEndBoneLocRot = BoneEnd.localRotation;
+		}
+	}
+
+	public void BeginLateUpdate()
+	{
+		if (!(finalBoneBlend < 0.0001f))
+		{
+			G_CustomForceAttach = false;
+			G_CustomForceNOTDetach = false;
+			G_CustomForceDetach = false;
+			G_CustomForceNOTAttach = false;
+			IK_PreUpdate();
+			LegStretchLimit = Owner.LimitLegStretch * LegStretchMultiplier;
+		}
+	}
+
+	public void PreLateUpdate()
+	{
+		if (!customOverwritingIKPos && (!_G_WasDisabled || !(finalBoneBlend < 0.0001f)))
+		{
+			Owner.Modules_LegBeforeRaycastingUpdate(this);
+			Raycasting_PreLateUpdate();
+			Controll_Calibrate();
+		}
+	}
+
+	public void LateUpdate()
+	{
+		if (!(finalBoneBlend < 0.0001f) && !customOverwritingIKPos)
+		{
+			Owner.Modules_Leg_LateUpdate(this);
+			AlignStep_CheckAlignStatePre();
+			AlignStep_ValidateFootRotation();
+			Gluing_Update();
+			Gluing_ApplyCoords();
+			AlignStep_OnGroundAlign();
+			AlignStep_SmoothSuddenSteps();
+			AlignStep_LegElevation();
+			AlignStep_Complete();
+			Control_StepEventCalcs();
+			ExtraProcessingApply();
+		}
+	}
+
+	public void LateUpdate_Apply()
+	{
+		IK_PostUpdate();
+	}
+
+	public void FixedUpdate()
+	{
+	}
+
+	public float LegLimbLength()
+	{
+		//IL_0041: Unknown result type (might be due to invalid IL or missing references)
+		//IL_004c: Unknown result type (might be due to invalid IL or missing references)
+		//IL_005d: Unknown result type (might be due to invalid IL or missing references)
+		//IL_0068: Unknown result type (might be due to invalid IL or missing references)
+		if ((Object)(object)BoneStart == (Object)null || (Object)(object)BoneMid == (Object)null || (Object)(object)BoneEnd == (Object)null)
+		{
+			return Owner.HipsToGroundDistance();
+		}
+		return 0f + Vector3.Distance(BoneStart.position, BoneMid.position) + Vector3.Distance(BoneEnd.position, BoneMid.position);
+	}
+
+	public bool HasAllBonesSet()
+	{
+		if ((Object)(object)BoneStart == (Object)null)
+		{
+			return false;
+		}
+		if ((Object)(object)BoneMid == (Object)null)
+		{
+			return false;
+		}
+		if ((Object)(object)BoneEnd == (Object)null)
+		{
+			return false;
+		}
+		return true;
+	}
+
+	public float R(float toRound, int digits = 2)
+	{
+		return (float)Math.Round(toRound, digits);
+	}
+
+	private void SendStepEvent(float factor = 1f, EStepType type = EStepType.IdleGluing)
+	{
+		if (!_StepSent)
+		{
+			if (Owner.GroundedTime < 0.1f)
+			{
+				type = EStepType.OnLanding;
+			}
+			else if (!Owner.IsMoving && Owner.StoppedTime < 0.15f)
+			{
+				type = EStepType.OnStopping;
+			}
+			Owner.Events_OnStep(this, factor, type);
+			_StepSent = true;
+			_StepSentAt = Time.unscaledTime;
+			if (hasOppositeleg)
+			{
+				_OppositeLegStepped = true;
+				GetOppositeLeg()._OppositeLegStepped = !Owner.IsMoving;
+			}
+		}
+	}
+
+	private void SendRaiseEvent(float distanceToNew = 1f)
+	{
+		if (!(Time.unscaledTime - _RaiseSentAt < 0.05f))
+		{
+			_RaiseSentAt = Time.unscaledTime;
+			EStepType type = EStepType.IdleGluing;
+			if (!Owner.IsMoving && Owner.StoppedTime < 0.15f)
+			{
+				type = EStepType.OnStopping;
+			}
+			Owner.Events_OnRaise(this, distanceToNew, type);
+		}
+	}
+
+	private void StepEventRestore()
+	{
+		//IL_0178: Unknown result type (might be due to invalid IL or missing references)
+		if (!Owner.UseEvents || !_StepSent || Time.unscaledTime - _StepSentAt < 0.1f || Owner.GroundedTime < 0.1f)
+		{
+			return;
+		}
+		if (Owner.UseGluing)
+		{
+			if (G_AttachementHandler.glueAnimationBlend > 0.5f && G_GlueInternalTransition > 0.25f)
+			{
+				return;
+			}
+			if (Owner._glueModeExecuted == EGlueMode.Idle)
+			{
+				if (!G_DuringAttaching || (Owner.GlueMode == EGlueMode.Automatic && (Owner.IsMoving || Owner.Helper_WasMoving)) || (!Owner.SendOnStopping && Owner.StoppedTime < 0.155f) || G_AttachementHandler.lasGlueModeOnAttaching != 0 || G_AttachementHandler.legMoveDistanceFactor < 0.05f)
+				{
+					return;
+				}
+			}
+			else
+			{
+				if ((Owner.GlueMode == EGlueMode.Automatic && !Owner.IsMoving) || Owner.MovingTime < 0.06f || A_PreWasAligning || A_AligningHelperBlend > 0.5f - Owner.EventExecuteSooner || (hasOppositeleg && !GetOppositeLeg()._OppositeLegStepped))
+				{
+					return;
+				}
+				float num = (0f - ScaleRef) * 0.2f + FloorLevel * Owner.BaseTransform.lossyScale.y + C_AnkleToHeelWorldHeight * 0.75f + A_LastAlignHeightCompareValue * (3f + Owner.EventExecuteSooner);
+				if (A_LastAlignHeightDiff < num)
+				{
+					return;
+				}
+			}
+		}
+		else
+		{
+			if (A_PreWasAligning || A_AligningHelperBlend > 0.05f)
+			{
+				return;
+			}
+			if (Owner.IsMovingBlend < 0.05f)
+			{
+				_StepSent = true;
+				return;
+			}
+			if (!Owner.Helper_WasMoving)
+			{
+				_StepSent = true;
+				return;
+			}
+			if (!Owner.IsMoving)
+			{
+				_StepSent = true;
+				return;
+			}
+		}
+		_StepSent = false;
 	}
 
 	public void DefineLegSide(LegsAnimator get, Leg knownOppositeLeg = null)
@@ -16924,29 +16924,29 @@ public class LegStepAnimatingParameters
 	[Range(0f, 1f)]
 	public float MinFootRaise = 0.1f;
 
-	[Range(0f, 1f)]
 	[Tooltip("Maximum leg raise height. If distance of target step animation is very big, then foot raise is bigger - up to this maximum raise value.")]
+	[Range(0f, 1f)]
 	public float MaxFootRaise = 0.4f;
 
-	[FPD_FixedCurveWindow(0f, 0f, 1f, 1f, 0.5f, 1f, 0.5f, 1f)]
 	[Tooltip("Raise height step animation curve evaluated on step animation duration.")]
+	[FPD_FixedCurveWindow(0f, 0f, 1f, 1f, 0.5f, 1f, 0.5f, 1f)]
 	public AnimationCurve RaiseYAxisCurve;
 
 	[Range(0f, 1f)]
-	[Tooltip("Allowing to speed up leg adjusting animation when leg is getting stretched, when opposite leg is requesting adjustement or when main character is rotating in place quickly")]
 	[Space(3f)]
+	[Tooltip("Allowing to speed up leg adjusting animation when leg is getting stretched, when opposite leg is requesting adjustement or when main character is rotating in place quickly")]
 	public float AllowSpeedups = 0.4f;
 
-	[Range(0.1f, 1f)]
 	[Tooltip("You can allow to use opposite leg before idle glue leg adjustement finishes")]
+	[Range(0.1f, 1f)]
 	public float AllowDetachBefore = 1f;
 
 	[Tooltip("Extra hips push power animation curve evaluated on step animation duration.")]
 	[FPD_FixedCurveWindow(0f, 0f, 1f, 1f, 1f, 0.6f, 0.6f, 1f)]
 	public AnimationCurve PushHipsOnMoveCurve;
 
-	[Tooltip("Extra foot ankle rotation animation curve evaluated on step animation duration.")]
 	[FPD_FixedCurveWindow(0f, -1f, 1f, 1f, 0f, 1f, 1f, 1f)]
+	[Tooltip("Extra foot ankle rotation animation curve evaluated on step animation duration.")]
 	public AnimationCurve FootRotationCurve;
 
 	public void RefreshDefaultCurves()
@@ -20767,7 +20767,7 @@ public class LAM_StepFurther : LegsAnimatorControlModuleBase
 		//IL_00c4: Unknown result type (might be due to invalid IL or missing references)
 		//IL_00c9: Unknown result type (might be due to invalid IL or missing references)
 		//IL_00ce: Unknown result type (might be due to invalid IL or missing references)
-		Vector3 vec = (UsingCustomVelo ? base.LA.ToRootLocalSpaceVec(customVelo) : ((Object.op_Implicit((Object)(object)base.LA.Rigidbody) && !base.LA.Rigidbody.isKinematic) ? base.LA.ToRootLocalSpaceVec(base.LA.Rigidbody.velocity) : (base.LA.usingCustomDesiredMovementDirection ? base.LA.ToRootLocalSpaceVec(base.LA.DesiredMovementDirection * base.LA.IsMovingBlend) : ((!(base.LA.DeltaTime > 0f)) ? Vector3.zero : base.LA.ToRootLocalSpaceVec((base.LegsAnim.BaseTransform.position - lastPos) / base.LA.DeltaTime)))));
+		Vector3 vec = (UsingCustomVelo ? base.LA.ToRootLocalSpaceVec(customVelo) : ((Object.op_Implicit((Object)(object)base.LA.Rigidbody) && !base.LA.Rigidbody.isKinematic) ? base.LA.ToRootLocalSpaceVec(base.LA.Rigidbody.linearVelocity) : (base.LA.usingCustomDesiredMovementDirection ? base.LA.ToRootLocalSpaceVec(base.LA.DesiredMovementDirection * base.LA.IsMovingBlend) : ((!(base.LA.DeltaTime > 0f)) ? Vector3.zero : base.LA.ToRootLocalSpaceVec((base.LegsAnim.BaseTransform.position - lastPos) / base.LA.DeltaTime)))));
 		lastPos = base.LegsAnim.BaseTransform.position;
 		vec.y = 0f;
 		vec = base.LA.RootToWorldSpaceVec(vec);
@@ -21330,443 +21330,6 @@ public class MotionInfluenceProcessor
 }
 
 
-using FIMSpace;
-using FIMSpace.Basics;
-using FIMSpace.GroundFitter;
-using UnityEngine;
-using UnityEngine.AI;
-
-[RequireComponent(typeof(NavMeshAgent))]
-public class FGroundFitter_Demo_NavMesh : MonoBehaviour
-{
-	public FGroundFitter_Base TargetGroundFitter;
-
-	[Range(0.5f, 50f)]
-	public float RotationSpeed = 3f;
-
-	[Range(0f, 1f)]
-	[Tooltip("Moving Accordingly to rotation after acceleration")]
-	public float DirectMovement = 0.8f;
-
-	public float AnimationSpeedScale = 1f;
-
-	private NavMeshAgent agent;
-
-	private FAnimationClips animationClips;
-
-	private bool reachedDestination;
-
-	private Vector3 lastAgentPosition;
-
-	private string movementClip;
-
-	private float dirMov;
-
-	private float sd_dirMov;
-
-	public bool moving { get; private set; }
-
-	private void Reset()
-	{
-		TargetGroundFitter = ((Component)this).GetComponent<FGroundFitter_Base>();
-		if (Object.op_Implicit((Object)(object)TargetGroundFitter))
-		{
-			TargetGroundFitter.GlueToGround = false;
-		}
-		agent = ((Component)this).GetComponent<NavMeshAgent>();
-		if (Object.op_Implicit((Object)(object)agent))
-		{
-			agent.acceleration = 1000f;
-			agent.angularSpeed = 100f;
-		}
-	}
-
-	protected virtual void Start()
-	{
-		//IL_004b: Unknown result type (might be due to invalid IL or missing references)
-		//IL_0062: Unknown result type (might be due to invalid IL or missing references)
-		//IL_007b: Unknown result type (might be due to invalid IL or missing references)
-		//IL_0080: Unknown result type (might be due to invalid IL or missing references)
-		if ((Object)(object)TargetGroundFitter == (Object)null)
-		{
-			TargetGroundFitter = ((Component)this).GetComponent<FGroundFitter_Base>();
-		}
-		if (Object.op_Implicit((Object)(object)TargetGroundFitter))
-		{
-			TargetGroundFitter.GlueToGround = false;
-		}
-		agent = ((Component)this).GetComponent<NavMeshAgent>();
-		agent.Warp(((Component)this).transform.position);
-		agent.SetDestination(((Component)this).transform.position);
-		moving = false;
-		lastAgentPosition = ((Component)this).transform.position;
-		reachedDestination = true;
-		animationClips = new FAnimationClips(((Component)this).GetComponentInChildren<Animator>());
-		animationClips.AddClip("Idle");
-		if (animationClips.Animator.StateExists("Move") || animationClips.Animator.StateExists("move"))
-		{
-			movementClip = "Move";
-		}
-		else
-		{
-			movementClip = "Walk";
-		}
-		animationClips.AddClip(movementClip);
-	}
-
-	protected virtual void Update()
-	{
-		//IL_0011: Unknown result type (might be due to invalid IL or missing references)
-		//IL_0016: Unknown result type (might be due to invalid IL or missing references)
-		//IL_003c: Unknown result type (might be due to invalid IL or missing references)
-		//IL_0042: Unknown result type (might be due to invalid IL or missing references)
-		//IL_0047: Unknown result type (might be due to invalid IL or missing references)
-		//IL_004c: Unknown result type (might be due to invalid IL or missing references)
-		//IL_0053: Unknown result type (might be due to invalid IL or missing references)
-		//IL_0058: Unknown result type (might be due to invalid IL or missing references)
-		//IL_0063: Unknown result type (might be due to invalid IL or missing references)
-		//IL_006f: Unknown result type (might be due to invalid IL or missing references)
-		//IL_0074: Unknown result type (might be due to invalid IL or missing references)
-		//IL_0161: Unknown result type (might be due to invalid IL or missing references)
-		//IL_0176: Unknown result type (might be due to invalid IL or missing references)
-		//IL_020b: Unknown result type (might be due to invalid IL or missing references)
-		//IL_020c: Unknown result type (might be due to invalid IL or missing references)
-		//IL_018d: Unknown result type (might be due to invalid IL or missing references)
-		//IL_0198: Unknown result type (might be due to invalid IL or missing references)
-		//IL_019d: Unknown result type (might be due to invalid IL or missing references)
-		//IL_01a2: Unknown result type (might be due to invalid IL or missing references)
-		//IL_01a4: Unknown result type (might be due to invalid IL or missing references)
-		//IL_01b0: Unknown result type (might be due to invalid IL or missing references)
-		//IL_01b7: Unknown result type (might be due to invalid IL or missing references)
-		//IL_01c2: Unknown result type (might be due to invalid IL or missing references)
-		//IL_01c7: Unknown result type (might be due to invalid IL or missing references)
-		//IL_01cc: Unknown result type (might be due to invalid IL or missing references)
-		//IL_01d1: Unknown result type (might be due to invalid IL or missing references)
-		//IL_01d5: Unknown result type (might be due to invalid IL or missing references)
-		//IL_0091: Unknown result type (might be due to invalid IL or missing references)
-		//IL_009c: Unknown result type (might be due to invalid IL or missing references)
-		//IL_00a2: Unknown result type (might be due to invalid IL or missing references)
-		//IL_00ac: Unknown result type (might be due to invalid IL or missing references)
-		//IL_00b1: Unknown result type (might be due to invalid IL or missing references)
-		//IL_00b6: Unknown result type (might be due to invalid IL or missing references)
-		//IL_011d: Unknown result type (might be due to invalid IL or missing references)
-		//IL_011e: Unknown result type (might be due to invalid IL or missing references)
-		//IL_0126: Unknown result type (might be due to invalid IL or missing references)
-		//IL_012b: Unknown result type (might be due to invalid IL or missing references)
-		FAnimationClips fAnimationClips = animationClips;
-		Vector3 val = agent.desiredVelocity;
-		fAnimationClips.SetFloat("AnimationSpeed", ((Vector3)(ref val)).magnitude * AnimationSpeedScale, 8f);
-		IsMovingCheck();
-		Vector3 val2 = agent.nextPosition - lastAgentPosition;
-		val = agent.velocity;
-		float magnitude = ((Vector3)(ref val)).magnitude;
-		_ = ((Vector3)(ref val2)).normalized;
-		Vector3 val3 = agent.nextPosition;
-		if (DirectMovement > 0f)
-		{
-			if (magnitude > 0f)
-			{
-				Vector3 val4 = lastAgentPosition + ((Component)this).transform.forward * magnitude * Time.deltaTime;
-				float num = 0.25f;
-				float num2 = 1f;
-				if (agent.remainingDistance <= agent.stoppingDistance * 1.1f + 0.1f)
-				{
-					num = 0.1f;
-					num2 = 0f;
-				}
-				dirMov = Mathf.SmoothDamp(dirMov, num2, ref sd_dirMov, num, 1000f, Time.deltaTime);
-				val3 = Vector3.LerpUnclamped(val3, val4, dirMov);
-			}
-			else
-			{
-				dirMov = Mathf.SmoothDamp(dirMov, 0f, ref sd_dirMov, 0.1f, 1000f, Time.deltaTime);
-			}
-		}
-		val3.y = agent.nextPosition.y;
-		((Component)this).transform.position = val3;
-		if (moving)
-		{
-			Vector3 val5 = agent.nextPosition + agent.desiredVelocity;
-			Quaternion val6 = Quaternion.LookRotation(new Vector3(val5.x, 0f, val5.z) - ((Component)this).transform.position);
-			float y = ((Quaternion)(ref val6)).eulerAngles.y;
-			TargetGroundFitter.UpAxisRotation = Mathf.LerpAngle(TargetGroundFitter.UpAxisRotation, y, Time.deltaTime * RotationSpeed);
-		}
-		lastAgentPosition = val3;
-	}
-
-	private bool IsMovingCheck()
-	{
-		//IL_0045: Unknown result type (might be due to invalid IL or missing references)
-		//IL_004a: Unknown result type (might be due to invalid IL or missing references)
-		bool num = moving;
-		moving = true;
-		if (!agent.pathPending && agent.remainingDistance <= agent.stoppingDistance)
-		{
-			if (agent.hasPath)
-			{
-				Vector3 velocity = agent.velocity;
-				if (((Vector3)(ref velocity)).sqrMagnitude != 0f)
-				{
-					goto IL_006e;
-				}
-			}
-			if (!reachedDestination)
-			{
-				OnReachDestination();
-			}
-			moving = false;
-		}
-		goto IL_006e;
-		IL_006e:
-		if (num != moving)
-		{
-			OnStartMoving();
-		}
-		return moving;
-	}
-
-	protected virtual void OnReachDestination()
-	{
-		reachedDestination = true;
-		animationClips.CrossFadeInFixedTime("Idle");
-	}
-
-	protected virtual void OnStartMoving()
-	{
-		reachedDestination = false;
-		animationClips.CrossFadeInFixedTime(movementClip);
-	}
-}
-
-
-using UnityEngine;
-using UnityEngine.AI;
-
-public class FGroundFitter_Demo_NavMeshInput : MonoBehaviour
-{
-	public NavMeshAgent TargetAgent;
-
-	private void Update()
-	{
-		//IL_001a: Unknown result type (might be due to invalid IL or missing references)
-		//IL_001f: Unknown result type (might be due to invalid IL or missing references)
-		//IL_0024: Unknown result type (might be due to invalid IL or missing references)
-		//IL_0027: Unknown result type (might be due to invalid IL or missing references)
-		//IL_002e: Unknown result type (might be due to invalid IL or missing references)
-		//IL_003e: Unknown result type (might be due to invalid IL or missing references)
-		//IL_005a: Unknown result type (might be due to invalid IL or missing references)
-		if (Input.GetMouseButtonDown(0) && Object.op_Implicit((Object)(object)TargetAgent))
-		{
-			Ray val = Camera.main.ScreenPointToRay(Input.mousePosition);
-			RaycastHit val2 = default(RaycastHit);
-			NavMeshHit val3 = default(NavMeshHit);
-			if (Physics.Raycast(((Ray)(ref val)).origin, ((Ray)(ref val)).direction, ref val2) && NavMesh.SamplePosition(((RaycastHit)(ref val2)).point, ref val3, 1f, 1))
-			{
-				TargetAgent.SetDestination(((NavMeshHit)(ref val3)).position);
-			}
-		}
-	}
-}
-
-
-using FIMSpace.Basics;
-using FIMSpace.GroundFitter;
-using UnityEngine;
-
-public class FGroundFitter_Demo_Patrolling : MonoBehaviour
-{
-	public Vector4 MovementRandomPointRange = new Vector4(25f, -25f, 25f, -25f);
-
-	public float speed = 1f;
-
-	private Transform bodyTransform;
-
-	private float bodyRotateSpeed = 5f;
-
-	private Animator animator;
-
-	private FGroundFitter fitter;
-
-	private float timer;
-
-	private Vector3 targetPoint;
-
-	private bool onDestination;
-
-	private FAnimationClips clips;
-
-	private void Start()
-	{
-		//IL_008a: Unknown result type (might be due to invalid IL or missing references)
-		//IL_00a0: Unknown result type (might be due to invalid IL or missing references)
-		//IL_00a5: Unknown result type (might be due to invalid IL or missing references)
-		//IL_00a8: Unknown result type (might be due to invalid IL or missing references)
-		//IL_00c4: Unknown result type (might be due to invalid IL or missing references)
-		//IL_00d8: Unknown result type (might be due to invalid IL or missing references)
-		fitter = ((Component)this).GetComponent<FGroundFitter>();
-		animator = ((Component)this).GetComponentInChildren<Animator>();
-		timer = Random.Range(1f, 5f);
-		if (((Object)this).name.Contains("Fpider"))
-		{
-			bodyTransform = ((Component)this).transform.GetChild(0).Find("BSkeleton").GetChild(0)
-				.Find("Body_Shield");
-		}
-		((Component)this).transform.rotation = Quaternion.Euler(0f, Random.Range(-180f, 180f), 0f);
-		FGroundFitter fGroundFitter = fitter;
-		Quaternion rotation = ((Component)this).transform.rotation;
-		fGroundFitter.UpAxisRotation = ((Quaternion)(ref rotation)).eulerAngles.y;
-		onDestination = true;
-		((Component)this).transform.localScale = Vector3.one * Random.Range(0.5f, 1f);
-		clips = new FAnimationClips(animator);
-		clips.AddClip("Idle");
-		clips.AddClip("Move");
-	}
-
-	private void Update()
-	{
-		//IL_0059: Unknown result type (might be due to invalid IL or missing references)
-		//IL_005e: Unknown result type (might be due to invalid IL or missing references)
-		//IL_0092: Unknown result type (might be due to invalid IL or missing references)
-		//IL_009d: Unknown result type (might be due to invalid IL or missing references)
-		//IL_00a8: Unknown result type (might be due to invalid IL or missing references)
-		//IL_00b2: Unknown result type (might be due to invalid IL or missing references)
-		//IL_00b7: Unknown result type (might be due to invalid IL or missing references)
-		//IL_00c7: Unknown result type (might be due to invalid IL or missing references)
-		//IL_00cd: Unknown result type (might be due to invalid IL or missing references)
-		//IL_0079: Unknown result type (might be due to invalid IL or missing references)
-		//IL_007e: Unknown result type (might be due to invalid IL or missing references)
-		//IL_0081: Unknown result type (might be due to invalid IL or missing references)
-		//IL_00e5: Unknown result type (might be due to invalid IL or missing references)
-		//IL_00f0: Unknown result type (might be due to invalid IL or missing references)
-		//IL_00f5: Unknown result type (might be due to invalid IL or missing references)
-		//IL_00fa: Unknown result type (might be due to invalid IL or missing references)
-		//IL_00ff: Unknown result type (might be due to invalid IL or missing references)
-		//IL_0113: Unknown result type (might be due to invalid IL or missing references)
-		if (onDestination)
-		{
-			timer -= Time.deltaTime;
-			if (timer < 0f)
-			{
-				ChooseNewDestination();
-			}
-			bodyRotateSpeed = Mathf.Lerp(bodyRotateSpeed, 50f, Time.deltaTime * 2f);
-		}
-		else
-		{
-			RaycastHit lastRaycast = fitter.LastRaycast;
-			if (Object.op_Implicit((Object)(object)((RaycastHit)(ref lastRaycast)).transform))
-			{
-				Transform transform = ((Component)this).transform;
-				lastRaycast = fitter.LastRaycast;
-				transform.position = ((RaycastHit)(ref lastRaycast)).point;
-			}
-			Transform transform2 = ((Component)this).transform;
-			transform2.position += ((Component)this).transform.forward * speed * Time.deltaTime;
-			if (Vector3.Distance(((Component)this).transform.position, targetPoint) < 2f)
-			{
-				ReachDestination();
-			}
-			Quaternion val = Quaternion.LookRotation(targetPoint - ((Component)this).transform.position);
-			fitter.UpAxisRotation = Mathf.LerpAngle(fitter.UpAxisRotation, ((Quaternion)(ref val)).eulerAngles.y, Time.deltaTime * 7f);
-			bodyRotateSpeed = Mathf.Lerp(bodyRotateSpeed, -250f, Time.deltaTime * 3f);
-		}
-		if (Object.op_Implicit((Object)(object)bodyTransform))
-		{
-			bodyTransform.Rotate(0f, 0f, Time.deltaTime * bodyRotateSpeed);
-		}
-	}
-
-	private void ChooseNewDestination()
-	{
-		//IL_003c: Unknown result type (might be due to invalid IL or missing references)
-		//IL_0041: Unknown result type (might be due to invalid IL or missing references)
-		//IL_0047: Unknown result type (might be due to invalid IL or missing references)
-		//IL_004c: Unknown result type (might be due to invalid IL or missing references)
-		//IL_0056: Unknown result type (might be due to invalid IL or missing references)
-		//IL_005b: Unknown result type (might be due to invalid IL or missing references)
-		//IL_0060: Unknown result type (might be due to invalid IL or missing references)
-		//IL_0072: Unknown result type (might be due to invalid IL or missing references)
-		//IL_0094: Unknown result type (might be due to invalid IL or missing references)
-		//IL_0099: Unknown result type (might be due to invalid IL or missing references)
-		targetPoint = new Vector3(Random.Range(MovementRandomPointRange.x, MovementRandomPointRange.y), 0f, Random.Range(MovementRandomPointRange.z, MovementRandomPointRange.w));
-		RaycastHit val = default(RaycastHit);
-		Physics.Raycast(targetPoint + Vector3.up * 1000f, Vector3.down, ref val, float.PositiveInfinity, LayerMask.op_Implicit(fitter.GroundLayerMask), (QueryTriggerInteraction)1);
-		if (Object.op_Implicit((Object)(object)((RaycastHit)(ref val)).transform))
-		{
-			targetPoint = ((RaycastHit)(ref val)).point;
-		}
-		animator.CrossFadeInFixedTime(clips["Move"], 0.25f);
-		onDestination = false;
-	}
-
-	private void ReachDestination()
-	{
-		timer = Random.Range(1f, 5f);
-		onDestination = true;
-		animator.CrossFadeInFixedTime(clips["Idle"], 0.15f);
-	}
-}
-
-
-using FIMSpace;
-using FIMSpace.GroundFitter;
-using UnityEngine;
-
-public class FGroundFitter_Demo_RootMotionExample : FGroundFitter_Movement
-{
-	protected override void Start()
-	{
-		base.Start();
-		clips.AddClip("RotateL");
-		clips.AddClip("RotateR");
-	}
-
-	protected override void HandleAnimations()
-	{
-		//IL_001a: Unknown result type (might be due to invalid IL or missing references)
-		//IL_001f: Unknown result type (might be due to invalid IL or missing references)
-		//IL_0040: Unknown result type (might be due to invalid IL or missing references)
-		//IL_0045: Unknown result type (might be due to invalid IL or missing references)
-		if (Input.GetKey((KeyCode)97))
-		{
-			CrossfadeTo("RotateL");
-			MoveVector = Vector3.zero;
-		}
-		else if (Input.GetKey((KeyCode)100))
-		{
-			CrossfadeTo("RotateR");
-			MoveVector = Vector3.zero;
-		}
-		else if (ActiveSpeed > 0.15f)
-		{
-			if (Sprint)
-			{
-				CrossfadeTo("Run");
-			}
-			else
-			{
-				CrossfadeTo("Walk");
-			}
-		}
-		else
-		{
-			CrossfadeTo("Idle");
-		}
-		if (animatorHaveAnimationSpeedProp)
-		{
-			if (inAir)
-			{
-				animator.LerpFloatValue("AnimationSpeed");
-			}
-			else
-			{
-				animator.LerpFloatValue("AnimationSpeed", MultiplySprintAnimation ? (ActiveSpeed / BaseSpeed) : Mathf.Min(1f, ActiveSpeed / BaseSpeed));
-			}
-		}
-	}
-}
-
-
 using FIMSpace.Basics;
 using FIMSpace.GroundFitter;
 using UnityEngine;
@@ -21878,8 +21441,8 @@ public class FGroundFitter_Movement : MonoBehaviour
 	[Tooltip("Protecting from going through walls when slope is very big and ground fitter is jumping into it")]
 	public bool NotFallingThrough;
 
-	[Tooltip("You need collider and rigidbody on object to make it work right - ALSO CHANGE YOUR CAMERA UPDATE CLOCK TO FIXED UPDATE AND USE TIME.fixedDeltaTime - ! For now it can cause errors when jumping, character can go through floor sometimes ! - Will be upgraded in future versions")]
 	[Header("(experimental)")]
+	[Tooltip("You need collider and rigidbody on object to make it work right - ALSO CHANGE YOUR CAMERA UPDATE CLOCK TO FIXED UPDATE AND USE TIME.fixedDeltaTime - ! For now it can cause errors when jumping, character can go through floor sometimes ! - Will be upgraded in future versions")]
 	public bool UsePhysics;
 
 	[Tooltip("Disabling translating object from code and running animation without need to hold minimum movement speed")]
@@ -21939,15 +21502,15 @@ public class FGroundFitter_Movement : MonoBehaviour
 	[HideInInspector]
 	public string SetIsGroundedParam = "";
 
-	[Tooltip("If you want to set some animator parameter during accelerating moving")]
 	[HideInInspector]
+	[Tooltip("If you want to set some animator parameter during accelerating moving")]
 	public string SetIsMovingParam = "";
 
 	[Tooltip("If using physical move with collider, assigning to the collider sliding material")]
 	[HideInInspector]
 	public bool UseSlidingMat = true;
 
-	private static PhysicMaterial pm_Sliding = null;
+	private static PhysicsMaterial pm_Sliding = null;
 
 	private void Reset()
 	{
@@ -22024,9 +21587,9 @@ public class FGroundFitter_Movement : MonoBehaviour
 					{
 						if ((Object)(object)pm_Sliding == (Object)null)
 						{
-							pm_Sliding = new PhysicMaterial("Sliding");
+							pm_Sliding = new PhysicsMaterial("Sliding");
 							pm_Sliding.bounciness = 0f;
-							pm_Sliding.frictionCombine = (PhysicMaterialCombine)2;
+							pm_Sliding.frictionCombine = (PhysicsMaterialCombine)2;
 							pm_Sliding.dynamicFriction = 0f;
 							pm_Sliding.staticFriction = 0f;
 						}
@@ -22349,7 +21912,7 @@ public class FGroundFitter_Movement : MonoBehaviour
 			{
 				num = (yAdjustPos.Value - rigb.position.y) / Time.fixedDeltaTime;
 			}
-			rigb.velocity = new Vector3(lastVelocity.x, num, lastVelocity.z);
+			rigb.linearVelocity = new Vector3(lastVelocity.x, num, lastVelocity.z);
 		}
 		else
 		{
@@ -22634,32 +22197,32 @@ public abstract class FGroundFitter_Base : MonoBehaviour
 	[Tooltip("Transform which will be rotated by script, usually it can be the same transform as component's")]
 	public Transform TransformToRotate;
 
-	[Space(3f)]
 	[Tooltip("If you want this script only to change your object's rotation and do nothing with position, untoggle this")]
+	[Space(3f)]
 	public bool GlueToGround;
 
-	[Header("> Tweaking Settings <", order = 0)]
 	[Range(0f, 1f)]
-	[Tooltip("If forward/pitch rotation value should go in lighter value than real normal hit direction")]
 	[Space(4f, order = 1)]
+	[Header("> Tweaking Settings <", order = 0)]
+	[Tooltip("If forward/pitch rotation value should go in lighter value than real normal hit direction")]
 	public float MildForwardValue;
 
-	[Range(0f, 90f)]
 	[Tooltip("Maximum rotation angle in rotation of x/pitch axis, so rotating forward - degrees value of maximum rotation")]
+	[Range(0f, 90f)]
 	public float MaxForwardRotation = 90f;
 
-	[Tooltip("If side rotation value/roll should go in lighter value than real normal hit direction")]
-	[Range(0f, 1f)]
 	[Space(5f)]
+	[Range(0f, 1f)]
+	[Tooltip("If side rotation value/roll should go in lighter value than real normal hit direction")]
 	public float MildHorizontalValue;
 
 	[Range(0f, 90f)]
 	[Tooltip("Max roll rotation. If rotation should work on also on x axis - good for spiders, can look wrong on quadropeds etc.")]
 	public float MaxHorizontalRotation = 90f;
 
-	[Tooltip("We should cast raycast from position little higher than foots of your game object")]
-	[Space(4f, order = 1)]
 	[Header("> Advanced settings <", order = 0)]
+	[Space(4f, order = 1)]
+	[Tooltip("We should cast raycast from position little higher than foots of your game object")]
 	public float RaycastHeightOffset = 0.5f;
 
 	[Tooltip("How far ray should cast to check if ground is under feet")]
@@ -22675,8 +22238,8 @@ public abstract class FGroundFitter_Base : MonoBehaviour
 	[HideInInspector]
 	public float UpOffset;
 
-	[Tooltip("What collision layers should be included by algorithm")]
 	[Space(8f)]
+	[Tooltip("What collision layers should be included by algorithm")]
 	public LayerMask GroundLayerMask = LayerMask.op_Implicit(1);
 
 	[Tooltip("When casting down vector should adjust with transform's rotation")]
@@ -23103,12 +22666,12 @@ using UnityEngine;
 
 public abstract class FGroundFitter_Base_RootMotion : FGroundFitter_Base
 {
-	[Tooltip("Making ground fitter translate with root motion")]
 	[HideInInspector]
+	[Tooltip("Making ground fitter translate with root motion")]
 	public bool HandleRootMotion;
 
-	[SerializeField]
 	[HideInInspector]
+	[SerializeField]
 	protected Transform parentTransform;
 
 	[SerializeField]

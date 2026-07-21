@@ -2,8 +2,8 @@ using System;
 using System.Runtime.CompilerServices;
 using Microsoft.CodeAnalysis;
 
-[Embedded]
 [CompilerGenerated]
+[Embedded]
 internal sealed class IsUnmanagedAttribute : Attribute
 {
 }
@@ -584,158 +584,6 @@ public class BakeBallPositionsToVertexColor : MonoBehaviour
 }
 
 
-using System.Collections.Generic;
-using UnityEngine;
-
-[ExecuteInEditMode]
-public class BakeBallsToUV3FromUV2Islands : MonoBehaviour
-{
-	public enum StoreMode
-	{
-		BottomY,
-		CenterY,
-		TopY
-	}
-
-	public MeshFilter meshFilter;
-
-	[Tooltip("Which value to store in UV3.y per ball")]
-	public StoreMode store;
-
-	[Tooltip("Group key = floor(uv2.y + islandOffset). If your islands aren't exactly on integers, tweak this.")]
-	public float islandOffset;
-
-	public bool normalize01 = true;
-
-	[ContextMenu("Bake UV3 from UV2 islands")]
-	public void Bake()
-	{
-		//IL_0120: Unknown result type (might be due to invalid IL or missing references)
-		//IL_0125: Unknown result type (might be due to invalid IL or missing references)
-		//IL_013b: Unknown result type (might be due to invalid IL or missing references)
-		//IL_0140: Unknown result type (might be due to invalid IL or missing references)
-		//IL_0145: Unknown result type (might be due to invalid IL or missing references)
-		//IL_014a: Unknown result type (might be due to invalid IL or missing references)
-		//IL_0165: Unknown result type (might be due to invalid IL or missing references)
-		//IL_016f: Unknown result type (might be due to invalid IL or missing references)
-		//IL_0174: Unknown result type (might be due to invalid IL or missing references)
-		//IL_0194: Unknown result type (might be due to invalid IL or missing references)
-		//IL_0199: Unknown result type (might be due to invalid IL or missing references)
-		//IL_01ce: Unknown result type (might be due to invalid IL or missing references)
-		//IL_0350: Unknown result type (might be due to invalid IL or missing references)
-		//IL_0355: Unknown result type (might be due to invalid IL or missing references)
-		if (!Object.op_Implicit((Object)(object)meshFilter))
-		{
-			meshFilter = ((Component)this).GetComponent<MeshFilter>();
-		}
-		if (!Object.op_Implicit((Object)(object)meshFilter) || !Object.op_Implicit((Object)(object)meshFilter.sharedMesh))
-		{
-			Debug.LogError((object)"No MeshFilter/sharedMesh.");
-			return;
-		}
-		Mesh sharedMesh = meshFilter.sharedMesh;
-		Mesh val = Object.Instantiate<Mesh>(sharedMesh);
-		((Object)val).name = ((Object)sharedMesh).name + " (baked UV3)";
-		Vector3[] vertices = val.vertices;
-		Vector2[] uv = val.uv2;
-		if (uv == null || uv.Length != vertices.Length)
-		{
-			Debug.LogError((object)"Mesh needs UV2 for island grouping.");
-			return;
-		}
-		Dictionary<int, List<int>> dictionary = new Dictionary<int, List<int>>();
-		for (int i = 0; i < vertices.Length; i++)
-		{
-			int key = Mathf.FloorToInt(uv[i].y + islandOffset + 0.0001f);
-			if (!dictionary.TryGetValue(key, out var value))
-			{
-				value = (dictionary[key] = new List<int>());
-			}
-			value.Add(i);
-		}
-		Dictionary<int, float> dictionary2 = new Dictionary<int, float>();
-		Dictionary<int, float> dictionary3 = new Dictionary<int, float>();
-		foreach (KeyValuePair<int, List<int>> item in dictionary)
-		{
-			List<int> value2 = item.Value;
-			Vector3 val2 = Vector3.zero;
-			foreach (int item2 in value2)
-			{
-				val2 += vertices[item2];
-			}
-			val2 /= (float)value2.Count;
-			float num = 0f;
-			foreach (int item3 in value2)
-			{
-				float num2 = Vector3.Distance(vertices[item3], val2);
-				if (num2 > num)
-				{
-					num = num2;
-				}
-			}
-			dictionary2[item.Key] = val2.y;
-			dictionary3[item.Key] = num;
-		}
-		Dictionary<int, float> dictionary4 = new Dictionary<int, float>();
-		float num3 = float.PositiveInfinity;
-		float num4 = float.NegativeInfinity;
-		float num5 = 0f;
-		foreach (int key2 in dictionary.Keys)
-		{
-			float num6 = dictionary2[key2];
-			float num7 = dictionary3[key2];
-			float num9 = (dictionary4[key2] = store switch
-			{
-				StoreMode.CenterY => num6, 
-				StoreMode.TopY => num6 + num7, 
-				_ => num6 - num7, 
-			});
-			if (num9 < num3)
-			{
-				num3 = num9;
-			}
-			if (num9 > num4)
-			{
-				num4 = num9;
-			}
-			if (num7 > num5)
-			{
-				num5 = num7;
-			}
-		}
-		float num10 = Mathf.Max(1E-06f, num4 - num3);
-		Vector2[] array = val.uv3;
-		if (array == null || array.Length != vertices.Length)
-		{
-			array = (Vector2[])(object)new Vector2[vertices.Length];
-		}
-		foreach (KeyValuePair<int, List<int>> item4 in dictionary)
-		{
-			float num11 = dictionary4[item4.Key];
-			if (normalize01)
-			{
-				num11 = Mathf.Clamp01((num11 - num3) / num10);
-			}
-			foreach (int item5 in item4.Value)
-			{
-				array[item5] = new Vector2(0f, num11);
-			}
-		}
-		val.uv3 = array;
-		meshFilter.sharedMesh = val;
-		Debug.Log((object)$"Baked {dictionary.Count} balls into UV3.y (mode={store}, normalized={normalize01}).");
-	}
-}
-
-
-public enum StoreMode
-{
-	BottomY,
-	CenterY,
-	TopY
-}
-
-
 using System;
 using UnityEngine;
 
@@ -858,6 +706,39 @@ public class MonumentBenchmarkScene : BenchmarkScene
 }
 
 
+public class PlayerModelBenchmarkScene : BenchmarkScene
+{
+	public enum LODLevel
+	{
+		Lod0,
+		Lod1,
+		Lod2,
+		Lod3,
+		Culled,
+		Invisible
+	}
+
+	public GameObjectRef PlayerModelPrefab;
+
+	public int ModelCount = 100;
+
+	public LODLevel LodLevel;
+
+	public bool UseRandomAnims;
+}
+
+
+public enum LODLevel
+{
+	Lod0,
+	Lod1,
+	Lod2,
+	Lod3,
+	Culled,
+	Invisible
+}
+
+
 using UnityEngine;
 
 public class BenchmarkScene : MonoBehaviour
@@ -869,1284 +750,6 @@ public class BenchmarkScene : MonoBehaviour
 	public int MaxNumberOfFrames;
 
 	public int MaxNumberOfSeconds = 10;
-}
-
-
-using UnityEngine;
-
-[DefaultExecutionOrder(-9999)]
-public class UI_Error : MonoBehaviour
-{
-	public UI_ErrorEntry[] entries;
-
-	public Canvas canvas;
-
-	public CanvasGroup canvasGroup;
-
-	[Tooltip("How long (seconds) the panel stays fully visible after the last error.")]
-	public float visibleDuration = 25f;
-
-	[Tooltip("How long (seconds) the lerp to zero alpha takes after visibleDuration expires.")]
-	public float fadeDuration = 5f;
-}
-
-
-using Facepunch.Flexbox;
-using Rust.UI;
-using UnityEngine;
-
-public class UI_ErrorEntry : MonoBehaviour
-{
-	public RustFlexText error;
-
-	public GameObject amountObject;
-
-	public RustFlexText amount;
-
-	public FlexTransition transition;
-}
-
-
-using Rust.UI;
-using UnityEngine;
-using UnityEngine.UI;
-
-public class UI_Autocomplete : MonoBehaviour
-{
-	public ScrollRect scrollRect;
-
-	[Header("Buttons")]
-	public UI_AutoCompleteButton[] buttons;
-
-	public StyleAsset buttonStyle;
-
-	public StyleAsset hoverStyle;
-
-	public StyleAsset buttonDarkStyle;
-
-	public bool IsShowing { get; private set; }
-}
-
-
-using Rust.UI;
-using UnityEngine;
-
-public class UI_AutoCompleteButton : MonoBehaviour
-{
-	public RustFlexText RealmTag;
-
-	public RustFlexText Text;
-
-	public RustButton Button;
-}
-
-
-using Rust.UI;
-using UnityEngine;
-
-public class UI_CommandListButton : MonoBehaviour
-{
-	public RustFlexText RealmTag;
-
-	public RustFlexText CommandString;
-
-	public RustFlexText DescriptionString;
-
-	public RustFlexText Default;
-
-	public RustButton Button;
-
-	public StyleAsset StandardStyle;
-
-	public StyleAsset DarkStyle;
-
-	public StyleAsset ChangedStyle;
-
-	[Header("Tooltips")]
-	public Tooltip DescriptionTooltip;
-
-	public Tooltip CommandTooltip;
-
-	public Tooltip ValueTooltip;
-}
-
-
-using Rust.UI.MainMenu;
-using UnityEngine;
-using UnityEngine.UI;
-
-[DefaultExecutionOrder(-1017)]
-public class UI_Console : UI_Window
-{
-	public static UI_Console Instance;
-
-	[Header("Console")]
-	public UI_Console_Display consoleDisplay;
-
-	public ConsoleTMPInputField consoleInputField;
-
-	public CanvasGroup consoleGroup;
-
-	public GameObject scrollbar;
-
-	[Header("Extra")]
-	public UI_Console_CommandList commandList;
-
-	public Image DarkenImage;
-
-	public float DarkenAlpha = 0.15f;
-
-	public float DarkenSpeed = 8f;
-
-	[Header("Console - Autocomplete")]
-	public UI_Autocomplete autocompletePrefab;
-
-	public RectTransform autocompleteParent;
-
-	private UI_Autocomplete autocomplete;
-}
-
-
-using Rust.UI;
-using Rust.UI.MainMenu;
-using UnityEngine;
-using UnityEngine.UI;
-
-public class UI_Console_CommandList : UI_Window
-{
-	public static UI_Console_CommandList Instance;
-
-	[Space]
-	public FlexVirtualScroll VirtualScroll;
-
-	public RustInput CommandSearchInput;
-
-	public RustButton ShowClientButton;
-
-	public RustButton ShowServerButton;
-
-	public Image DarkenImage;
-
-	public float DarkenAlpha = 0.5f;
-
-	public float DarkenSpeed = 8f;
-}
-
-
-public enum ConsoleCommandRealm
-{
-	Client,
-	Server,
-	Shared,
-	Rcon
-}
-
-
-using Facepunch.Flexbox;
-using UnityEngine;
-using UnityEngine.UI;
-
-public class UI_Console_Display : FacepunchBehaviour
-{
-	public FlexElement consoleAbsoluteFlex;
-
-	public FlexVirtualScroll virtualScroll;
-
-	public ScrollRect scrollRect;
-
-	[Range(0f, 64f)]
-	public float UpdateTickRate;
-
-	[Header("Realm Colours")]
-	public Color ClientColour;
-
-	public Color ServerColour;
-
-	public Color SharedColour;
-
-	public Color RconColour;
-
-	[Space]
-	public Color DescriptionColour;
-
-	public Color DefaultValueColour;
-}
-
-
-using Rust.UI;
-using UnityEngine;
-using UnityEngine.UI;
-
-public class UI_TimestampedConsoleRow : MonoBehaviour
-{
-	public RustFlexText TimestampText;
-
-	public RustFlexText MessageText;
-
-	public Image BackgroundImage;
-
-	[Space]
-	public Color LogColor;
-
-	public Color ErrorColor;
-
-	public Color BackgroundErrorColor;
-
-	public Color WarningColor;
-
-	public Color InputColor;
-}
-
-
-using Rust.UI;
-using Rust.UI.MainMenu;
-using UnityEngine;
-using UnityEngine.UI;
-
-public class UI_CopyPaste : UI_Window
-{
-	[SerializeField]
-	[Space]
-	protected ScrollRect scrollRect;
-
-	[SerializeField]
-	protected FlexVirtualScroll gridVirtualScrollFlex;
-
-	[SerializeField]
-	protected FlexVirtualScroll listVirtualScrollFlex;
-
-	[SerializeField]
-	private RectTransform fileButtonsParent;
-
-	[SerializeField]
-	private RectTransform fileLinesParent;
-
-	[Space]
-	[SerializeField]
-	private GameObject gridModeButtonGo;
-
-	[SerializeField]
-	private GameObject listModeButtonGo;
-
-	[SerializeField]
-	private GameObject sortButton;
-
-	[SerializeField]
-	private RustText sortButtonText;
-
-	[SerializeField]
-	private RustButton undoPasteButton;
-
-	[SerializeField]
-	private GameObject fileName;
-
-	[SerializeField]
-	private RustText undoPasteText;
-
-	[SerializeField]
-	private GameObject nothingToShowContainer;
-
-	[SerializeField]
-	private RustInput searchInputField;
-}
-
-
-using Facepunch.Flexbox;
-using Rust.UI;
-using UnityEngine;
-
-public class UI_CopyPasteFileButton : MonoBehaviour
-{
-	[SerializeField]
-	private StyleAsset style;
-
-	[SerializeField]
-	private StyleAsset evenStyle;
-
-	[SerializeField]
-	private RustButton button;
-
-	[SerializeField]
-	[Space]
-	private bool showThumbnailOnHover;
-
-	[SerializeField]
-	private GameObject thumbnailGroup;
-
-	[SerializeField]
-	private CoverImage thumbnailImage;
-
-	[SerializeField]
-	private GameObject missingThumbnail;
-
-	[SerializeField]
-	private RustText fileNameText;
-
-	[SerializeField]
-	private RustText dateText;
-
-	[SerializeField]
-	private RustText fileSizeText;
-
-	[SerializeField]
-	private GameObject entityCount;
-
-	[SerializeField]
-	private RustText entityCountText;
-
-	[SerializeField]
-	[Space]
-	private GameObject deleteButton;
-
-	[SerializeField]
-	private FlexTransition hoverTransition;
-}
-
-
-using Rust.UI;
-using UnityEngine;
-
-public class UI_CopyPasteOptionsPanel : MonoBehaviour
-{
-	[SerializeField]
-	private RustButton snapTerrainToggle;
-
-	[SerializeField]
-	private RustButton deployablesToggle;
-
-	[SerializeField]
-	private RustButton npcsToggle;
-
-	[SerializeField]
-	private RustButton playersToggle;
-
-	[SerializeField]
-	private RustButton resourcesToggle;
-
-	[SerializeField]
-	private RustButton vehiclesToggle;
-
-	[SerializeField]
-	private RustButton buildingOnlyToggle;
-
-	[SerializeField]
-	private RustButton foundationsOnlyToggle;
-
-	[SerializeField]
-	private RustButton autoAuthToggle;
-}
-
-
-public static class EngineScriptExecutionOrder
-{
-	public const int ERROR = -9999;
-
-	public const int DEVELOPER_TOOLS = -1017;
-
-	public const int CONSOLE = -1017;
-}
-
-
-using Facepunch.Flexbox;
-using Rust.UI;
-using Rust.UI.MainMenu;
-using UnityEngine;
-using UnityEngine.UI;
-
-public abstract class UI_DevListBase : UI_Window
-{
-	[Space]
-	[SerializeField]
-	protected FlexColumnsElement flexColumns;
-
-	[SerializeField]
-	protected ScrollRect scrollRect;
-
-	[SerializeField]
-	protected GameObjectRef categoryButtonPrefab;
-
-	[SerializeField]
-	protected GameObjectRef itemButtonPrefab;
-
-	[Space]
-	[SerializeField]
-	protected RectTransform categoryButtonsParent;
-
-	[SerializeField]
-	protected RectTransform itemButtonsParent;
-
-	[SerializeField]
-	protected RustInput searchInputField;
-
-	[SerializeField]
-	protected FlexVirtualScroll virtualScrollFlex;
-
-	[Space]
-	[SerializeField]
-	protected RustButton favouritesButton;
-
-	[SerializeField]
-	protected RustButton recentsButton;
-
-	[SerializeField]
-	protected UI_RustButtonGroup buttonGroup;
-}
-
-
-using System;
-using Rust.UI;
-using UnityEngine;
-using UnityEngine.UI;
-
-public class UI_DevListButton : MonoBehaviour
-{
-	[SerializeField]
-	private Image itemIcon;
-
-	[SerializeField]
-	private RustText itemNameText;
-
-	[SerializeField]
-	private Image forbiddenImage;
-
-	[SerializeField]
-	private GameObject giveButtons;
-
-	[SerializeField]
-	private RustButton favouriteButton;
-
-	[SerializeField]
-	private RustButton equipButton;
-
-	[SerializeField]
-	private GameObject selectionHighlight;
-
-	[NonSerialized]
-	public ItemDefinition itemDef;
-
-	[NonSerialized]
-	public ScrollRect scroll;
-}
-
-
-using Rust.UI;
-using UnityEngine;
-
-public class UI_DevListItems : UI_DevListBase
-{
-	[SerializeField]
-	[Space]
-	private RustButton hiddenItemsToggleButton;
-}
-
-
-public class UI_DevListVehicles : UI_DevListBase
-{
-}
-
-
-using Rust.UI;
-using Rust.UI.MainMenu;
-using UnityEngine;
-using UnityEngine.UI;
-
-public class UI_Loadout : UI_Window
-{
-	[Space]
-	[SerializeField]
-	protected RectTransform buttonsParents;
-
-	[SerializeField]
-	protected ScrollRect scrollRect;
-
-	[SerializeField]
-	protected FlexVirtualScroll virtualScrollFlex;
-
-	[SerializeField]
-	private RustText sortButtonText;
-
-	[SerializeField]
-	private GameObject openFolderButton;
-
-	[SerializeField]
-	private UI_Popup_LoadoutSave savePopup;
-
-	[SerializeField]
-	private GameObject nothingToShowContainer;
-
-	[SerializeField]
-	private RustInput searchInputField;
-}
-
-
-using Rust.UI;
-using UnityEngine;
-
-public class UI_LoadoutFileButton : MonoBehaviour
-{
-	[SerializeField]
-	private RustText fileNameText;
-
-	[SerializeField]
-	private RustText dateText;
-
-	[SerializeField]
-	private RustText itemCountText;
-
-	[Space]
-	[SerializeField]
-	private GameObject deleteButton;
-
-	[SerializeField]
-	private RectTransform virtualItemParent;
-}
-
-
-using Rust.UI;
-using Rust.UI.MainMenu;
-using UnityEngine;
-
-public class UI_Popup_LoadoutSave : UI_Popup
-{
-	[SerializeField]
-	private RustInput inputField;
-}
-
-
-using UnityEngine;
-
-public abstract class UI_ServerAdminUGCEntry : MonoBehaviour
-{
-}
-
-
-using Rust.UI;
-using UnityEngine;
-
-public class UI_ServerAdminUGCEntryAudio : UI_ServerAdminUGCEntry
-{
-	[SerializeField]
-	private AudioSource audioSpeaker;
-
-	[SerializeField]
-	[Space]
-	private RustText playbackText;
-
-	[SerializeField]
-	private RustSlider progressSlider;
-
-	[SerializeField]
-	private RustIcon playIcon;
-}
-
-
-using Rust.UI;
-using UnityEngine;
-using UnityEngine.UI;
-
-public class UI_ServerAdminUGCEntryImage : UI_ServerAdminUGCEntry
-{
-	[SerializeField]
-	private RawImage rawImage;
-
-	[SerializeField]
-	private Vector2 originalImageSize;
-
-	[Space]
-	[SerializeField]
-	private GameObject multiImageRoot;
-
-	[SerializeField]
-	private RustText imageIndexText;
-}
-
-
-using UnityEngine;
-
-public class UI_ServerAdminUGCEntryPattern : UI_ServerAdminUGCEntry
-{
-	[SerializeField]
-	private GameObjectRef starPrefab;
-
-	[SerializeField]
-	private RectTransform starRoot;
-}
-
-
-using UnityEngine;
-using UnityEngine.UI;
-
-public class UI_ServerAdminUGCEntrySculpture : UI_ServerAdminUGCEntry
-{
-	[SerializeField]
-	private Camera renderCamera;
-
-	[SerializeField]
-	private Material materialToUse;
-
-	[SerializeField]
-	private RawImage targetRawImage;
-}
-
-
-using Rust.UI;
-using UnityEngine;
-
-public class UI_ServerAdminUGCEntryStub : MonoBehaviour
-{
-	[SerializeField]
-	private RustText prefabNameText;
-
-	[Header("Widgets")]
-	[SerializeField]
-	private UI_ServerAdminUGCEntryImage imageWidget;
-
-	[SerializeField]
-	private UI_ServerAdminUGCEntryAudio audioWidget;
-
-	[SerializeField]
-	private UI_ServerAdminUGCEntryPattern patternWidget;
-
-	[SerializeField]
-	private UI_ServerAdminUGCEntryVendingMachine vendingMachineWidget;
-
-	[SerializeField]
-	private UI_ServerAdminUGCEntrySculpture sculptureWidget;
-
-	[Space]
-	[SerializeField]
-	private RustButton editHistoryButton;
-
-	[SerializeField]
-	private GameObjectRef historyPlayerIdPrefab;
-
-	[SerializeField]
-	private RectTransform historyPlayerIdParent;
-}
-
-
-using UnityEngine;
-
-public class UI_ServerAdminUGCEntryVendingMachine : UI_ServerAdminUGCEntry
-{
-	[SerializeField]
-	private TmProEmojiRedirector emojiRedirector;
-}
-
-
-using Rust.UI;
-using UnityEngine;
-
-public class UI_ServerAdminUGCFilterPanel : MonoBehaviour
-{
-	[SerializeField]
-	private RustButton filterPaintingsButton;
-
-	[SerializeField]
-	private RustButton filterVendingMachinesButton;
-
-	[SerializeField]
-	private RustButton filterAudioButton;
-
-	[SerializeField]
-	private RustButton filterSculpturesButton;
-
-	[SerializeField]
-	private RustButton filterWantedPostersButton;
-
-	[SerializeField]
-	private RustButton filterPatternBoommerButton;
-}
-
-
-using Facepunch.Flexbox;
-using Rust.UI;
-using Rust.UI.MainMenu;
-using UnityEngine;
-using UnityEngine.UI;
-
-public class UI_ServerAdmin : UI_Window
-{
-	public static UI_ServerAdmin Instance;
-
-	[Header("Player List")]
-	[SerializeField]
-	private GameObjectRef playerEntryPrefab;
-
-	[SerializeField]
-	private RectTransform playerInfoParent;
-
-	[SerializeField]
-	private FlexElement playerInfoParentFlex;
-
-	[SerializeField]
-	private Scrollbar playerListScrollbar;
-
-	[SerializeField]
-	private ScrollRect playerListScrollRect;
-
-	[SerializeField]
-	private RustText playerCountText;
-
-	[SerializeField]
-	private RustInput playerNameFilter;
-
-	[SerializeField]
-	private UI_ServerAdminPlayerInfo playerInfoPanel;
-
-	[SerializeField]
-	private RustInput playerListSearchInput;
-
-	[Header("Server Info")]
-	[SerializeField]
-	private GameObjectRef serverInfoEntryPrefab;
-
-	[SerializeField]
-	private RectTransform serverInfoParent;
-
-	[SerializeField]
-	[Header("Convars")]
-	private GameObjectRef convarInfoEntryPrefab;
-
-	[SerializeField]
-	private GameObjectRef convarInfoLongEntryPrefab;
-
-	[SerializeField]
-	private RectTransform convarInfoParent;
-
-	[Header("UGC")]
-	[SerializeField]
-	private FlexVirtualScroll ugcVirtualScroll;
-
-	[SerializeField]
-	private FlexElement ugcContentFlex;
-
-	[SerializeField]
-	private Scrollbar ugcScrollbar;
-
-	[SerializeField]
-	private RustInput ugcNameFilter;
-
-	[SerializeField]
-	private UI_ServerAdminUGCFilterPanel ugcFilterPanel;
-
-	[SerializeField]
-	private GameObject expandedUgcRoot;
-
-	[SerializeField]
-	private RawImage expandedUgcImage;
-}
-
-
-using ConVar;
-using Rust.UI;
-using UnityEngine;
-
-public class UI_ServerAdminConvarInfo : MonoBehaviour
-{
-	[SerializeField]
-	private RustText convarName;
-
-	[SerializeField]
-	private RustText convarValue;
-
-	[SerializeField]
-	private Tooltip tooltipComponent;
-
-	private Admin.ServerConvarInfo cachedConvar;
-}
-
-
-using Rust.UI;
-using UnityEngine;
-using UnityEngine.UI;
-
-public class UI_ServerAdminPlayerEntry : MonoBehaviour
-{
-	[SerializeField]
-	private RawImage avatarImage;
-
-	[SerializeField]
-	private RustText playerNameText;
-
-	[SerializeField]
-	private RustText playerIdText;
-
-	[SerializeField]
-	private RustText pingText;
-
-	[SerializeField]
-	[Space]
-	private Color evenColor;
-
-	[SerializeField]
-	private Image bgImage;
-
-	public RustButton button;
-}
-
-
-using Rust.UI;
-using Rust.UI.MainMenu;
-using UnityEngine;
-using UnityEngine.UI;
-
-public class UI_ServerAdminPlayerInfo : UI_Window
-{
-	private static readonly Phrase MutePhrase = new Phrase("playerinfo.mute", "Mute ({0})");
-
-	private static readonly Phrase PermanentPhrase = new Phrase("playerinfo.mutepermanent", "Permanent");
-
-	[SerializeField]
-	[Space]
-	private RawImage avatarImage;
-
-	[SerializeField]
-	private RustText headerNameText;
-
-	[SerializeField]
-	private RustText playerNameText;
-
-	[SerializeField]
-	private RustText steamIDText;
-
-	[SerializeField]
-	private RustText pingText;
-
-	[SerializeField]
-	private GameObject addressGroup;
-
-	[SerializeField]
-	private RustText addressText;
-
-	[SerializeField]
-	private RustText connectedTimeText;
-
-	[SerializeField]
-	private RustText violationLevelText;
-
-	[SerializeField]
-	private RustText healthText;
-
-	[SerializeField]
-	private RustText positionText;
-
-	[SerializeField]
-	private RustText teamIDText;
-
-	[Space]
-	[SerializeField]
-	private RustInput muteReasonInput;
-
-	[SerializeField]
-	private RustInput kickReasonInput;
-
-	[SerializeField]
-	private RustInput banReasonInput;
-
-	[SerializeField]
-	private RustText muteButtonText;
-
-	[SerializeField]
-	private GameObject muteButton;
-
-	[SerializeField]
-	private GameObject unmuteButton;
-}
-
-
-using Rust.UI;
-using UnityEngine;
-
-public class UI_ServerAdminServerInfo : MonoBehaviour
-{
-	[SerializeField]
-	private RustText InfoName;
-
-	[SerializeField]
-	private RustText InfoValue;
-
-	private static Phrase HostNamePhrase = new Phrase("serverinfo.HostName", "Host Name");
-
-	private static Phrase MaxPlayersPhrase = new Phrase("serverinfo.MaxPlayers", "Max Players");
-
-	private static Phrase PlayersPhrase = new Phrase("serverinfo.Players", "Players");
-
-	private static Phrase QueuedPhrase = new Phrase("serverinfo.Queued", "Queued");
-
-	private static Phrase JoiningPhrase = new Phrase("serverinfo.Joining", "Joining");
-
-	private static Phrase ReservedSlotsPhrase = new Phrase("serverinfo.ReservedSlots", "Reserved Slots");
-
-	private static Phrase EntityCountPhrase = new Phrase("serverinfo.EntityCount", "Entity Count");
-
-	private static Phrase GameTimePhrase = new Phrase("serverinfo.GameTime", "Game Time");
-
-	private static Phrase UptimePhrase = new Phrase("serverinfo.Uptime", "Uptime");
-
-	private static Phrase MapPhrase = new Phrase("serverinfo.Map", "Map");
-
-	private static Phrase FrameratePhrase = new Phrase("serverinfo.Framerate", "Framerate");
-
-	private static Phrase MemoryPhrase = new Phrase("serverinfo.Memory", "Memory");
-
-	private static Phrase MemoryUsageSystemPhrase = new Phrase("serverinfo.MemoryUsageSystem", "System Memory Usage");
-
-	private static Phrase CollectionsPhrase = new Phrase("serverinfo.Collections", "Garbage Collections");
-
-	private static Phrase NetworkInPhrase = new Phrase("serverinfo.NetworkIn", "Network In");
-
-	private static Phrase NetworkOutPhrase = new Phrase("serverinfo.NetworkOut", "Network Out");
-
-	private static Phrase RestartingPhrase = new Phrase("serverinfo.Restarting", "Restarting");
-
-	private static Phrase SaveCreatedTimePhrase = new Phrase("serverinfo.SaveCreatedTime", "Save Created Time");
-
-	private static Phrase VersionPhrase = new Phrase("serverinfo.Version", "Version");
-
-	private static Phrase ProtocolPhrase = new Phrase("serverinfo.Protocol", "Protocol");
-}
-
-
-using Rust.UI;
-using UnityEngine;
-
-public class UI_ToggleConvar : MonoBehaviour, IClientComponent
-{
-	[SerializeField]
-	private RustButton toggleControl;
-
-	[SerializeField]
-	private string convar;
-}
-
-
-using Facepunch.Flexbox;
-using Rust.UI;
-using UnityEngine;
-
-public class UI_ToggleHUDLayer : MonoBehaviour, IClientComponent
-{
-	[SerializeField]
-	private FlexElement flexElement;
-
-	[SerializeField]
-	private RustButton toggleControl;
-
-	[SerializeField]
-	private RustText hudLayerNameText;
-}
-
-
-using Rust.UI;
-using UnityEngine;
-
-public class UI_ToggleLayer : MonoBehaviour, IClientComponent
-{
-	public RustButton toggleControl;
-
-	public RustText layerNameText;
-
-	public LayerSelect layer;
-
-	protected void OnEnable()
-	{
-		if (Object.op_Implicit((Object)(object)MainCamera.mainCamera))
-		{
-			toggleControl.Value = (MainCamera.mainCamera.cullingMask & layer.Mask) != 0;
-		}
-	}
-
-	public void OnToggleChanged()
-	{
-		//IL_000c: Unknown result type (might be due to invalid IL or missing references)
-		if (Object.op_Implicit((Object)(object)MainCamera.mainCamera))
-		{
-			ConsoleSystem.Run(Option.Client, toggleControl.Value ? "layer.show" : "layer.hide", new object[1] { layer.Name });
-		}
-	}
-}
-
-
-using Rust.UI.MainMenu;
-using UnityEngine;
-
-public class UI_ToggleTools : UI_Window
-{
-	[Space]
-	[SerializeField]
-	private GameObjectRef hudTogglePrefabRef;
-
-	[SerializeField]
-	private Transform hudTogglesParent;
-}
-
-
-using Rust.UI;
-using UnityEngine;
-
-public class UI_CopyableRow : MonoBehaviour
-{
-	[SerializeField]
-	private RustText labelText;
-
-	[SerializeField]
-	private RustText valueText;
-
-	[SerializeField]
-	private RustText valueText2;
-}
-
-
-public interface IDeveloperToolsTab
-{
-	void Init();
-
-	void OnDeveloperToolsOpen();
-
-	void OnDeveloperToolsClosed();
-}
-
-
-using System;
-using System.Collections.Generic;
-using Rust.UI;
-using Rust.UI.MainMenu;
-using UnityEngine;
-using UnityEngine.UI;
-
-[DefaultExecutionOrder(-1017)]
-public class UI_DeveloperTools : UI_Window
-{
-	[Serializable]
-	private class Tab
-	{
-		public RustButton button;
-
-		public GameObjectRef windowPrefab;
-
-		public bool adminOnly;
-
-		public bool allowInDemo;
-
-		[NonSerialized]
-		public GameObject window;
-
-		[NonSerialized]
-		public UI_Window uiWindow;
-	}
-
-	public static UI_DeveloperTools Instance;
-
-	[SerializeField]
-	private Canvas canvas;
-
-	[SerializeField]
-	private GraphicRaycaster raycaster;
-
-	[SerializeField]
-	private NeedsCursor needsCursor;
-
-	[SerializeField]
-	private NeedsKeyboard needsKeyboard;
-
-	[Space]
-	[SerializeField]
-	private List<Tab> tabs;
-
-	[SerializeField]
-	private RectTransform tabContentParent;
-
-	[Space]
-	[SerializeField]
-	private Image blurImage;
-
-	[SerializeField]
-	private float blurSize;
-
-	[SerializeField]
-	private float blurSpread;
-
-	[SerializeField]
-	private float consoleBlurSize;
-
-	[SerializeField]
-	private float consoleBlurSpread;
-
-	public static bool isOpen
-	{
-		get
-		{
-			if ((Object)(object)Instance != (Object)null)
-			{
-				return Instance.IsOpen();
-			}
-			return false;
-		}
-	}
-}
-
-
-using System;
-using Rust.UI;
-using Rust.UI.MainMenu;
-using UnityEngine;
-
-[Serializable]
-private class Tab
-{
-	public RustButton button;
-
-	public GameObjectRef windowPrefab;
-
-	public bool adminOnly;
-
-	public bool allowInDemo;
-
-	[NonSerialized]
-	public GameObject window;
-
-	[NonSerialized]
-	public UI_Window uiWindow;
-}
-
-
-using Rust.UI;
-using Rust.UI.MainMenu;
-using UnityEngine;
-
-public class UI_SystemInfo : UI_Window
-{
-	[Space]
-	[SerializeField]
-	private RustText systemText;
-
-	[SerializeField]
-	private RustText cpuText;
-
-	[SerializeField]
-	private RustText gpuText;
-
-	[SerializeField]
-	private RustText processText;
-
-	[SerializeField]
-	private RustText monoText;
-
-	[SerializeField]
-	private GameObject worldGroup;
-
-	[SerializeField]
-	private RustText worldText;
-}
-
-
-using UnityEngine;
-
-public class CycleGameObjects : MonoBehaviour, IClientComponent
-{
-	[SerializeField]
-	private GameObject[] objects;
-
-	[SerializeField]
-	private float interval = 2f;
-
-	[SerializeField]
-	private bool shuffle;
-}
-
-
-using UnityEngine;
-
-public class RustigeEggSkinViewer : MonoBehaviour
-{
-	public Animator animator;
-}
-
-
-using System.Collections.Generic;
-using Rust.Workshop;
-using UnityEngine;
-
-public class SkinViewer2 : SingletonComponent<SkinViewer2>
-{
-	public Camera cam;
-
-	[SerializeField]
-	private GameObject parent;
-
-	[SerializeField]
-	private GameObject modelsParent;
-
-	[SerializeField]
-	private GameObject defaultLightingRig;
-
-	public List<SkinViewerRenderSettings> renderSettings;
-
-	private CoverImage targetImage;
-
-	private static Item[] schemaItems;
-
-	public GameObject currentSkinGameObject { get; private set; }
-
-	public bool IsOpen => parent.activeSelf;
-}
-
-
-using UnityEngine;
-using UnityEngine.Events;
-
-public class SkinViewerEvents : MonoBehaviour
-{
-	public UnityEvent OnEnteredFullScreenEvent = new UnityEvent();
-
-	public UnityEvent OnExitFullScreenEvent = new UnityEvent();
-
-	public void OnEnteredFullScreen()
-	{
-		UnityEvent onEnteredFullScreenEvent = OnEnteredFullScreenEvent;
-		if (onEnteredFullScreenEvent != null)
-		{
-			onEnteredFullScreenEvent.Invoke();
-		}
-	}
-
-	public void OnExitFullScreen()
-	{
-		UnityEvent onExitFullScreenEvent = OnExitFullScreenEvent;
-		if (onExitFullScreenEvent != null)
-		{
-			onExitFullScreenEvent.Invoke();
-		}
-	}
-}
-
-
-using UnityEngine;
-
-public class SkinViewerRenderSettings : MonoBehaviour
-{
-	[ItemSelector]
-	public ItemDefinition ItemDefinition;
-
-	public int itemID;
-
-	public Transform CustomLightingRig;
-
-	[Space]
-	public bool overrideFullScreenPosition;
-
-	public Vector3 fullScreenPositionOffset;
-
-	[Space]
-	public bool overrideFullScreenRotation;
-
-	public Vector3 fullScreenRotation;
-
-	[Space]
-	public bool overrideZoom;
-
-	public Vector2 minMaxZoom = new Vector2(20f, 8f);
 }
 
 
@@ -2588,21 +1191,6 @@ using UnityEngine;
 [ResetStaticFields]
 public class NexusFerry : BaseEntity
 {
-	public enum State
-	{
-		Invalid,
-		SailingIn,
-		Queued,
-		Arrival,
-		Docking,
-		Stopping,
-		Waiting,
-		CastingOff,
-		Departure,
-		SailingOut,
-		Transferring
-	}
-
 	private readonly struct Edge
 	{
 		public readonly Node Next;
@@ -2803,6 +1391,29 @@ public class NexusFerry : BaseEntity
 		}
 	}
 
+	public enum State
+	{
+		Invalid,
+		SailingIn,
+		Queued,
+		Arrival,
+		Docking,
+		Stopping,
+		Waiting,
+		CastingOff,
+		Departure,
+		SailingOut,
+		Transferring
+	}
+
+	private TimeSince _sincePathCalculation;
+
+	private Vector3? _pathTargetPosition;
+
+	private Quaternion? _pathTargetRotation;
+
+	private Vector3 _velocity;
+
 	public static readonly Phrase RetiringPhrase = new Phrase("ferry.not_in_service", "Not In Service");
 
 	[Header("NexusFerry")]
@@ -2877,14 +1488,6 @@ public class NexusFerry : BaseEntity
 
 	private RealTimeSince _sinceLastNextIndexUpdate;
 
-	private TimeSince _sincePathCalculation;
-
-	private Vector3? _pathTargetPosition;
-
-	private Quaternion? _pathTargetRotation;
-
-	private Vector3 _velocity;
-
 	public string OwnerZone => _ownerZone;
 
 	public bool IsRetiring => _isRetiring;
@@ -2908,439 +1511,6 @@ public class NexusFerry : BaseEntity
 		{
 			return true;
 		}
-	}
-
-	public void Initialize(string ownerZone, List<string> schedule)
-	{
-		//IL_00b7: Unknown result type (might be due to invalid IL or missing references)
-		//IL_00bd: Unknown result type (might be due to invalid IL or missing references)
-		try
-		{
-			if (string.IsNullOrWhiteSpace(ownerZone))
-			{
-				throw new ArgumentNullException("ownerZone");
-			}
-			if (schedule == null)
-			{
-				throw new ArgumentNullException("schedule");
-			}
-			if (schedule.Count <= 1 || !schedule.Contains<string>(ownerZone, StringComparer.InvariantCultureIgnoreCase))
-			{
-				throw new ArgumentException("Ferry schedule is invalid", "schedule");
-			}
-			_timestamp = DateTimeOffset.UtcNow.ToUnixTimeMilliseconds();
-			_ownerZone = ownerZone;
-			_schedule = schedule;
-			_scheduleIndex = List.FindIndex<string>((IReadOnlyList<string>)schedule, ownerZone, (IEqualityComparer<string>)StringComparer.InvariantCultureIgnoreCase);
-			_state = State.Stopping;
-			_departureHornPlayed = false;
-			if (_scheduleIndex < 0)
-			{
-				throw new InvalidOperationException("Ferry couldn't find the owner zone in its schedule");
-			}
-			EnsureInitialized();
-			Transform targetTransform = GetTargetTransform(_state);
-			((Component)this).transform.SetPositionAndRotation(targetTransform.position, targetTransform.rotation);
-		}
-		catch
-		{
-			Kill();
-			throw;
-		}
-	}
-
-	private void EnsureInitialized()
-	{
-		_targetDock = SingletonComponent<NexusDock>.Instance;
-		if ((Object)(object)_targetDock == (Object)null)
-		{
-			throw new InvalidOperationException("Ferry has no dock to go to!");
-		}
-	}
-
-	public override void ServerInit()
-	{
-		base.ServerInit();
-		if (!Application.isLoadingSave)
-		{
-			if (!NexusServer.Started)
-			{
-				Debug.LogError((object)"NexusFerry will not work without being connected to a nexus - destroying.");
-				Kill();
-				return;
-			}
-			if (string.IsNullOrWhiteSpace(_ownerZone) || _schedule == null || _schedule.Count <= 1 || !_schedule.Contains(_ownerZone))
-			{
-				Debug.LogError((object)"NexusFerry has not been initialized (you can't spawn them manually) - destroying.");
-				Kill();
-				return;
-			}
-		}
-		EnsureInitialized();
-		All.Add(this);
-	}
-
-	public override void DestroyShared()
-	{
-		base.DestroyShared();
-		if (base.isServer)
-		{
-			All.Remove(this);
-		}
-		if (_transferredIds != null)
-		{
-			Pool.FreeUnmanaged<NetworkableId>(ref _transferredIds);
-		}
-	}
-
-	public void FixedUpdate()
-	{
-		//IL_000a: Unknown result type (might be due to invalid IL or missing references)
-		//IL_0021: Unknown result type (might be due to invalid IL or missing references)
-		//IL_0026: Unknown result type (might be due to invalid IL or missing references)
-		//IL_009a: Unknown result type (might be due to invalid IL or missing references)
-		//IL_0080: Unknown result type (might be due to invalid IL or missing references)
-		if (!base.isServer)
-		{
-			return;
-		}
-		if (RealTimeSince.op_Implicit(_sinceLastNextIndexUpdate) > 10f)
-		{
-			_sinceLastNextIndexUpdate = RealTimeSince.op_Implicit(0f);
-			int num = TryGetNextScheduleIndex() ?? (-1);
-			if (num != _nextScheduleIndex)
-			{
-				_nextScheduleIndex = num;
-				SendNetworkUpdate();
-			}
-		}
-		if (_state == State.Waiting)
-		{
-			EnsureInitialized();
-			if (!_departureHornPlayed && _targetDock.WaitTime - TimeSince.op_Implicit(_sinceStartedWaiting) < departureHornLeadTime)
-			{
-				PlayDepartureHornEffect();
-			}
-			if (!(TimeSince.op_Implicit(_sinceStartedWaiting) >= _targetDock.WaitTime))
-			{
-				return;
-			}
-			SwitchToNextState();
-		}
-		if (MoveTowardsTarget())
-		{
-			SwitchToNextState();
-		}
-	}
-
-	public FerryStatus GetStatus()
-	{
-		//IL_000c: Unknown result type (might be due to invalid IL or missing references)
-		//IL_0011: Unknown result type (might be due to invalid IL or missing references)
-		FerryStatus obj = Pool.Get<FerryStatus>();
-		obj.entityId = net.ID;
-		obj.timestamp = _timestamp;
-		obj.ownerZone = _ownerZone;
-		obj.schedule = List.ShallowClonePooled<string>(_schedule);
-		obj.scheduleIndex = _scheduleIndex;
-		obj.state = (int)_state;
-		obj.isRetiring = _isRetiring;
-		return obj;
-	}
-
-	public void Retire()
-	{
-		_isRetiring = true;
-	}
-
-	public void UpdateSchedule(List<string> schedule)
-	{
-		if (_schedule != null)
-		{
-			Pool.FreeUnmanaged<string>(ref _schedule);
-		}
-		_schedule = List.ShallowClonePooled<string>(schedule);
-	}
-
-	public override float GetNetworkTime()
-	{
-		return Time.fixedTime;
-	}
-
-	private void SwitchToNextState()
-	{
-		//IL_0013: Unknown result type (might be due to invalid IL or missing references)
-		//IL_0088: Unknown result type (might be due to invalid IL or missing references)
-		//IL_008d: Unknown result type (might be due to invalid IL or missing references)
-		//IL_002a: Unknown result type (might be due to invalid IL or missing references)
-		//IL_002f: Unknown result type (might be due to invalid IL or missing references)
-		if (_state == State.SailingOut)
-		{
-			if (!_isTransferring && TimeSince.op_Implicit(_sinceLastTransferAttempt) >= 5f)
-			{
-				_sinceLastTransferAttempt = TimeSince.op_Implicit(0f);
-				TransferToNextZone();
-			}
-			return;
-		}
-		if (_state == State.Departure && (Object)(object)_targetDock != (Object)null)
-		{
-			_targetDock.Depart(this);
-		}
-		State nextState = GetNextState(_state);
-		_state = nextState;
-		SendNetworkUpdate();
-		if (_state == State.Waiting)
-		{
-			_sinceStartedWaiting = TimeSince.op_Implicit(0f);
-			_departureHornPlayed = false;
-		}
-		if (_state == State.CastingOff)
-		{
-			EjectInactiveEntities(_isRetiring);
-			if (_isRetiring)
-			{
-				Kill();
-			}
-		}
-	}
-
-	private static State GetNextState(State currentState)
-	{
-		State state = currentState + 1;
-		if (state >= State.SailingOut)
-		{
-			state = State.SailingOut;
-		}
-		return state;
-	}
-
-	private static State GetPreviousState(State currentState)
-	{
-		if ((uint)currentState <= 3u || (uint)(currentState - 9) <= 1u)
-		{
-			return State.Invalid;
-		}
-		return currentState - 1;
-	}
-
-	private async void TransferToNextZone()
-	{
-		if (_isTransferring)
-		{
-			return;
-		}
-		int? num = TryGetNextScheduleIndex();
-		if (!num.HasValue)
-		{
-			return;
-		}
-		_isTransferring = true;
-		int oldScheduleIndex = _scheduleIndex;
-		State oldState = _state;
-		try
-		{
-			_scheduleIndex = num.Value;
-			string text = _schedule[_scheduleIndex];
-			_state = State.Transferring;
-			Debug.Log((object)("Sending ferry to " + text));
-			await NexusServer.TransferEntity(this, text, "ferry");
-		}
-		finally
-		{
-			_isTransferring = false;
-			_scheduleIndex = oldScheduleIndex;
-			_state = oldState;
-		}
-	}
-
-	private int? TryGetNextScheduleIndex()
-	{
-		string zoneKey = NexusServer.ZoneKey;
-		int num = (_scheduleIndex + 1) % _schedule.Count;
-		for (int i = 0; i < _schedule.Count; i++)
-		{
-			string text = _schedule[num];
-			if (!string.Equals(text, zoneKey, StringComparison.InvariantCultureIgnoreCase) && NexusServer.TryGetZoneStatus(text, out var status) && status.IsOnline)
-			{
-				return num;
-			}
-			num++;
-			if (num >= _schedule.Count)
-			{
-				num = 0;
-			}
-		}
-		return null;
-	}
-
-	private void EjectInactiveEntities(bool forceAll = false)
-	{
-		//IL_0024: Unknown result type (might be due to invalid IL or missing references)
-		//IL_0029: Unknown result type (might be due to invalid IL or missing references)
-		//IL_002b: Unknown result type (might be due to invalid IL or missing references)
-		//IL_007a: Unknown result type (might be due to invalid IL or missing references)
-		HashSet<NetworkableId> hashSet = Pool.Get<HashSet<NetworkableId>>();
-		hashSet.Clear();
-		if (_transferredIds != null)
-		{
-			foreach (NetworkableId transferredId in _transferredIds)
-			{
-				hashSet.Add(transferredId);
-			}
-		}
-		List<BaseEntity> list = Pool.Get<List<BaseEntity>>();
-		foreach (BaseEntity child in children)
-		{
-			if (!(child is NPCAutoTurret) && (hashSet.Contains(child.net.ID) || forceAll) && (!IsEntityActive(child) || forceAll))
-			{
-				list.Add(child);
-			}
-		}
-		foreach (BaseEntity item in list)
-		{
-			EjectEntity(item);
-		}
-		Pool.FreeUnmanaged<BaseEntity>(ref list);
-		hashSet.Clear();
-		Pool.FreeUnmanaged<NetworkableId>(ref hashSet);
-	}
-
-	private void EjectEntity(BaseEntity entity)
-	{
-		//IL_0036: Unknown result type (might be due to invalid IL or missing references)
-		if (!((Object)(object)entity == (Object)null))
-		{
-			if ((Object)(object)_targetDock != (Object)null && _targetDock.TryFindEjectionPosition(out var position))
-			{
-				entity.SetParent(null);
-				entity.ServerPosition = position;
-				entity.SendNetworkUpdateImmediate();
-			}
-			else
-			{
-				Debug.LogWarning((object)$"Couldn't find an ejection point for {entity}", (Object)(object)entity);
-			}
-		}
-	}
-
-	private static bool IsEntityActive(BaseEntity entity)
-	{
-		bool result = false;
-		if (entity is BasePlayer player)
-		{
-			result = IsPlayerReady(player);
-		}
-		else if (entity is BaseVehicle baseVehicle)
-		{
-			List<BasePlayer> list = Pool.Get<List<BasePlayer>>();
-			baseVehicle.GetMountedPlayers(list);
-			foreach (BasePlayer item in list)
-			{
-				if (IsPlayerReady(item))
-				{
-					result = true;
-					break;
-				}
-			}
-			Pool.FreeUnmanaged<BasePlayer>(ref list);
-		}
-		return result;
-	}
-
-	private static bool IsPlayerReady(BasePlayer player)
-	{
-		if ((Object)(object)player != (Object)null && player.IsConnected)
-		{
-			return !player.IsLoadingAfterTransfer();
-		}
-		return false;
-	}
-
-	private void PlayDepartureHornEffect()
-	{
-		//IL_0020: Unknown result type (might be due to invalid IL or missing references)
-		//IL_0025: Unknown result type (might be due to invalid IL or missing references)
-		if (hornEffect.isValid)
-		{
-			Effect.server.Run(hornEffect.resourcePath, this, 0u, hornEffectTransform.localPosition, Vector3.up);
-		}
-		_departureHornPlayed = true;
-	}
-
-	public override void PostServerLoad()
-	{
-		base.PostServerLoad();
-		((FacepunchBehaviour)this).Invoke(base.DisableTransferProtectionAction, 0.1f);
-	}
-
-	public override void Save(SaveInfo info)
-	{
-		//IL_00e1: Unknown result type (might be due to invalid IL or missing references)
-		base.Save(info);
-		info.msg.nexusFerry = Pool.Get<NexusFerry>();
-		info.msg.nexusFerry.timestamp = _timestamp;
-		info.msg.nexusFerry.ownerZone = _ownerZone;
-		info.msg.nexusFerry.schedule = List.ShallowClonePooled<string>(_schedule);
-		info.msg.nexusFerry.scheduleIndex = _scheduleIndex;
-		info.msg.nexusFerry.state = (int)_state;
-		info.msg.nexusFerry.isRetiring = _isRetiring;
-		info.msg.nexusFerry.nextScheduleIndex = _nextScheduleIndex;
-		if (info.forTransfer)
-		{
-			List<NetworkableId> list = Pool.Get<List<NetworkableId>>();
-			foreach (BaseEntity child in children)
-			{
-				list.Add(child.net.ID);
-			}
-			info.msg.nexusFerry.transferredIds = list;
-		}
-		else
-		{
-			info.msg.nexusFerry.transferredIds = List.ShallowClonePooled<NetworkableId>(_transferredIds) ?? Pool.Get<List<NetworkableId>>();
-		}
-	}
-
-	public override void Load(LoadInfo info)
-	{
-		base.Load(info);
-		if (info.msg.nexusFerry == null)
-		{
-			return;
-		}
-		_timestamp = info.msg.nexusFerry.timestamp;
-		_ownerZone = info.msg.nexusFerry.ownerZone;
-		if (_schedule != null)
-		{
-			Pool.FreeUnmanaged<string>(ref _schedule);
-		}
-		_schedule = List.ShallowClonePooled<string>(info.msg.nexusFerry.schedule);
-		_scheduleIndex = info.msg.nexusFerry.scheduleIndex;
-		_state = (State)info.msg.nexusFerry.state;
-		_isRetiring = info.msg.nexusFerry.isRetiring;
-		_nextScheduleIndex = info.msg.nexusFerry.nextScheduleIndex;
-		if (base.isServer)
-		{
-			if (_transferredIds != null)
-			{
-				Pool.FreeUnmanaged<NetworkableId>(ref _transferredIds);
-			}
-			_transferredIds = List.ShallowClonePooled<NetworkableId>(info.msg.nexusFerry.transferredIds);
-			if (_state == State.Transferring)
-			{
-				_state = State.SailingIn;
-			}
-		}
-	}
-
-	public static NexusFerry Get(NetworkableId entityId, long timestamp)
-	{
-		//IL_0005: Unknown result type (might be due to invalid IL or missing references)
-		if (BaseNetworkable.serverEntities.Find(entityId) is NexusFerry nexusFerry && nexusFerry._timestamp == timestamp)
-		{
-			return nexusFerry;
-		}
-		return null;
 	}
 
 	private bool MoveTowardsTarget()
@@ -3880,22 +2050,439 @@ public class NexusFerry : BaseEntity
 		Pool.FreeUnmanaged<Vector3>(ref list);
 		return true;
 	}
-}
 
+	public void Initialize(string ownerZone, List<string> schedule)
+	{
+		//IL_00b7: Unknown result type (might be due to invalid IL or missing references)
+		//IL_00bd: Unknown result type (might be due to invalid IL or missing references)
+		try
+		{
+			if (string.IsNullOrWhiteSpace(ownerZone))
+			{
+				throw new ArgumentNullException("ownerZone");
+			}
+			if (schedule == null)
+			{
+				throw new ArgumentNullException("schedule");
+			}
+			if (schedule.Count <= 1 || !schedule.Contains<string>(ownerZone, StringComparer.InvariantCultureIgnoreCase))
+			{
+				throw new ArgumentException("Ferry schedule is invalid", "schedule");
+			}
+			_timestamp = DateTimeOffset.UtcNow.ToUnixTimeMilliseconds();
+			_ownerZone = ownerZone;
+			_schedule = schedule;
+			_scheduleIndex = List.FindIndex<string>((IReadOnlyList<string>)schedule, ownerZone, (IEqualityComparer<string>)StringComparer.InvariantCultureIgnoreCase);
+			_state = State.Stopping;
+			_departureHornPlayed = false;
+			if (_scheduleIndex < 0)
+			{
+				throw new InvalidOperationException("Ferry couldn't find the owner zone in its schedule");
+			}
+			EnsureInitialized();
+			Transform targetTransform = GetTargetTransform(_state);
+			((Component)this).transform.SetPositionAndRotation(targetTransform.position, targetTransform.rotation);
+		}
+		catch
+		{
+			Kill();
+			throw;
+		}
+	}
 
-public enum State
-{
-	Invalid,
-	SailingIn,
-	Queued,
-	Arrival,
-	Docking,
-	Stopping,
-	Waiting,
-	CastingOff,
-	Departure,
-	SailingOut,
-	Transferring
+	private void EnsureInitialized()
+	{
+		_targetDock = SingletonComponent<NexusDock>.Instance;
+		if ((Object)(object)_targetDock == (Object)null)
+		{
+			throw new InvalidOperationException("Ferry has no dock to go to!");
+		}
+	}
+
+	public override void ServerInit()
+	{
+		base.ServerInit();
+		if (!Application.isLoadingSave)
+		{
+			if (!NexusServer.Started)
+			{
+				Debug.LogError((object)"NexusFerry will not work without being connected to a nexus - destroying.");
+				Kill();
+				return;
+			}
+			if (string.IsNullOrWhiteSpace(_ownerZone) || _schedule == null || _schedule.Count <= 1 || !_schedule.Contains(_ownerZone))
+			{
+				Debug.LogError((object)"NexusFerry has not been initialized (you can't spawn them manually) - destroying.");
+				Kill();
+				return;
+			}
+		}
+		EnsureInitialized();
+		All.Add(this);
+	}
+
+	public override void DestroyShared()
+	{
+		base.DestroyShared();
+		if (base.isServer)
+		{
+			All.Remove(this);
+		}
+		if (_transferredIds != null)
+		{
+			Pool.FreeUnmanaged<NetworkableId>(ref _transferredIds);
+		}
+	}
+
+	public void FixedUpdate()
+	{
+		//IL_000a: Unknown result type (might be due to invalid IL or missing references)
+		//IL_0021: Unknown result type (might be due to invalid IL or missing references)
+		//IL_0026: Unknown result type (might be due to invalid IL or missing references)
+		//IL_009a: Unknown result type (might be due to invalid IL or missing references)
+		//IL_0080: Unknown result type (might be due to invalid IL or missing references)
+		if (!base.isServer)
+		{
+			return;
+		}
+		if (RealTimeSince.op_Implicit(_sinceLastNextIndexUpdate) > 10f)
+		{
+			_sinceLastNextIndexUpdate = RealTimeSince.op_Implicit(0f);
+			int num = TryGetNextScheduleIndex() ?? (-1);
+			if (num != _nextScheduleIndex)
+			{
+				_nextScheduleIndex = num;
+				SendNetworkUpdate();
+			}
+		}
+		if (_state == State.Waiting)
+		{
+			EnsureInitialized();
+			if (!_departureHornPlayed && _targetDock.WaitTime - TimeSince.op_Implicit(_sinceStartedWaiting) < departureHornLeadTime)
+			{
+				PlayDepartureHornEffect();
+			}
+			if (!(TimeSince.op_Implicit(_sinceStartedWaiting) >= _targetDock.WaitTime))
+			{
+				return;
+			}
+			SwitchToNextState();
+		}
+		if (MoveTowardsTarget())
+		{
+			SwitchToNextState();
+		}
+	}
+
+	public FerryStatus GetStatus()
+	{
+		//IL_000c: Unknown result type (might be due to invalid IL or missing references)
+		//IL_0011: Unknown result type (might be due to invalid IL or missing references)
+		FerryStatus obj = Pool.Get<FerryStatus>();
+		obj.entityId = net.ID;
+		obj.timestamp = _timestamp;
+		obj.ownerZone = _ownerZone;
+		obj.schedule = List.ShallowClonePooled<string>(_schedule);
+		obj.scheduleIndex = _scheduleIndex;
+		obj.state = (int)_state;
+		obj.isRetiring = _isRetiring;
+		return obj;
+	}
+
+	public void Retire()
+	{
+		_isRetiring = true;
+	}
+
+	public void UpdateSchedule(List<string> schedule)
+	{
+		if (_schedule != null)
+		{
+			Pool.FreeUnmanaged<string>(ref _schedule);
+		}
+		_schedule = List.ShallowClonePooled<string>(schedule);
+	}
+
+	public override float GetNetworkTime()
+	{
+		return Time.fixedTime;
+	}
+
+	private void SwitchToNextState()
+	{
+		//IL_0013: Unknown result type (might be due to invalid IL or missing references)
+		//IL_0088: Unknown result type (might be due to invalid IL or missing references)
+		//IL_008d: Unknown result type (might be due to invalid IL or missing references)
+		//IL_002a: Unknown result type (might be due to invalid IL or missing references)
+		//IL_002f: Unknown result type (might be due to invalid IL or missing references)
+		if (_state == State.SailingOut)
+		{
+			if (!_isTransferring && TimeSince.op_Implicit(_sinceLastTransferAttempt) >= 5f)
+			{
+				_sinceLastTransferAttempt = TimeSince.op_Implicit(0f);
+				TransferToNextZone();
+			}
+			return;
+		}
+		if (_state == State.Departure && (Object)(object)_targetDock != (Object)null)
+		{
+			_targetDock.Depart(this);
+		}
+		State nextState = GetNextState(_state);
+		_state = nextState;
+		SendNetworkUpdate();
+		if (_state == State.Waiting)
+		{
+			_sinceStartedWaiting = TimeSince.op_Implicit(0f);
+			_departureHornPlayed = false;
+		}
+		if (_state == State.CastingOff)
+		{
+			EjectInactiveEntities(_isRetiring);
+			if (_isRetiring)
+			{
+				Kill();
+			}
+		}
+	}
+
+	private static State GetNextState(State currentState)
+	{
+		State state = currentState + 1;
+		if (state >= State.SailingOut)
+		{
+			state = State.SailingOut;
+		}
+		return state;
+	}
+
+	private static State GetPreviousState(State currentState)
+	{
+		if ((uint)currentState <= 3u || (uint)(currentState - 9) <= 1u)
+		{
+			return State.Invalid;
+		}
+		return currentState - 1;
+	}
+
+	private async void TransferToNextZone()
+	{
+		if (_isTransferring)
+		{
+			return;
+		}
+		int? num = TryGetNextScheduleIndex();
+		if (!num.HasValue)
+		{
+			return;
+		}
+		_isTransferring = true;
+		int oldScheduleIndex = _scheduleIndex;
+		State oldState = _state;
+		try
+		{
+			_scheduleIndex = num.Value;
+			string text = _schedule[_scheduleIndex];
+			_state = State.Transferring;
+			Debug.Log((object)("Sending ferry to " + text));
+			await NexusServer.TransferEntity(this, text, "ferry");
+		}
+		finally
+		{
+			_isTransferring = false;
+			_scheduleIndex = oldScheduleIndex;
+			_state = oldState;
+		}
+	}
+
+	private int? TryGetNextScheduleIndex()
+	{
+		string zoneKey = NexusServer.ZoneKey;
+		int num = (_scheduleIndex + 1) % _schedule.Count;
+		for (int i = 0; i < _schedule.Count; i++)
+		{
+			string text = _schedule[num];
+			if (!string.Equals(text, zoneKey, StringComparison.InvariantCultureIgnoreCase) && NexusServer.TryGetZoneStatus(text, out var status) && status.IsOnline)
+			{
+				return num;
+			}
+			num++;
+			if (num >= _schedule.Count)
+			{
+				num = 0;
+			}
+		}
+		return null;
+	}
+
+	private void EjectInactiveEntities(bool forceAll = false)
+	{
+		//IL_0024: Unknown result type (might be due to invalid IL or missing references)
+		//IL_0029: Unknown result type (might be due to invalid IL or missing references)
+		//IL_002b: Unknown result type (might be due to invalid IL or missing references)
+		//IL_007a: Unknown result type (might be due to invalid IL or missing references)
+		HashSet<NetworkableId> hashSet = Pool.Get<HashSet<NetworkableId>>();
+		hashSet.Clear();
+		if (_transferredIds != null)
+		{
+			foreach (NetworkableId transferredId in _transferredIds)
+			{
+				hashSet.Add(transferredId);
+			}
+		}
+		List<BaseEntity> list = Pool.Get<List<BaseEntity>>();
+		foreach (BaseEntity child in children)
+		{
+			if (!(child is NPCAutoTurret) && (hashSet.Contains(child.net.ID) || forceAll) && (!IsEntityActive(child) || forceAll))
+			{
+				list.Add(child);
+			}
+		}
+		foreach (BaseEntity item in list)
+		{
+			EjectEntity(item);
+		}
+		Pool.FreeUnmanaged<BaseEntity>(ref list);
+		hashSet.Clear();
+		Pool.FreeUnmanaged<NetworkableId>(ref hashSet);
+	}
+
+	private void EjectEntity(BaseEntity entity)
+	{
+		//IL_0036: Unknown result type (might be due to invalid IL or missing references)
+		if (!((Object)(object)entity == (Object)null))
+		{
+			if ((Object)(object)_targetDock != (Object)null && _targetDock.TryFindEjectionPosition(out var position))
+			{
+				entity.SetParent(null);
+				entity.ServerPosition = position;
+				entity.SendNetworkUpdateImmediate();
+			}
+			else
+			{
+				Debug.LogWarning((object)$"Couldn't find an ejection point for {entity}", (Object)(object)entity);
+			}
+		}
+	}
+
+	private static bool IsEntityActive(BaseEntity entity)
+	{
+		bool result = false;
+		if (entity is BasePlayer player)
+		{
+			result = IsPlayerReady(player);
+		}
+		else if (entity is BaseVehicle baseVehicle)
+		{
+			List<BasePlayer> list = Pool.Get<List<BasePlayer>>();
+			baseVehicle.GetMountedPlayers(list);
+			foreach (BasePlayer item in list)
+			{
+				if (IsPlayerReady(item))
+				{
+					result = true;
+					break;
+				}
+			}
+			Pool.FreeUnmanaged<BasePlayer>(ref list);
+		}
+		return result;
+	}
+
+	private static bool IsPlayerReady(BasePlayer player)
+	{
+		if ((Object)(object)player != (Object)null && player.IsConnected)
+		{
+			return !player.IsLoadingAfterTransfer();
+		}
+		return false;
+	}
+
+	private void PlayDepartureHornEffect()
+	{
+		//IL_0020: Unknown result type (might be due to invalid IL or missing references)
+		//IL_0025: Unknown result type (might be due to invalid IL or missing references)
+		if (hornEffect.isValid)
+		{
+			Effect.server.Run(hornEffect.resourcePath, this, 0u, hornEffectTransform.localPosition, Vector3.up);
+		}
+		_departureHornPlayed = true;
+	}
+
+	public override void PostServerLoad()
+	{
+		base.PostServerLoad();
+		((FacepunchBehaviour)this).Invoke(base.DisableTransferProtectionAction, 0.1f);
+	}
+
+	public override void Save(SaveInfo info)
+	{
+		//IL_00e1: Unknown result type (might be due to invalid IL or missing references)
+		base.Save(info);
+		info.msg.nexusFerry = Pool.Get<NexusFerry>();
+		info.msg.nexusFerry.timestamp = _timestamp;
+		info.msg.nexusFerry.ownerZone = _ownerZone;
+		info.msg.nexusFerry.schedule = List.ShallowClonePooled<string>(_schedule);
+		info.msg.nexusFerry.scheduleIndex = _scheduleIndex;
+		info.msg.nexusFerry.state = (int)_state;
+		info.msg.nexusFerry.isRetiring = _isRetiring;
+		info.msg.nexusFerry.nextScheduleIndex = _nextScheduleIndex;
+		if (info.forTransfer)
+		{
+			List<NetworkableId> list = Pool.Get<List<NetworkableId>>();
+			foreach (BaseEntity child in children)
+			{
+				list.Add(child.net.ID);
+			}
+			info.msg.nexusFerry.transferredIds = list;
+		}
+		else
+		{
+			info.msg.nexusFerry.transferredIds = List.ShallowClonePooled<NetworkableId>(_transferredIds) ?? Pool.Get<List<NetworkableId>>();
+		}
+	}
+
+	public override void Load(LoadInfo info)
+	{
+		base.Load(info);
+		if (info.msg.nexusFerry == null)
+		{
+			return;
+		}
+		_timestamp = info.msg.nexusFerry.timestamp;
+		_ownerZone = info.msg.nexusFerry.ownerZone;
+		if (_schedule != null)
+		{
+			Pool.FreeUnmanaged<string>(ref _schedule);
+		}
+		_schedule = List.ShallowClonePooled<string>(info.msg.nexusFerry.schedule);
+		_scheduleIndex = info.msg.nexusFerry.scheduleIndex;
+		_state = (State)info.msg.nexusFerry.state;
+		_isRetiring = info.msg.nexusFerry.isRetiring;
+		_nextScheduleIndex = info.msg.nexusFerry.nextScheduleIndex;
+		if (base.isServer)
+		{
+			if (_transferredIds != null)
+			{
+				Pool.FreeUnmanaged<NetworkableId>(ref _transferredIds);
+			}
+			_transferredIds = List.ShallowClonePooled<NetworkableId>(info.msg.nexusFerry.transferredIds);
+			if (_state == State.Transferring)
+			{
+				_state = State.SailingIn;
+			}
+		}
+	}
+
+	public static NexusFerry Get(NetworkableId entityId, long timestamp)
+	{
+		//IL_0005: Unknown result type (might be due to invalid IL or missing references)
+		if (BaseNetworkable.serverEntities.Find(entityId) is NexusFerry nexusFerry && nexusFerry._timestamp == timestamp)
+		{
+			return nexusFerry;
+		}
+		return null;
+	}
 }
 
 
@@ -4113,6 +2700,22 @@ private class Graph : IPooled
 }
 
 
+public enum State
+{
+	Invalid,
+	SailingIn,
+	Queued,
+	Arrival,
+	Docking,
+	Stopping,
+	Waiting,
+	CastingOff,
+	Departure,
+	SailingOut,
+	Transferring
+}
+
+
 using UnityEngine;
 
 public class NexusFerrySounds : MonoBehaviour, IClientComponent
@@ -4192,8 +2795,8 @@ public class NexusFerrySounds : MonoBehaviour, IClientComponent
 	[SerializeField]
 	private Vector3 sideSoundLineBow;
 
-	[Header("Dock")]
 	[SerializeField]
+	[Header("Dock")]
 	private SoundDefinition dockArrivalSoundDef;
 
 	[SerializeField]
@@ -4503,7 +3106,10 @@ public class BaseFirework : BaseCombatEntity, IIgniteable
 	{
 		if (!IsExhausted() && !IsLit())
 		{
-			SetFlag(Flags.OnFire, b: true);
+			using (FlagsUpdateScope flagsUpdateScope = StartSetFlags(FlagsUpdateMode.SendNetworkUpdate))
+			{
+				flagsUpdateScope.Set(Flags.OnFire, b: true);
+			}
 			EnableGlobalBroadcast(wants: true);
 			((FacepunchBehaviour)this).Invoke((Action)Begin, fuseLength);
 			pickup.enabled = false;
@@ -4513,18 +3119,23 @@ public class BaseFirework : BaseCombatEntity, IIgniteable
 
 	public virtual void Begin()
 	{
-		SetFlag(Flags.OnFire, b: false);
-		SetFlag(Flags.On, b: true, recursive: false, networkupdate: false);
-		SendNetworkUpdate_Flags();
+		using (FlagsUpdateScope flagsUpdateScope = StartSetFlags(FlagsUpdateMode.SendNetworkUpdate_Flags))
+		{
+			flagsUpdateScope.Set(Flags.OnFire, b: false);
+			flagsUpdateScope.Set(Flags.On, b: true);
+		}
 		Interface.CallHook("OnFireworkStarted", (object)this);
 		((FacepunchBehaviour)this).Invoke((Action)OnExhausted, activityLength);
 	}
 
 	public virtual void OnExhausted()
 	{
-		SetFlag(Flags.Reserved8, b: true, recursive: false, networkupdate: false);
-		SetFlag(Flags.OnFire, b: false, recursive: false, networkupdate: false);
-		SetFlag(Flags.On, b: false, recursive: false, networkupdate: false);
+		using (FlagsUpdateScope flagsUpdateScope = StartSetFlags(FlagsUpdateMode.Local))
+		{
+			flagsUpdateScope.Set(Flags.Reserved8, b: true);
+			flagsUpdateScope.Set(Flags.OnFire, b: false);
+			flagsUpdateScope.Set(Flags.On, b: false);
+		}
 		EnableGlobalBroadcast(wants: false);
 		SendNetworkUpdate_Flags();
 		Interface.CallHook("OnFireworkExhausted", (object)this);
@@ -4567,12 +3178,15 @@ public class BaseFirework : BaseCombatEntity, IIgniteable
 		{
 			if (NumActiveFireworks() >= maxActiveFireworks)
 			{
-				SetFlag(Flags.OnFire, b: true);
+				using (FlagsUpdateScope flagsUpdateScope = StartSetFlags(FlagsUpdateMode.SendNetworkUpdate))
+				{
+					flagsUpdateScope.Set(Flags.OnFire, b: true);
+				}
 				((FacepunchBehaviour)this).Invoke((Action)StaggeredTryLightFuse, 0.35f);
 				return;
 			}
 			_activeFireworks.Add(this);
-			SetFlag(Flags.OnFire, b: false, recursive: false, networkupdate: false);
+			SetFlagLocal(Flags.OnFire, b: false);
 		}
 		((FacepunchBehaviour)this).Invoke((Action)TryLightFuse, Random.Range(0.1f, 0.3f));
 	}
@@ -4628,6 +3242,12 @@ public class MortarFirework : RepeatingFirework
 	public GameObjectRef[] shellTypes;
 
 	public Transform emissionPoint;
+}
+
+
+public class PFXRepeatingFirework : RepeatingFirework
+{
+	public ParticleSystemContainer pfx;
 }
 
 
@@ -4718,9 +3338,9 @@ public class PatternFirework : MortarFirework, IUGCBrowserEntity
 		ShellFuseLength = FuseLength.Medium;
 	}
 
-	[RPC_Server]
 	[RPC_Server.CallsPerSecond(5uL)]
 	[RPC_Server.IsVisible(3f)]
+	[RPC_Server]
 	private void StartOpenDesigner(RPCMessage rpc)
 	{
 		if (PlayerCanModify(rpc.player))
@@ -4729,10 +3349,10 @@ public class PatternFirework : MortarFirework, IUGCBrowserEntity
 		}
 	}
 
-	[RPC_Server]
-	[RPC_Server.InputValidation(new Type[] { typeof(Design) })]
-	[RPC_Server.CallsPerSecond(5uL)]
 	[RPC_Server.IsVisible(3f)]
+	[RPC_Server]
+	[RPC_Server.CallsPerSecond(5uL)]
+	[RPC_Server.InputValidation(new Type[] { typeof(Design) })]
 	private void ServerSetFireworkDesign(RPCMessage rpc)
 	{
 		//IL_00d1: Unknown result type (might be due to invalid IL or missing references)
@@ -4774,8 +3394,8 @@ public class PatternFirework : MortarFirework, IUGCBrowserEntity
 	}
 
 	[RPC_Server.IsVisible(3f)]
-	[RPC_Server]
 	[RPC_Server.CallsPerSecond(5uL)]
+	[RPC_Server]
 	private void SetShellFuseLength(RPCMessage rpc)
 	{
 		if (PlayerCanModify(rpc.player))
@@ -5133,12 +3753,6 @@ public class PatternFireworkStar : MonoBehaviour, IClientComponent
 }
 
 
-public class PFXRepeatingFirework : RepeatingFirework
-{
-	public ParticleSystemContainer pfx;
-}
-
-
 using System;
 using Network;
 
@@ -5217,7 +3831,17 @@ public class FogMachine : ContainerIOEntity, IAlwaysOn
 
 	private float _cacheTimeout;
 
+	private Action _startFoggingCB;
+
+	private Action EnableFogFieldCB;
+
+	private Action DisableNozzleCB;
+
+	private Action FinishFoggingCB;
+
 	private float pendingFuel;
+
+	private Action StartFoggingCB => StartFogging;
 
 	public bool IsEmitting()
 	{
@@ -5235,8 +3859,11 @@ public class FogMachine : ContainerIOEntity, IAlwaysOn
 	{
 		if (!IsEmitting() && !IsOn() && HasFuel() && msg.player.CanBuild())
 		{
-			SetFlag(Flags.On, b: true);
-			((FacepunchBehaviour)this).InvokeRepeating((Action)StartFogging, 0f, fogLength - 1f);
+			using (FlagsUpdateScope flagsUpdateScope = StartSetFlags(FlagsUpdateMode.SendNetworkUpdate))
+			{
+				flagsUpdateScope.Set(Flags.On, b: true);
+			}
+			((FacepunchBehaviour)this).InvokeRepeating(StartFoggingCB, 0f, fogLength - 1f);
 		}
 	}
 
@@ -5244,27 +3871,33 @@ public class FogMachine : ContainerIOEntity, IAlwaysOn
 	[RPC_Server.IsVisible(3f)]
 	public void SetFogOff(RPCMessage msg)
 	{
-		if (IsOn() && msg.player.CanBuild())
+		if (!IsOn() || !msg.player.CanBuild())
 		{
-			((FacepunchBehaviour)this).CancelInvoke((Action)StartFogging);
-			SetFlag(Flags.On, b: false);
+			return;
 		}
+		((FacepunchBehaviour)this).CancelInvoke(StartFoggingCB);
+		using FlagsUpdateScope flagsUpdateScope = StartSetFlags(FlagsUpdateMode.SendNetworkUpdate);
+		flagsUpdateScope.Set(Flags.On, b: false);
 	}
 
-	[RPC_Server.IsVisible(3f)]
 	[RPC_Server]
+	[RPC_Server.IsVisible(3f)]
 	public void SetMotionDetection(RPCMessage msg)
 	{
 		bool flag = msg.read.Bit();
-		if (msg.player.CanBuild())
+		if (!msg.player.CanBuild())
 		{
-			SetFlag(Flags.Reserved9, flag);
+			return;
+		}
+		using (FlagsUpdateScope flagsUpdateScope = StartSetFlags(FlagsUpdateMode.SendNetworkUpdate))
+		{
+			flagsUpdateScope.Set(Flags.Reserved9, flag);
 			if (flag)
 			{
-				SetFlag(Flags.On, b: false);
+				flagsUpdateScope.Set(Flags.On, b: false);
 			}
-			UpdateMotionMode();
 		}
+		UpdateMotionMode();
 	}
 
 	public void UpdateMotionMode()
@@ -5330,49 +3963,73 @@ public class FogMachine : ContainerIOEntity, IAlwaysOn
 
 	public void StartFogging()
 	{
-		if (!UseFuel(1f))
+		using (FlagsUpdateScope flagsUpdateScope = StartSetFlags(FlagsUpdateMode.SendNetworkUpdate))
 		{
-			((FacepunchBehaviour)this).CancelInvoke((Action)StartFogging);
-			SetFlag(Flags.On, b: false);
-			return;
+			if (!UseFuel(1f))
+			{
+				((FacepunchBehaviour)this).CancelInvoke(StartFoggingCB);
+				flagsUpdateScope.Set(Flags.On, b: false);
+				return;
+			}
+			flagsUpdateScope.Set(Flags.Reserved6, b: true);
 		}
-		SetFlag(Flags.Reserved6, b: true);
-		((FacepunchBehaviour)this).Invoke((Action)EnableFogField, 1f);
-		((FacepunchBehaviour)this).Invoke((Action)DisableNozzle, nozzleBlastDuration);
-		((FacepunchBehaviour)this).Invoke((Action)FinishFogging, fogLength);
+		if (EnableFogFieldCB == null)
+		{
+			EnableFogFieldCB = EnableFogField;
+		}
+		((FacepunchBehaviour)this).Invoke(EnableFogFieldCB, 1f);
+		if (DisableNozzleCB == null)
+		{
+			DisableNozzleCB = DisableNozzle;
+		}
+		((FacepunchBehaviour)this).Invoke(DisableNozzleCB, nozzleBlastDuration);
+		if (FinishFoggingCB == null)
+		{
+			FinishFoggingCB = FinishFogging;
+		}
+		((FacepunchBehaviour)this).Invoke(FinishFoggingCB, fogLength);
 	}
 
 	public virtual void EnableFogField()
 	{
-		SetFlag(Flags.Reserved10, b: true);
+		using FlagsUpdateScope flagsUpdateScope = StartSetFlags(FlagsUpdateMode.SendNetworkUpdate);
+		flagsUpdateScope.Set(Flags.Reserved10, b: true);
 	}
 
 	public void DisableNozzle()
 	{
-		SetFlag(Flags.Reserved6, b: false);
+		using FlagsUpdateScope flagsUpdateScope = StartSetFlags(FlagsUpdateMode.SendNetworkUpdate);
+		flagsUpdateScope.Set(Flags.Reserved6, b: false);
 	}
 
 	public virtual void FinishFogging()
 	{
-		SetFlag(Flags.Reserved10, b: false);
+		using FlagsUpdateScope flagsUpdateScope = StartSetFlags(FlagsUpdateMode.SendNetworkUpdate);
+		flagsUpdateScope.Set(Flags.Reserved10, b: false);
 	}
 
 	public override void PostServerLoad()
 	{
 		base.PostServerLoad();
-		SetFlag(Flags.Reserved10, b: false);
-		SetFlag(Flags.Reserved6, b: false);
-		SetFlag(Flags.Reserved5, HasFuel());
+		using (FlagsUpdateScope flagsUpdateScope = StartSetFlags(FlagsUpdateMode.SendNetworkUpdate))
+		{
+			flagsUpdateScope.Set(Flags.Reserved10, b: false);
+			flagsUpdateScope.Set(Flags.Reserved6, b: false);
+			flagsUpdateScope.Set(Flags.Reserved5, HasFuel());
+		}
 		if (IsOn())
 		{
-			((FacepunchBehaviour)this).InvokeRepeating((Action)StartFogging, 0f, fogLength - 1f);
+			((FacepunchBehaviour)this).InvokeRepeating(StartFoggingCB, 0f, fogLength - 1f);
 		}
 		UpdateMotionMode();
 	}
 
 	public override void PlayerStoppedLooting(BasePlayer player)
 	{
-		SetFlag(Flags.Reserved5, HasFuel());
+		using (FlagsUpdateScope flagsUpdateScope = StartSetFlags(FlagsUpdateMode.SendNetworkUpdate))
+		{
+			flagsUpdateScope.Set(Flags.Reserved5, HasFuel());
+		}
 		base.PlayerStoppedLooting(player);
 	}
 
@@ -5441,18 +4098,19 @@ public class FogMachine : ContainerIOEntity, IAlwaysOn
 			flag = false;
 			break;
 		}
+		using FlagsUpdateScope flagsUpdateScope = StartSetFlags(FlagsUpdateMode.SendNetworkUpdate);
 		if (flag)
 		{
 			if (!IsEmitting() && !IsOn() && HasFuel())
 			{
-				SetFlag(Flags.On, b: true);
-				((FacepunchBehaviour)this).InvokeRepeating((Action)StartFogging, 0f, fogLength - 1f);
+				flagsUpdateScope.Set(Flags.On, b: true);
+				((FacepunchBehaviour)this).InvokeRepeating(StartFoggingCB, 0f, fogLength - 1f);
 			}
 		}
 		else if (IsOn())
 		{
-			((FacepunchBehaviour)this).CancelInvoke((Action)StartFogging);
-			SetFlag(Flags.On, b: false);
+			((FacepunchBehaviour)this).CancelInvoke(StartFoggingCB);
+			flagsUpdateScope.Set(Flags.On, b: false);
 		}
 	}
 
@@ -5472,24 +4130,28 @@ public class FogMachine : ContainerIOEntity, IAlwaysOn
 
 	public void SetAlwaysOn(bool flag)
 	{
-		SetFlag(Flags.Reserved11, flag);
+		using (FlagsUpdateScope flagsUpdateScope = StartSetFlags(FlagsUpdateMode.SendNetworkUpdate))
+		{
+			flagsUpdateScope.Set(Flags.Reserved11, flag);
+		}
 		AlwaysOnToggled(flag);
 	}
 
 	public void AlwaysOnToggled(bool flag)
 	{
+		using FlagsUpdateScope flagsUpdateScope = StartSetFlags(FlagsUpdateMode.SendNetworkUpdate);
 		if (flag)
 		{
 			if (!IsEmitting() && !IsOn() && HasFuel())
 			{
-				SetFlag(Flags.On, b: true);
-				((FacepunchBehaviour)this).InvokeRepeating((Action)StartFogging, 0f, fogLength - 1f);
+				flagsUpdateScope.Set(Flags.On, b: true);
+				((FacepunchBehaviour)this).InvokeRepeating(StartFoggingCB, 0f, fogLength - 1f);
 			}
 		}
 		else if (IsOn())
 		{
-			((FacepunchBehaviour)this).CancelInvoke((Action)StartFogging);
-			SetFlag(Flags.On, b: false);
+			((FacepunchBehaviour)this).CancelInvoke(StartFoggingCB);
+			flagsUpdateScope.Set(Flags.On, b: false);
 		}
 	}
 
@@ -5691,33 +4353,35 @@ public class StrobeLight : IOEntity
 
 	public float lifeTimeSeconds = 21600f;
 
-	public const Flags Flag_Slow = Flags.Reserved6;
+	public const Flags Flag_Slow = Flags.Reserved9;
 
-	public const Flags Flag_Med = Flags.Reserved7;
+	public const Flags Flag_Med = Flags.Reserved10;
 
-	public const Flags Flag_Fast = Flags.Reserved8;
+	public const Flags Flag_Fast = Flags.Reserved11;
 
 	private int currentSpeed = 1;
 
+	private Action SelfDamageCB;
+
 	public float GetFrequency()
 	{
-		if (HasFlag(Flags.Reserved6))
+		if (HasFlag(Flags.Reserved9))
 		{
 			return speedSlow;
 		}
-		if (HasFlag(Flags.Reserved7))
+		if (HasFlag(Flags.Reserved10))
 		{
 			return speedMed;
 		}
-		if (HasFlag(Flags.Reserved8))
+		if (HasFlag(Flags.Reserved11))
 		{
 			return speedFast;
 		}
 		return speedSlow;
 	}
 
-	[RPC_Server.IsVisible(3f)]
 	[RPC_Server]
+	[RPC_Server.IsVisible(3f)]
 	public void SetStrobe(RPCMessage msg)
 	{
 		bool strobe = msg.read.Bit();
@@ -5729,41 +4393,49 @@ public class StrobeLight : IOEntity
 		ServerEnableStrobing(wantsOn);
 		if (wantsOn)
 		{
-			UpdateSpeedFlags();
+			UpdateSpeedFlags(sendNetworkUpdate: true);
 		}
 	}
 
-	[RPC_Server.IsVisible(3f)]
 	[RPC_Server]
+	[RPC_Server.IsVisible(3f)]
 	public void SetStrobeSpeed(RPCMessage msg)
 	{
 		int num = msg.read.Int32();
 		currentSpeed = num;
-		UpdateSpeedFlags();
+		UpdateSpeedFlags(sendNetworkUpdate: true);
 	}
 
-	public void UpdateSpeedFlags()
+	public void UpdateSpeedFlags(bool sendNetworkUpdate)
 	{
-		SetFlag(Flags.Reserved6, currentSpeed == 1);
-		SetFlag(Flags.Reserved7, currentSpeed == 2);
-		SetFlag(Flags.Reserved8, currentSpeed == 3);
+		using FlagsUpdateScope flagsUpdateScope = StartSetFlags(sendNetworkUpdate ? FlagsUpdateMode.SendNetworkUpdate : FlagsUpdateMode.Local);
+		flagsUpdateScope.Set(Flags.Reserved9, currentSpeed == 1);
+		flagsUpdateScope.Set(Flags.Reserved10, currentSpeed == 2);
+		flagsUpdateScope.Set(Flags.Reserved11, currentSpeed == 3);
 	}
 
 	public void ServerEnableStrobing(bool wantsOn)
 	{
-		SetFlag(Flags.Reserved6, b: false);
-		SetFlag(Flags.Reserved7, b: false);
-		SetFlag(Flags.Reserved8, b: false);
-		SetFlag(Flags.On, wantsOn);
+		using (FlagsUpdateScope flagsUpdateScope = StartSetFlags(FlagsUpdateMode.Local))
+		{
+			flagsUpdateScope.Set(Flags.Reserved9, b: false);
+			flagsUpdateScope.Set(Flags.Reserved10, b: false);
+			flagsUpdateScope.Set(Flags.Reserved11, b: false);
+			flagsUpdateScope.Set(Flags.On, wantsOn);
+			UpdateSpeedFlags(sendNetworkUpdate: false);
+		}
 		SendNetworkUpdateImmediate();
-		UpdateSpeedFlags();
+		if (SelfDamageCB == null)
+		{
+			SelfDamageCB = SelfDamage;
+		}
 		if (wantsOn)
 		{
-			((FacepunchBehaviour)this).InvokeRandomized((Action)SelfDamage, 0f, 10f, 0.1f);
+			((FacepunchBehaviour)this).InvokeRandomized(SelfDamageCB, 0f, 10f, 0.1f);
 		}
 		else
 		{
-			((FacepunchBehaviour)this).CancelInvoke((Action)SelfDamage);
+			((FacepunchBehaviour)this).CancelInvoke(SelfDamageCB);
 		}
 	}
 
@@ -5948,8 +4620,12 @@ public class CoalingTower : IOEntity, INotifyEntityTrigger
 		TrainHasThrottle
 	}
 
-	[SerializeField]
+	private TrainCarUnloadable tcUnloadingNow;
+
+	private Action CheckWagonLineUpCB;
+
 	[Header("Coaling Tower")]
+	[SerializeField]
 	private BoxCollider unloadingBounds;
 
 	[SerializeField]
@@ -6008,8 +4684,8 @@ public class CoalingTower : IOEntity, INotifyEntityTrigger
 	[SerializeField]
 	private TokenisedPhrase trainHasThrottle;
 
-	[SerializeField]
 	[Header("Coaling Tower Audio")]
+	[SerializeField]
 	private GameObject buttonSoundPos;
 
 	[SerializeField]
@@ -6118,8 +4794,6 @@ public class CoalingTower : IOEntity, INotifyEntityTrigger
 
 	private Sound unloadDestinationSound;
 
-	private TrainCarUnloadable tcUnloadingNow;
-
 	private bool HasTrainCar => activeTrainCarRef.IsValid(base.isServer);
 
 	private bool HasUnloadable => activeUnloadableRef.IsValid(base.isServer);
@@ -6127,6 +4801,397 @@ public class CoalingTower : IOEntity, INotifyEntityTrigger
 	private bool HasUnloadableLinedUp => HasFlag(Flags.Reserved2);
 
 	public Vector3 UnloadingPos { get; private set; }
+
+	public override void Save(SaveInfo info)
+	{
+		//IL_0043: Unknown result type (might be due to invalid IL or missing references)
+		//IL_0048: Unknown result type (might be due to invalid IL or missing references)
+		//IL_005e: Unknown result type (might be due to invalid IL or missing references)
+		//IL_0063: Unknown result type (might be due to invalid IL or missing references)
+		//IL_0079: Unknown result type (might be due to invalid IL or missing references)
+		//IL_007e: Unknown result type (might be due to invalid IL or missing references)
+		base.Save(info);
+		info.msg.coalingTower = Pool.Get<CoalingTower>();
+		info.msg.coalingTower.lootTypeIndex = LootTypeIndex;
+		info.msg.coalingTower.oreStorageID = oreStorageInstance.uid;
+		info.msg.coalingTower.fuelStorageID = fuelStorageInstance.uid;
+		info.msg.coalingTower.activeUnloadableID = activeTrainCarRef.uid;
+	}
+
+	public override void PostServerLoad()
+	{
+		base.PostServerLoad();
+		using (FlagsUpdateScope flagsUpdateScope = StartSetFlags(FlagsUpdateMode.Local))
+		{
+			flagsUpdateScope.Set(Flags.Reserved2, b: false);
+			flagsUpdateScope.Set(Flags.Reserved1, b: false);
+			flagsUpdateScope.Set(Flags.Busy, b: false);
+			flagsUpdateScope.Set(Flags.Reserved3, b: false);
+			flagsUpdateScope.Set(Flags.Reserved4, b: false);
+		}
+		SendNetworkUpdate();
+	}
+
+	protected override void OnChildAdded(BaseEntity child)
+	{
+		base.OnChildAdded(child);
+		if (base.isServer)
+		{
+			if (child.prefabID == oreStoragePrefab.GetEntity().prefabID)
+			{
+				oreStorageInstance.Set((OreHopper)child);
+			}
+			else if (child.prefabID == fuelStoragePrefab.GetEntity().prefabID)
+			{
+				fuelStorageInstance.Set((PercentFullStorageContainer)child);
+			}
+		}
+	}
+
+	public void OnEmpty()
+	{
+		ClearActiveTrainCar();
+	}
+
+	public void OnEntityEnter(BaseEntity ent)
+	{
+		if (ent.IsValid() && !ent.isClient)
+		{
+			TrainCar trainCar = ent as TrainCar;
+			if ((Object)(object)trainCar != (Object)null)
+			{
+				SetActiveTrainCar(trainCar);
+			}
+		}
+	}
+
+	public void OnEntityLeave(BaseEntity ent)
+	{
+		if (ent.IsValid() && !ent.isClient)
+		{
+			BaseEntity baseEntity = ent.parentEntity.Get(base.isServer);
+			TrainCar trainCar = activeTrainCarRef.Get(serverside: true);
+			if ((Object)(object)trainCar == (Object)(object)ent && (Object)(object)trainCar != (Object)(object)baseEntity)
+			{
+				ClearActiveTrainCar();
+			}
+		}
+	}
+
+	private void SetActiveTrainCar(TrainCar trainCar)
+	{
+		if (!((Object)(object)GetActiveTrainCar() == (Object)(object)trainCar))
+		{
+			activeTrainCarRef.Set(trainCar);
+			if (trainCar is TrainCarUnloadable entity)
+			{
+				activeUnloadableRef.Set(entity);
+			}
+			else
+			{
+				activeUnloadableRef.Set(null);
+			}
+			bool num = activeUnloadableRef.IsValid(serverside: true);
+			CheckWagonLinedUp(networkUpdate: false);
+			if (CheckWagonLineUpCB == null)
+			{
+				CheckWagonLineUpCB = CheckWagonLinedUp;
+			}
+			if (num)
+			{
+				((FacepunchBehaviour)this).InvokeRandomized(CheckWagonLineUpCB, 0.15f, 0.15f, 0.015f);
+			}
+			else
+			{
+				((FacepunchBehaviour)this).CancelInvoke(CheckWagonLineUpCB);
+			}
+			SendNetworkUpdate();
+		}
+	}
+
+	private void ClearActiveTrainCar()
+	{
+		SetActiveTrainCar(null);
+	}
+
+	private void CheckWagonLinedUp()
+	{
+		CheckWagonLinedUp(networkUpdate: true);
+	}
+
+	private void CheckWagonLinedUp(bool networkUpdate)
+	{
+		bool b = false;
+		TrainCarUnloadable activeUnloadable = GetActiveUnloadable();
+		if ((Object)(object)activeUnloadable != (Object)null)
+		{
+			b = activeUnloadable.IsLinedUpToUnload(unloadingBounds);
+		}
+		using FlagsUpdateScope flagsUpdateScope = StartSetFlags(networkUpdate ? FlagsUpdateMode.SendNetworkUpdate : FlagsUpdateMode.Local);
+		flagsUpdateScope.Set(Flags.Reserved2, b);
+	}
+
+	private bool TryUnloadActiveWagon(out ActionAttemptStatus attemptStatus)
+	{
+		TrainCarUnloadable activeUnloadable = GetActiveUnloadable();
+		if ((Object)(object)activeUnloadable == (Object)null)
+		{
+			attemptStatus = ActionAttemptStatus.NoTrainCar;
+			return false;
+		}
+		_ = activeUnloadable.wagonType;
+		if (!CanUnloadNow(out attemptStatus))
+		{
+			return false;
+		}
+		using (FlagsUpdateScope flagsUpdateScope = StartSetFlags(FlagsUpdateMode.SendNetworkUpdate))
+		{
+			flagsUpdateScope.Set(Flags.Busy, b: true);
+		}
+		((FacepunchBehaviour)this).Invoke((Action)WagonBeginUnloadAnim, vacuumStartDelay);
+		return true;
+	}
+
+	private void WagonBeginUnloadAnim()
+	{
+		TrainCarUnloadable activeUnloadable = GetActiveUnloadable();
+		TrainWagonLootData.LootOption lootOption = null;
+		using (FlagsUpdateScope flagsUpdateScope = StartSetFlags(FlagsUpdateMode.SendNetworkUpdate))
+		{
+			if ((Object)(object)activeUnloadable == (Object)null)
+			{
+				flagsUpdateScope.Set(Flags.Busy, b: false);
+				return;
+			}
+			if (!activeUnloadable.TryGetLootType(out lootOption))
+			{
+				flagsUpdateScope.Set(Flags.Busy, b: false);
+				return;
+			}
+		}
+		TrainWagonLootData.instance.TryGetIndexFromLoot(lootOption, out var index);
+		LootTypeIndex.Value = index;
+		tcUnloadingNow = activeUnloadable;
+		tcUnloadingNow.BeginUnloadAnimation();
+		float num = 4f;
+		((FacepunchBehaviour)this).InvokeRepeating((Action)EmptyTenPercent, 0f, num);
+	}
+
+	private void EmptyTenPercent()
+	{
+		if (!IsPowered())
+		{
+			EndEmptyProcess(ActionAttemptStatus.GenericError);
+			return;
+		}
+		if (!HasUnloadableLinedUp)
+		{
+			EndEmptyProcess(ActionAttemptStatus.NoTrainCar);
+			return;
+		}
+		TrainCarUnloadable activeUnloadable = GetActiveUnloadable();
+		if ((Object)(object)tcUnloadingNow == (Object)null || (Object)(object)activeUnloadable != (Object)(object)tcUnloadingNow)
+		{
+			EndEmptyProcess(ActionAttemptStatus.NoTrainCar);
+			return;
+		}
+		StorageContainer storageContainer = tcUnloadingNow.GetStorageContainer();
+		if (storageContainer.inventory == null || !TrainWagonLootData.instance.TryGetLootFromIndex(LootTypeIndex, out var lootOption))
+		{
+			EndEmptyProcess(ActionAttemptStatus.NoTrainCar);
+			return;
+		}
+		bool flag = tcUnloadingNow.wagonType != TrainCarUnloadable.WagonType.Fuel;
+		ItemContainer itemContainer = null;
+		PercentFullStorageContainer percentFullStorageContainer = (flag ? GetOreStorage() : GetFuelStorage());
+		if ((Object)(object)percentFullStorageContainer != (Object)null)
+		{
+			itemContainer = percentFullStorageContainer.inventory;
+		}
+		if (itemContainer == null)
+		{
+			EndEmptyProcess(ActionAttemptStatus.GenericError);
+			return;
+		}
+		ItemContainer inventory = storageContainer.inventory;
+		ItemContainer newcontainer = itemContainer;
+		int iAmount = Mathf.RoundToInt((float)lootOption.maxLootAmount / 10f);
+		List<Item> list = Pool.Get<List<Item>>();
+		int num = inventory.Take(list, lootOption.lootItem.itemid, iAmount);
+		bool flag2 = true;
+		if (num > 0)
+		{
+			foreach (Item item in list)
+			{
+				if (tcUnloadingNow.wagonType == TrainCarUnloadable.WagonType.Lootboxes)
+				{
+					item.Remove();
+					continue;
+				}
+				if (Interface.CallHook("OnCoalingTowerGather", (object)this, (object)item) != null)
+				{
+					item.Remove();
+					continue;
+				}
+				bool flag3 = item.MoveToContainer(newcontainer);
+				if (!flag2 || flag3)
+				{
+					continue;
+				}
+				item.MoveToContainer(inventory);
+				flag2 = false;
+				break;
+			}
+		}
+		Pool.Free<Item>(ref list, false);
+		float orePercent = tcUnloadingNow.GetOrePercent();
+		if (orePercent == 0f)
+		{
+			EndEmptyProcess(ActionAttemptStatus.NoError);
+		}
+		else if (!flag2)
+		{
+			EndEmptyProcess(ActionAttemptStatus.OutputIsFull);
+		}
+		else if (flag)
+		{
+			tcUnloadingNow.SetVisualOreLevel(orePercent);
+		}
+	}
+
+	private void EndEmptyProcess(ActionAttemptStatus status)
+	{
+		((FacepunchBehaviour)this).CancelInvoke((Action)EmptyTenPercent);
+		((FacepunchBehaviour)this).CancelInvoke((Action)WagonBeginUnloadAnim);
+		if ((Object)(object)tcUnloadingNow != (Object)null)
+		{
+			tcUnloadingNow.EndEmptyProcess();
+			tcUnloadingNow = null;
+		}
+		SetFlagLocal(Flags.Busy, b: false);
+		SendNetworkUpdate();
+		if (status != 0)
+		{
+			ClientRPC(RpcTarget.NetworkGroup("ActionFailed"), (byte)status, arg2: false);
+		}
+	}
+
+	private bool TryShuntTrain(bool next, out ActionAttemptStatus attemptStatus)
+	{
+		//IL_003d: Unknown result type (might be due to invalid IL or missing references)
+		//IL_0042: Unknown result type (might be due to invalid IL or missing references)
+		//IL_00a1: Unknown result type (might be due to invalid IL or missing references)
+		//IL_00c0: Unknown result type (might be due to invalid IL or missing references)
+		//IL_00c5: Unknown result type (might be due to invalid IL or missing references)
+		//IL_00d2: Unknown result type (might be due to invalid IL or missing references)
+		//IL_00d3: Unknown result type (might be due to invalid IL or missing references)
+		//IL_00d4: Unknown result type (might be due to invalid IL or missing references)
+		//IL_00d9: Unknown result type (might be due to invalid IL or missing references)
+		//IL_00ea: Unknown result type (might be due to invalid IL or missing references)
+		//IL_0065: Unknown result type (might be due to invalid IL or missing references)
+		//IL_006a: Unknown result type (might be due to invalid IL or missing references)
+		//IL_006c: Unknown result type (might be due to invalid IL or missing references)
+		//IL_006d: Unknown result type (might be due to invalid IL or missing references)
+		//IL_006f: Unknown result type (might be due to invalid IL or missing references)
+		//IL_0074: Unknown result type (might be due to invalid IL or missing references)
+		//IL_007c: Unknown result type (might be due to invalid IL or missing references)
+		//IL_0081: Unknown result type (might be due to invalid IL or missing references)
+		if (!IsPowered() || HasFlag(Flags.Reserved3) || HasFlag(Flags.Reserved4))
+		{
+			attemptStatus = ActionAttemptStatus.GenericError;
+			return false;
+		}
+		TrainCar activeTrainCar = GetActiveTrainCar();
+		if ((Object)(object)activeTrainCar == (Object)null)
+		{
+			attemptStatus = ActionAttemptStatus.NoTrainCar;
+			return false;
+		}
+		Vector3 unloadingPos = UnloadingPos;
+		unloadingPos.y = 0f;
+		TrainCar result;
+		if (activeTrainCar is TrainCarUnloadable && !HasUnloadableLinedUp)
+		{
+			Vector3 position = ((Component)activeTrainCar).transform.position;
+			Vector3 val = unloadingPos - position;
+			if (Vector3.Dot(((Component)this).transform.forward, val) >= 0f == next)
+			{
+				result = activeTrainCar;
+				goto IL_00ba;
+			}
+		}
+		if (!activeTrainCar.TryGetTrainCar(next, ((Component)this).transform.forward, out result))
+		{
+			attemptStatus = (next ? ActionAttemptStatus.NoNextTrainCar : ActionAttemptStatus.NoPrevTrainCar);
+			return false;
+		}
+		goto IL_00ba;
+		IL_00ba:
+		Vector3 position2 = ((Component)result).transform.position;
+		position2.y = 0f;
+		Vector3 shuntDirection = unloadingPos - position2;
+		float magnitude = ((Vector3)(ref shuntDirection)).magnitude;
+		return activeTrainCar.completeTrain.TryShuntCarTo(shuntDirection, magnitude, result, ShuntEnded, out attemptStatus);
+	}
+
+	private void ShuntEnded(ActionAttemptStatus status)
+	{
+		using (FlagsUpdateScope flagsUpdateScope = StartSetFlags(FlagsUpdateMode.SendNetworkUpdate))
+		{
+			flagsUpdateScope.Set(Flags.Reserved3, b: false);
+			flagsUpdateScope.Set(Flags.Reserved4, b: false);
+		}
+		if (status != 0)
+		{
+			ClientRPC(RpcTarget.NetworkGroup("IssueDuringShunt"));
+		}
+	}
+
+	[RPC_Server]
+	[RPC_Server.MaxDistance(3f)]
+	private void RPC_Unload(RPCMessage msg)
+	{
+		if (Interface.CallHook("OnCoalingTowerStart", (object)this, (object)msg.player) == null && !TryUnloadActiveWagon(out var attemptStatus) && (Object)(object)msg.player != (Object)null)
+		{
+			ClientRPC(RpcTarget.Player("ActionFailed", msg.player), (byte)attemptStatus, arg2: true);
+		}
+	}
+
+	[RPC_Server]
+	[RPC_Server.MaxDistance(3f)]
+	private void RPC_Next(RPCMessage msg)
+	{
+		if (TryShuntTrain(next: true, out var attemptStatus))
+		{
+			using (FlagsUpdateScope flagsUpdateScope = StartSetFlags(FlagsUpdateMode.SendNetworkUpdate))
+			{
+				flagsUpdateScope.Set(Flags.Reserved3, b: true);
+				return;
+			}
+		}
+		if ((Object)(object)msg.player != (Object)null)
+		{
+			ClientRPC(RpcTarget.Player("ActionFailed", msg.player), (byte)attemptStatus, arg2: true);
+		}
+	}
+
+	[RPC_Server.MaxDistance(3f)]
+	[RPC_Server]
+	private void RPC_Prev(RPCMessage msg)
+	{
+		if (TryShuntTrain(next: false, out var attemptStatus))
+		{
+			using (FlagsUpdateScope flagsUpdateScope = StartSetFlags(FlagsUpdateMode.SendNetworkUpdate))
+			{
+				flagsUpdateScope.Set(Flags.Reserved4, b: true);
+				return;
+			}
+		}
+		if ((Object)(object)msg.player != (Object)null)
+		{
+			ClientRPC(RpcTarget.Player("ActionFailed", msg.player), (byte)attemptStatus, arg2: true);
+		}
+	}
 
 	public override void InitShared()
 	{
@@ -6291,371 +5356,6 @@ public class CoalingTower : IOEntity, INotifyEntityTrigger
 		}
 		attemptStatus = ActionAttemptStatus.NoError;
 		return IsPowered();
-	}
-
-	public override void Save(SaveInfo info)
-	{
-		//IL_0043: Unknown result type (might be due to invalid IL or missing references)
-		//IL_0048: Unknown result type (might be due to invalid IL or missing references)
-		//IL_005e: Unknown result type (might be due to invalid IL or missing references)
-		//IL_0063: Unknown result type (might be due to invalid IL or missing references)
-		//IL_0079: Unknown result type (might be due to invalid IL or missing references)
-		//IL_007e: Unknown result type (might be due to invalid IL or missing references)
-		base.Save(info);
-		info.msg.coalingTower = Pool.Get<CoalingTower>();
-		info.msg.coalingTower.lootTypeIndex = LootTypeIndex;
-		info.msg.coalingTower.oreStorageID = oreStorageInstance.uid;
-		info.msg.coalingTower.fuelStorageID = fuelStorageInstance.uid;
-		info.msg.coalingTower.activeUnloadableID = activeTrainCarRef.uid;
-	}
-
-	public override void PostServerLoad()
-	{
-		base.PostServerLoad();
-		SetFlag(Flags.Reserved2, b: false, recursive: false, networkupdate: false);
-		SetFlag(Flags.Reserved1, b: false, recursive: false, networkupdate: false);
-		SetFlag(Flags.Busy, b: false, recursive: false, networkupdate: false);
-		SetFlag(Flags.Reserved3, b: false, recursive: false, networkupdate: false);
-		SetFlag(Flags.Reserved4, b: false, recursive: false, networkupdate: false);
-		SendNetworkUpdate();
-	}
-
-	protected override void OnChildAdded(BaseEntity child)
-	{
-		base.OnChildAdded(child);
-		if (base.isServer)
-		{
-			if (child.prefabID == oreStoragePrefab.GetEntity().prefabID)
-			{
-				oreStorageInstance.Set((OreHopper)child);
-			}
-			else if (child.prefabID == fuelStoragePrefab.GetEntity().prefabID)
-			{
-				fuelStorageInstance.Set((PercentFullStorageContainer)child);
-			}
-		}
-	}
-
-	public void OnEmpty()
-	{
-		ClearActiveTrainCar();
-	}
-
-	public void OnEntityEnter(BaseEntity ent)
-	{
-		if (ent.IsValid() && !ent.isClient)
-		{
-			TrainCar trainCar = ent as TrainCar;
-			if ((Object)(object)trainCar != (Object)null)
-			{
-				SetActiveTrainCar(trainCar);
-			}
-		}
-	}
-
-	public void OnEntityLeave(BaseEntity ent)
-	{
-		if (ent.IsValid() && !ent.isClient)
-		{
-			BaseEntity baseEntity = ent.parentEntity.Get(base.isServer);
-			TrainCar trainCar = activeTrainCarRef.Get(serverside: true);
-			if ((Object)(object)trainCar == (Object)(object)ent && (Object)(object)trainCar != (Object)(object)baseEntity)
-			{
-				ClearActiveTrainCar();
-			}
-		}
-	}
-
-	private void SetActiveTrainCar(TrainCar trainCar)
-	{
-		if (!((Object)(object)GetActiveTrainCar() == (Object)(object)trainCar))
-		{
-			activeTrainCarRef.Set(trainCar);
-			if (trainCar is TrainCarUnloadable entity)
-			{
-				activeUnloadableRef.Set(entity);
-			}
-			else
-			{
-				activeUnloadableRef.Set(null);
-			}
-			bool num = activeUnloadableRef.IsValid(serverside: true);
-			CheckWagonLinedUp(networkUpdate: false);
-			if (num)
-			{
-				((FacepunchBehaviour)this).InvokeRandomized((Action)CheckWagonLinedUp, 0.15f, 0.15f, 0.015f);
-			}
-			else
-			{
-				((FacepunchBehaviour)this).CancelInvoke((Action)CheckWagonLinedUp);
-			}
-			SendNetworkUpdate();
-		}
-	}
-
-	private void ClearActiveTrainCar()
-	{
-		SetActiveTrainCar(null);
-	}
-
-	private void CheckWagonLinedUp()
-	{
-		CheckWagonLinedUp(networkUpdate: true);
-	}
-
-	private void CheckWagonLinedUp(bool networkUpdate)
-	{
-		bool b = false;
-		TrainCarUnloadable activeUnloadable = GetActiveUnloadable();
-		if ((Object)(object)activeUnloadable != (Object)null)
-		{
-			b = activeUnloadable.IsLinedUpToUnload(unloadingBounds);
-		}
-		SetFlag(Flags.Reserved2, b, recursive: false, networkUpdate);
-	}
-
-	private bool TryUnloadActiveWagon(out ActionAttemptStatus attemptStatus)
-	{
-		TrainCarUnloadable activeUnloadable = GetActiveUnloadable();
-		if ((Object)(object)activeUnloadable == (Object)null)
-		{
-			attemptStatus = ActionAttemptStatus.NoTrainCar;
-			return false;
-		}
-		_ = activeUnloadable.wagonType;
-		if (!CanUnloadNow(out attemptStatus))
-		{
-			return false;
-		}
-		SetFlag(Flags.Busy, b: true);
-		((FacepunchBehaviour)this).Invoke((Action)WagonBeginUnloadAnim, vacuumStartDelay);
-		return true;
-	}
-
-	private void WagonBeginUnloadAnim()
-	{
-		TrainCarUnloadable activeUnloadable = GetActiveUnloadable();
-		if ((Object)(object)activeUnloadable == (Object)null)
-		{
-			SetFlag(Flags.Busy, b: false);
-			return;
-		}
-		if (!activeUnloadable.TryGetLootType(out var lootOption))
-		{
-			SetFlag(Flags.Busy, b: false);
-			return;
-		}
-		TrainWagonLootData.instance.TryGetIndexFromLoot(lootOption, out var index);
-		LootTypeIndex.Value = index;
-		tcUnloadingNow = activeUnloadable;
-		tcUnloadingNow.BeginUnloadAnimation();
-		float num = 4f;
-		((FacepunchBehaviour)this).InvokeRepeating((Action)EmptyTenPercent, 0f, num);
-	}
-
-	private void EmptyTenPercent()
-	{
-		if (!IsPowered())
-		{
-			EndEmptyProcess(ActionAttemptStatus.GenericError);
-			return;
-		}
-		if (!HasUnloadableLinedUp)
-		{
-			EndEmptyProcess(ActionAttemptStatus.NoTrainCar);
-			return;
-		}
-		TrainCarUnloadable activeUnloadable = GetActiveUnloadable();
-		if ((Object)(object)tcUnloadingNow == (Object)null || (Object)(object)activeUnloadable != (Object)(object)tcUnloadingNow)
-		{
-			EndEmptyProcess(ActionAttemptStatus.NoTrainCar);
-			return;
-		}
-		StorageContainer storageContainer = tcUnloadingNow.GetStorageContainer();
-		if (storageContainer.inventory == null || !TrainWagonLootData.instance.TryGetLootFromIndex(LootTypeIndex, out var lootOption))
-		{
-			EndEmptyProcess(ActionAttemptStatus.NoTrainCar);
-			return;
-		}
-		bool flag = tcUnloadingNow.wagonType != TrainCarUnloadable.WagonType.Fuel;
-		ItemContainer itemContainer = null;
-		PercentFullStorageContainer percentFullStorageContainer = (flag ? GetOreStorage() : GetFuelStorage());
-		if ((Object)(object)percentFullStorageContainer != (Object)null)
-		{
-			itemContainer = percentFullStorageContainer.inventory;
-		}
-		if (itemContainer == null)
-		{
-			EndEmptyProcess(ActionAttemptStatus.GenericError);
-			return;
-		}
-		ItemContainer inventory = storageContainer.inventory;
-		ItemContainer newcontainer = itemContainer;
-		int iAmount = Mathf.RoundToInt((float)lootOption.maxLootAmount / 10f);
-		List<Item> list = Pool.Get<List<Item>>();
-		int num = inventory.Take(list, lootOption.lootItem.itemid, iAmount);
-		bool flag2 = true;
-		if (num > 0)
-		{
-			foreach (Item item in list)
-			{
-				if (tcUnloadingNow.wagonType == TrainCarUnloadable.WagonType.Lootboxes)
-				{
-					item.Remove();
-					continue;
-				}
-				if (Interface.CallHook("OnCoalingTowerGather", (object)this, (object)item) != null)
-				{
-					item.Remove();
-					continue;
-				}
-				bool flag3 = item.MoveToContainer(newcontainer);
-				if (!flag2 || flag3)
-				{
-					continue;
-				}
-				item.MoveToContainer(inventory);
-				flag2 = false;
-				break;
-			}
-		}
-		Pool.Free<Item>(ref list, false);
-		float orePercent = tcUnloadingNow.GetOrePercent();
-		if (orePercent == 0f)
-		{
-			EndEmptyProcess(ActionAttemptStatus.NoError);
-		}
-		else if (!flag2)
-		{
-			EndEmptyProcess(ActionAttemptStatus.OutputIsFull);
-		}
-		else if (flag)
-		{
-			tcUnloadingNow.SetVisualOreLevel(orePercent);
-		}
-	}
-
-	private void EndEmptyProcess(ActionAttemptStatus status)
-	{
-		((FacepunchBehaviour)this).CancelInvoke((Action)EmptyTenPercent);
-		((FacepunchBehaviour)this).CancelInvoke((Action)WagonBeginUnloadAnim);
-		if ((Object)(object)tcUnloadingNow != (Object)null)
-		{
-			tcUnloadingNow.EndEmptyProcess();
-			tcUnloadingNow = null;
-		}
-		SetFlag(Flags.Busy, b: false, recursive: false, networkupdate: false);
-		SendNetworkUpdate();
-		if (status != 0)
-		{
-			ClientRPC(RpcTarget.NetworkGroup("ActionFailed"), (byte)status, arg2: false);
-		}
-	}
-
-	private bool TryShuntTrain(bool next, out ActionAttemptStatus attemptStatus)
-	{
-		//IL_003d: Unknown result type (might be due to invalid IL or missing references)
-		//IL_0042: Unknown result type (might be due to invalid IL or missing references)
-		//IL_00a1: Unknown result type (might be due to invalid IL or missing references)
-		//IL_00c0: Unknown result type (might be due to invalid IL or missing references)
-		//IL_00c5: Unknown result type (might be due to invalid IL or missing references)
-		//IL_00d2: Unknown result type (might be due to invalid IL or missing references)
-		//IL_00d3: Unknown result type (might be due to invalid IL or missing references)
-		//IL_00d4: Unknown result type (might be due to invalid IL or missing references)
-		//IL_00d9: Unknown result type (might be due to invalid IL or missing references)
-		//IL_00ea: Unknown result type (might be due to invalid IL or missing references)
-		//IL_0065: Unknown result type (might be due to invalid IL or missing references)
-		//IL_006a: Unknown result type (might be due to invalid IL or missing references)
-		//IL_006c: Unknown result type (might be due to invalid IL or missing references)
-		//IL_006d: Unknown result type (might be due to invalid IL or missing references)
-		//IL_006f: Unknown result type (might be due to invalid IL or missing references)
-		//IL_0074: Unknown result type (might be due to invalid IL or missing references)
-		//IL_007c: Unknown result type (might be due to invalid IL or missing references)
-		//IL_0081: Unknown result type (might be due to invalid IL or missing references)
-		if (!IsPowered() || HasFlag(Flags.Reserved3) || HasFlag(Flags.Reserved4))
-		{
-			attemptStatus = ActionAttemptStatus.GenericError;
-			return false;
-		}
-		TrainCar activeTrainCar = GetActiveTrainCar();
-		if ((Object)(object)activeTrainCar == (Object)null)
-		{
-			attemptStatus = ActionAttemptStatus.NoTrainCar;
-			return false;
-		}
-		Vector3 unloadingPos = UnloadingPos;
-		unloadingPos.y = 0f;
-		TrainCar result;
-		if (activeTrainCar is TrainCarUnloadable && !HasUnloadableLinedUp)
-		{
-			Vector3 position = ((Component)activeTrainCar).transform.position;
-			Vector3 val = unloadingPos - position;
-			if (Vector3.Dot(((Component)this).transform.forward, val) >= 0f == next)
-			{
-				result = activeTrainCar;
-				goto IL_00ba;
-			}
-		}
-		if (!activeTrainCar.TryGetTrainCar(next, ((Component)this).transform.forward, out result))
-		{
-			attemptStatus = (next ? ActionAttemptStatus.NoNextTrainCar : ActionAttemptStatus.NoPrevTrainCar);
-			return false;
-		}
-		goto IL_00ba;
-		IL_00ba:
-		Vector3 position2 = ((Component)result).transform.position;
-		position2.y = 0f;
-		Vector3 shuntDirection = unloadingPos - position2;
-		float magnitude = ((Vector3)(ref shuntDirection)).magnitude;
-		return activeTrainCar.completeTrain.TryShuntCarTo(shuntDirection, magnitude, result, ShuntEnded, out attemptStatus);
-	}
-
-	private void ShuntEnded(ActionAttemptStatus status)
-	{
-		SetFlag(Flags.Reserved3, b: false);
-		SetFlag(Flags.Reserved4, b: false);
-		if (status != 0)
-		{
-			ClientRPC(RpcTarget.NetworkGroup("IssueDuringShunt"));
-		}
-	}
-
-	[RPC_Server]
-	[RPC_Server.MaxDistance(3f)]
-	private void RPC_Unload(RPCMessage msg)
-	{
-		if (Interface.CallHook("OnCoalingTowerStart", (object)this, (object)msg.player) == null && !TryUnloadActiveWagon(out var attemptStatus) && (Object)(object)msg.player != (Object)null)
-		{
-			ClientRPC(RpcTarget.Player("ActionFailed", msg.player), (byte)attemptStatus, arg2: true);
-		}
-	}
-
-	[RPC_Server.MaxDistance(3f)]
-	[RPC_Server]
-	private void RPC_Next(RPCMessage msg)
-	{
-		if (TryShuntTrain(next: true, out var attemptStatus))
-		{
-			SetFlag(Flags.Reserved3, b: true);
-		}
-		else if ((Object)(object)msg.player != (Object)null)
-		{
-			ClientRPC(RpcTarget.Player("ActionFailed", msg.player), (byte)attemptStatus, arg2: true);
-		}
-	}
-
-	[RPC_Server.MaxDistance(3f)]
-	[RPC_Server]
-	private void RPC_Prev(RPCMessage msg)
-	{
-		if (TryShuntTrain(next: false, out var attemptStatus))
-		{
-			SetFlag(Flags.Reserved4, b: true);
-		}
-		else if ((Object)(object)msg.player != (Object)null)
-		{
-			ClientRPC(RpcTarget.Player("ActionFailed", msg.player), (byte)attemptStatus, arg2: true);
-		}
 	}
 
 	public override bool OnRpcMessage(BasePlayer player, uint rpc, Message msg)
@@ -7524,9 +6224,10 @@ public class CargoShip : BaseEntity, ILargeVehicleForProjectiles
 
 	public void OnArrivedAtHarbor()
 	{
-		//IL_0035: Unknown result type (might be due to invalid IL or missing references)
-		//IL_003a: Unknown result type (might be due to invalid IL or missing references)
-		SetFlag(Flags.Reserved1, b: true);
+		//IL_003d: Unknown result type (might be due to invalid IL or missing references)
+		//IL_0042: Unknown result type (might be due to invalid IL or missing references)
+		using FlagsUpdateScope flagsUpdateScope = StartSetFlags(FlagsUpdateMode.SendNetworkUpdate);
+		flagsUpdateScope.Set(Flags.Reserved1, b: true);
 		List<Transform> list = Pool.Get<List<Transform>>();
 		float num = Random.Range(dock_time * 0.05f, dock_time * 0.1f);
 		Enumerator<HarborCraneContainerPickup> enumerator = HarborCraneContainerPickup.AllCranes.GetEnumerator();
@@ -7567,11 +6268,11 @@ public class CargoShip : BaseEntity, ILargeVehicleForProjectiles
 		}
 		if (harborIndex == 0)
 		{
-			SetFlag(Flags.Reserved3, b: true);
+			flagsUpdateScope.Set(Flags.Reserved3, b: true);
 		}
 		else if (harborIndex == 1)
 		{
-			SetFlag(Flags.Reserved4, b: true);
+			flagsUpdateScope.Set(Flags.Reserved4, b: true);
 		}
 		((FacepunchBehaviour)this).Invoke((Action)LeaveHarbor, dock_time);
 		Interface.CallHook("OnCargoShipHarborArrived", (object)this);
@@ -7865,17 +6566,21 @@ public class CargoShip : BaseEntity, ILargeVehicleForProjectiles
 
 	public void StartEgress()
 	{
-		if (!isDoingHarborApproach && !egressing)
+		if (isDoingHarborApproach || egressing)
 		{
-			egressing = true;
-			if (Interface.CallHook("OnCargoShipEgress", (object)this) == null)
+			return;
+		}
+		egressing = true;
+		if (Interface.CallHook("OnCargoShipEgress", (object)this) == null)
+		{
+			((FacepunchBehaviour)this).CancelInvoke((Action)PlayHorn);
+			radiation.SetActive(true);
+			using (FlagsUpdateScope flagsUpdateScope = StartSetFlags(FlagsUpdateMode.SendNetworkUpdate))
 			{
-				((FacepunchBehaviour)this).CancelInvoke((Action)PlayHorn);
-				radiation.SetActive(true);
-				SetFlag(Flags.Reserved8, b: true);
-				((FacepunchBehaviour)this).InvokeRepeating((Action)UpdateRadiation, 10f, 1f);
-				((FacepunchBehaviour)this).Invoke((Action)DelayedDestroy, 60f * egress_duration_minutes);
+				flagsUpdateScope.Set(Flags.Reserved8, b: true);
 			}
+			((FacepunchBehaviour)this).InvokeRepeating((Action)UpdateRadiation, 10f, 1f);
+			((FacepunchBehaviour)this).Invoke((Action)DelayedDestroy, 60f * egress_duration_minutes);
 		}
 	}
 
@@ -8406,8 +7111,11 @@ public class CargoShip : BaseEntity, ILargeVehicleForProjectiles
 			Debug.Log((object)"Cargo is leaving harbor.");
 		}
 		PlayHorn();
-		SetFlag(Flags.Reserved1, b: false);
-		SetFlag(Flags.Reserved2, b: true);
+		using (FlagsUpdateScope flagsUpdateScope = StartSetFlags(FlagsUpdateMode.SendNetworkUpdate))
+		{
+			flagsUpdateScope.Set(Flags.Reserved1, b: false);
+			flagsUpdateScope.Set(Flags.Reserved2, b: true);
+		}
 		currentHarborApproachNode++;
 		Interface.CallHook("OnCargoShipHarborLeave", (object)this);
 	}
@@ -8756,7 +7464,8 @@ public class TriggerVehiclePush : TriggerBase, IServerComponent
 		//IL_01bf: Unknown result type (might be due to invalid IL or missing references)
 		//IL_01c7: Unknown result type (might be due to invalid IL or missing references)
 		//IL_01ce: Unknown result type (might be due to invalid IL or missing references)
-		//IL_01d3: Unknown result type (might be due to invalid IL or missing references)
+		//IL_01d9: Unknown result type (might be due to invalid IL or missing references)
+		//IL_01de: Unknown result type (might be due to invalid IL or missing references)
 		//IL_0167: Unknown result type (might be due to invalid IL or missing references)
 		//IL_0169: Unknown result type (might be due to invalid IL or missing references)
 		//IL_016e: Unknown result type (might be due to invalid IL or missing references)
@@ -8765,10 +7474,11 @@ public class TriggerVehiclePush : TriggerBase, IServerComponent
 		//IL_017d: Unknown result type (might be due to invalid IL or missing references)
 		//IL_0180: Unknown result type (might be due to invalid IL or missing references)
 		//IL_0185: Unknown result type (might be due to invalid IL or missing references)
-		//IL_01e5: Unknown result type (might be due to invalid IL or missing references)
-		//IL_01ec: Unknown result type (might be due to invalid IL or missing references)
-		//IL_01f3: Unknown result type (might be due to invalid IL or missing references)
-		//IL_01f8: Unknown result type (might be due to invalid IL or missing references)
+		//IL_01f0: Unknown result type (might be due to invalid IL or missing references)
+		//IL_01f7: Unknown result type (might be due to invalid IL or missing references)
+		//IL_01fe: Unknown result type (might be due to invalid IL or missing references)
+		//IL_0209: Unknown result type (might be due to invalid IL or missing references)
+		//IL_020e: Unknown result type (might be due to invalid IL or missing references)
 		//IL_01ad: Unknown result type (might be due to invalid IL or missing references)
 		//IL_01b2: Unknown result type (might be due to invalid IL or missing references)
 		//IL_01b7: Unknown result type (might be due to invalid IL or missing references)
@@ -8807,10 +7517,10 @@ public class TriggerVehiclePush : TriggerBase, IServerComponent
 					Vector3 val4 = ((Component)this).transform.InverseTransformDirection(val3);
 					val3 = ((!(Vector3.Angle(val4, axisToSnapTo) < Vector3.Angle(val4, -axisToSnapTo))) ? (-((Component)this).transform.TransformDirection(axisToSnapTo)) : ((Component)this).transform.TransformDirection(axisToSnapTo));
 				}
-				val.AddForceAtPosition(val3 * maxPushVelocity * num3, val2, (ForceMode)5);
+				val.AddForceAtPosition(val3 * maxPushVelocity * num3 * val.mass, val2, (ForceMode)0);
 				if (num4 > 0f)
 				{
-					val.AddForceAtPosition(val3 * 1f * num4, val2, (ForceMode)2);
+					val.AddForceAtPosition(val3 * 1f * num4 * val.mass, val2, (ForceMode)1);
 				}
 			}
 		}
@@ -8871,16 +7581,16 @@ using UnityEngine;
 
 public class RHIBVisuals : FacepunchBehaviour, INotifyLOD, IClientComponent
 {
-	[Header("RHIB")]
 	[SerializeField]
+	[Header("RHIB")]
 	private RHIB _owner;
 
-	[SerializeField]
 	[Header("References")]
+	[SerializeField]
 	private Transform _compass;
 
-	[SerializeField]
 	[Header("References - Screens")]
+	[SerializeField]
 	private RHIBScreen[] _mapScreens;
 }
 
@@ -8898,6 +7608,22 @@ public class TwitchBus : CH47Helicopter
 
 
 using UnityEngine;
+
+public class SedanWheelSmoke : MonoBehaviour
+{
+	public ParticleSystem[] tireSmoke;
+
+	public ParticleSystem[] tireWaterSplash;
+
+	public ParticleSystem[] tireWaterSplash_Extra;
+
+	public bool[] wheelTouching;
+}
+
+
+using UnityEngine;
+using UnityEngine.InputSystem;
+using UnityEngine.InputSystem.Controls;
 
 public class sedanAnimation : MonoBehaviour
 {
@@ -8968,12 +7694,12 @@ public class sedanAnimation : MonoBehaviour
 
 	private void InputPlayer()
 	{
-		if (Input.GetKey((KeyCode)119))
+		if (((ButtonControl)Keyboard.current[(Key)37]).isPressed)
 		{
 			gasPedal = Mathf.Clamp(gasPedal + Time.deltaTime * GasLerpTime, -100f, 100f);
 			brakePedal = Mathf.Lerp(brakePedal, 0f, Time.deltaTime * GasLerpTime);
 		}
-		else if (Input.GetKey((KeyCode)115))
+		else if (((ButtonControl)Keyboard.current[(Key)33]).isPressed)
 		{
 			gasPedal = Mathf.Clamp(gasPedal - Time.deltaTime * GasLerpTime, -100f, 100f);
 			brakePedal = Mathf.Lerp(brakePedal, 0f, Time.deltaTime * GasLerpTime);
@@ -8983,11 +7709,11 @@ public class sedanAnimation : MonoBehaviour
 			gasPedal = Mathf.Lerp(gasPedal, 0f, Time.deltaTime * GasLerpTime);
 			brakePedal = Mathf.Lerp(brakePedal, 100f, Time.deltaTime * GasLerpTime / 5f);
 		}
-		if (Input.GetKey((KeyCode)97))
+		if (((ButtonControl)Keyboard.current[(Key)15]).isPressed)
 		{
 			steering = Mathf.Clamp(steering - Time.deltaTime * SteeringLerpTime, -60f, 60f);
 		}
-		else if (Input.GetKey((KeyCode)100))
+		else if (((ButtonControl)Keyboard.current[(Key)18]).isPressed)
 		{
 			steering = Mathf.Clamp(steering + Time.deltaTime * SteeringLerpTime, -60f, 60f);
 		}
@@ -9082,7 +7808,7 @@ public class sedanAnimation : MonoBehaviour
 		//IL_040c: Unknown result type (might be due to invalid IL or missing references)
 		//IL_0417: Unknown result type (might be due to invalid IL or missing references)
 		//IL_0421: Unknown result type (might be due to invalid IL or missing references)
-		float num = Vector3.Dot(myRigidbody.velocity, ((Component)myRigidbody).transform.forward);
+		float num = Vector3.Dot(myRigidbody.linearVelocity, ((Component)myRigidbody).transform.forward);
 		if (FL_wheelCollider.isGrounded)
 		{
 			FL_shock.localPosition = new Vector3(FL_shock.localPosition.x, shockRestingPosY + GetShockHeightDelta(FL_wheelCollider), FL_shock.localPosition.z);
@@ -9138,20 +7864,6 @@ public class sedanAnimation : MonoBehaviour
 		Physics.Linecast(((Component)wheel).transform.position, ((Component)wheel).transform.position - Vector3.up * 10f, ref val, mask);
 		return Mathx.RemapValClamped(((RaycastHit)(ref val)).distance, traceDistanceNeutralPoint - shockDistance, traceDistanceNeutralPoint + shockDistance, shockDistance * 0.75f, -0.75f * shockDistance);
 	}
-}
-
-
-using UnityEngine;
-
-public class SedanWheelSmoke : MonoBehaviour
-{
-	public ParticleSystem[] tireSmoke;
-
-	public ParticleSystem[] tireWaterSplash;
-
-	public ParticleSystem[] tireWaterSplash_Extra;
-
-	public bool[] wheelTouching;
 }
 
 
